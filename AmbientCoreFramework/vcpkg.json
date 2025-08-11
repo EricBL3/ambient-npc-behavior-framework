@@ -1,0 +1,6 @@
+﻿{
+  "name": "ambient-core-framework",
+  "dependencies": [
+    "gtest"
+  ]
+}
