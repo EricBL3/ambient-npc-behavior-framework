@@ -1,5 +1,9 @@
-﻿#include <gtest/gtest.h>
-#include "../../src/Memory/TransitionMemory.h"
+﻿//
+// Created by Eric on 8/11/2025.
+//
+
+#include <gtest/gtest.h>
+#include "Memory/TransitionMemory.h"
 
 TEST(TransitionMemoryTest, ConstructorInitializesCorrectly)
 {
@@ -48,7 +52,7 @@ TEST(TransitionMemoryTest, IsOlderThanWorksCorrectly) {
 
 TEST(TransitionMemoryTest, EqualTimesAreNotOlder) {
     TransitionMemory memory1(1, 100);
-    TransitionMemory memory2(5, 100);  // Same time, different nodes
+    TransitionMemory memory2(5, 100);
     
     EXPECT_FALSE(memory1.IsOlderThan(memory2));
     EXPECT_FALSE(memory2.IsOlderThan(memory1));
@@ -75,7 +79,6 @@ TEST(TransitionMemoryTest, ConstructorRejectsBothNegative) {
 }
 
 TEST(TransitionMemoryTest, ConstructorAcceptsBoundaryValues) {
-    // These should work fine
     EXPECT_NO_THROW(TransitionMemory(0, 0));
     EXPECT_NO_THROW(TransitionMemory(1, 0));
     EXPECT_NO_THROW(TransitionMemory(0, 1));
