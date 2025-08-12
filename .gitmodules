@@ -1,0 +1,3 @@
+[submodule "AmbientCoreFramework/vcpkg"]
+	path = AmbientCoreFramework/vcpkg
+	url = https://github.com/microsoft/vcpkg.git
