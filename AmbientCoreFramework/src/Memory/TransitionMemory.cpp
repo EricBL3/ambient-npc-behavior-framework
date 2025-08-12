@@ -15,6 +15,7 @@ TransitionMemory::TransitionMemory(int node_id, int time) : IMemory(time)
     last_used_time = time;
 }
 
+// The transition memory must match on target_node_id.
 bool TransitionMemory::MatchesMemory(const IMemory& other) const
 {
     const auto other_transition_memory = dynamic_cast<const TransitionMemory*>(&other);

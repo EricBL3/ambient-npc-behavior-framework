@@ -16,7 +16,8 @@ public:
         int interrupted_action_id,
         int interrupted_sequence_id,
         int interrupted_sequence_node_id,
-        int interrupted_target_entity_id
+        int interrupted_target_entity_id,
+        int time
     );
 
     bool MatchesMemory(const IMemory& other) const override;

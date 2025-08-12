@@ -20,6 +20,7 @@ ActionMemory::ActionMemory(int action_id, int target_entity_id, int last_used_ti
 	this->target_entity_id = target_entity_id;
 }
 
+// The action memory must match in action_id and target_entity_id.
 bool ActionMemory::MatchesMemory(const IMemory& other) const
 {
 	const auto other_transition_memory = dynamic_cast<const ActionMemory*>(&other);
