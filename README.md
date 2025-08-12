@@ -11,17 +11,31 @@ This is part of my Master's project on ambient character behavior.
 - **C++17 compatible compiler**
   - **Windows**: Visual Studio 2019+ or Visual Studio Build Tools
   - **macOS**: Xcode Command Line Tools (`xcode-select --install`)
+    **Additionally (see macOS setup below): Homebrew, pkg-config**
   - **Linux**: GCC 8+ or Clang 7+
 
 ### Setup Instructions
 
 #### 1. Clone Repository
 ```bash
-git clone https://github.com/EricBL3/ambient-behavior-core-framework.git
+git clone repo-link (https or ssh)
 cd AmbientCoreFramework
 ```
 
-#### 2. Bootstrap vcpkg (first time only)
+#### 2. macOS Additional Setup (skip if you're on Windows/Linux)
+```
+# If you don't have Homebrew installed, install it using:
+/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+
+# Install the required build tools
+brew install pkg-config
+
+# Make sure Xcode Command Line Tools are installed:
+xcode-select --install
+
+```
+
+#### 3. Bootstrap vcpkg (first time only)
 ```
 # Clone and bootstrap vcpkg
 git clone https://github.com/Microsoft/vcpkg.git
@@ -37,19 +51,32 @@ cd vcpkg
 cd ..
 ```
 
-#### 3. Configure Project
+#### 4. Install dependencies via vcpkg
+```
+cd vcpkg
+
+# Install dependencies listed in vcpkg.json manifest
+./vcpkg install
+
+cd ..
+```
+
+#### 5. Configure Project
 ```
 # Windows
 cmake -S . -B build -DCMAKE_TOOLCHAIN_FILE=vcpkg/scripts/buildsystems/vcpkg.cmake -DVCPKG_TARGET_TRIPLET=x64-windows
 
-# macOS
+# macOS (Intel)
 cmake -S . -B build -DCMAKE_TOOLCHAIN_FILE=vcpkg/scripts/buildsystems/vcpkg.cmake -DVCPKG_TARGET_TRIPLET=x64-osx
+
+#macOS (Apple Silicon / ARM)
+cmake -S . -B build -DCMAKE_TOOLCHAIN_FILE=vcpkg/scripts/buildsystems/vcpkg.cmake -DVCPKG_TARGET_TRIPLET=arm64-osx
 
 # Linux
 cmake -S . -B build -DCMAKE_TOOLCHAIN_FILE=vcpkg/scripts/buildsystems/vcpkg.cmake -DVCPKG_TARGET_TRIPLET=x64-linux
 ```
 
-#### 4. Build and Test
+#### 6. Build and Test
 ```
 # Build the project
 cmake --build build --config Release

@@ -69,6 +69,7 @@ vcpkg/vcpkg
 vcpkg/vcpkg.exe
 
 # IDEs and Editors
+../.idea/
 .idea/
 .vs/
 .vscode/
