@@ -25,6 +25,7 @@ private:
     void EnforceMaxActionMemories();
     void EnforceMaxInterruptionMemories();
 
+    void RemoveExistingTransitionMemory(int target_node_id);
 
 public:
     MemorySystem(int max_transitions, int max_actions, int max_interruptions);
