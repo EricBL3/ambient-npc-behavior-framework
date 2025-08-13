@@ -21,6 +21,7 @@ public:
     );
 
     bool MatchesMemory(const IMemory& other) const override;
+    bool MatchesMemory(int other_action_id, int other_sequence_id, int other_sequence_node_id) const;
     int GetInterruptedActionId() const;
     int GetInterruptedSequenceId() const;
     int GetInterruptedSequenceNodeId() const;

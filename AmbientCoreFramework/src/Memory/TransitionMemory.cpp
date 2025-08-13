@@ -16,6 +16,12 @@ TransitionMemory::TransitionMemory(int node_id, int time) : IMemory(time)
 }
 
 // The transition memory must match on target_node_id.
+bool TransitionMemory::MatchesMemory(int other_node_id) const
+{
+    return this->target_node_id == other_node_id;
+}
+
+
 bool TransitionMemory::MatchesMemory(const IMemory& other) const
 {
     const auto other_transition_memory = dynamic_cast<const TransitionMemory*>(&other);
@@ -24,7 +30,7 @@ bool TransitionMemory::MatchesMemory(const IMemory& other) const
         return false;
     }
 
-    return this->target_node_id == other_transition_memory->target_node_id;
+    return MatchesMemory(other_transition_memory->target_node_id);
 }
 
 int TransitionMemory::GetTargetNodeId() const

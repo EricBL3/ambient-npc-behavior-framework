@@ -29,8 +29,13 @@ bool ActionMemory::MatchesMemory(const IMemory& other) const
 		return false;
 	}
 
-	return this->action_id == other_transition_memory->action_id &&
-		this->target_entity_id == other_transition_memory->target_entity_id;
+	return MatchesMemory(other_transition_memory->action_id, other_transition_memory->target_entity_id);
+}
+
+bool ActionMemory::MatchesMemory(int other_action_id, int other_target_entity_id) const
+{
+	return this->action_id == other_action_id &&
+		this->target_entity_id == other_target_entity_id;
 }
 
 int ActionMemory::GetActionId() const

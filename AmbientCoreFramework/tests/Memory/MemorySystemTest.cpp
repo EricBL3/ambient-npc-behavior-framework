@@ -106,7 +106,7 @@ TEST_F(MemorySystemTest, SetMaxInterruptionMemoriesEnforcesNewCapacityImmediatel
 TEST_F(MemorySystemTest, FindTransitionMemoryReturnsCorrectMemory) {
     memory_system->UpdateTransitionMemory(5, 100);
 
-    TransitionMemory* found = memory_system->FindTransitionMemory(5);
+    const TransitionMemory* found = memory_system->FindTransitionMemory(5);
     ASSERT_NE(nullptr, found);
     EXPECT_EQ(5, found->GetTargetNodeId());
     EXPECT_EQ(100, found->GetLastUsedTime());
@@ -129,7 +129,7 @@ TEST_F(MemorySystemTest, FindTransitionMemoryMatchesOnlyNodeId) {
 TEST_F(MemorySystemTest, FindActionMemoryReturnsCorrectMemory) {
     memory_system->UpdateActionMemory(3, 10, 100);
 
-    ActionMemory* found = memory_system->FindActionMemory(3, 10);
+    const ActionMemory* found = memory_system->FindActionMemory(3, 10);
     ASSERT_NE(nullptr, found);
     EXPECT_EQ(3, found->GetActionId());
     EXPECT_EQ(10, found->GetTargetEntityId());
@@ -151,7 +151,7 @@ TEST_F(MemorySystemTest, FindActionMemoryRequiresBothKeysToMatch) {
 TEST_F(MemorySystemTest, FindInterruptionMemoryReturnsCorrectMemory) {
     memory_system->UpdateInterruptionMemory(5, 10, 15, 20, 100);
 
-    InterruptionMemory* found = memory_system->FindInterruptionMemory(5, 10, 15);
+    const InterruptionMemory* found = memory_system->FindInterruptionMemory(5, 10, 15);
     ASSERT_NE(nullptr, found);
     EXPECT_EQ(5, found->GetInterruptedActionId());
     EXPECT_EQ(10, found->GetInterruptedSequenceId());
@@ -185,7 +185,7 @@ TEST_F(MemorySystemTest, UpdateTransitionMemoryCreatesNewEntryAndReturnsTrue) {
 TEST_F(MemorySystemTest, UpdateTransitionMemoryStoresCorrectData) {
     memory_system->UpdateTransitionMemory(5, 100);
 
-    TransitionMemory* found = memory_system->FindTransitionMemory(5);
+    const TransitionMemory* found = memory_system->FindTransitionMemory(5);
     ASSERT_NE(nullptr, found);
     EXPECT_EQ(5, found->GetTargetNodeId());
     EXPECT_EQ(100, found->GetLastUsedTime());
@@ -195,7 +195,7 @@ TEST_F(MemorySystemTest, UpdateTransitionMemoryReplacesExistingEntry) {
     memory_system->UpdateTransitionMemory(5, 100);
     memory_system->UpdateTransitionMemory(5, 200);
 
-    TransitionMemory* found = memory_system->FindTransitionMemory(5);
+    const TransitionMemory* found = memory_system->FindTransitionMemory(5);
     ASSERT_NE(nullptr, found);
 
     EXPECT_EQ(1, memory_system->GetTransitionMemoryCount());
@@ -222,7 +222,7 @@ TEST_F(MemorySystemTest, InvalidUpdateDoesNotRemoveExistingMemoryAndReturnsFalse
 
     // Original memory should still exist (validation failed before removal)
     EXPECT_EQ(1, memory_system->GetTransitionMemoryCount());
-    TransitionMemory* found = memory_system->FindTransitionMemory(5);
+    const TransitionMemory* found = memory_system->FindTransitionMemory(5);
     ASSERT_NE(nullptr, found);
     EXPECT_EQ(100, found->GetLastUsedTime());  // Original data preserved
 }
@@ -236,7 +236,7 @@ TEST_F(MemorySystemTest, UpdateActionMemoryCreatesNewEntry) {
 TEST_F(MemorySystemTest, UpdateActionMemoryStoresCorrectData) {
     memory_system->UpdateActionMemory(3, 10, 100);
 
-    ActionMemory* found = memory_system->FindActionMemory(3, 10);
+    const ActionMemory* found = memory_system->FindActionMemory(3, 10);
     ASSERT_NE(nullptr, found);
     EXPECT_EQ(3, found->GetActionId());
     EXPECT_EQ(10, found->GetTargetEntityId());
@@ -247,7 +247,7 @@ TEST_F(MemorySystemTest, UpdateActionMemoryReplacesExistingEntry) {
     memory_system->UpdateActionMemory(3, 10, 100);
     memory_system->UpdateActionMemory(3, 10, 200);  // Same action+entity, different time
 
-    ActionMemory* found = memory_system->FindActionMemory(3, 10);
+    const ActionMemory* found = memory_system->FindActionMemory(3, 10);
     ASSERT_NE(nullptr, found);
 
     EXPECT_EQ(1, memory_system->GetActionMemoryCount());
@@ -274,7 +274,7 @@ TEST_F(MemorySystemTest, InvalidActionUpdateDoesNotRemoveExistingMemoryAndReturn
 
     // Original memory should still exist (validation failed before removal)
     EXPECT_EQ(1, memory_system->GetActionMemoryCount());
-    ActionMemory* found = memory_system->FindActionMemory(3, 10);
+    const ActionMemory* found = memory_system->FindActionMemory(3, 10);
     ASSERT_NE(nullptr, found);
     EXPECT_EQ(100, found->GetLastUsedTime());  // Original data preserved
 }
@@ -288,7 +288,7 @@ TEST_F(MemorySystemTest, UpdateInterruptionMemoryCreatesNewEntryAndReturnsTrue) 
 TEST_F(MemorySystemTest, UpdateInterruptionMemoryStoresCorrectData) {
     memory_system->UpdateInterruptionMemory(5, 10, 15, 20, 100);
 
-    InterruptionMemory* found = memory_system->FindInterruptionMemory(5, 10, 15);
+    const InterruptionMemory* found = memory_system->FindInterruptionMemory(5, 10, 15);
     ASSERT_NE(nullptr, found);
     EXPECT_EQ(5, found->GetInterruptedActionId());
     EXPECT_EQ(10, found->GetInterruptedSequenceId());
@@ -301,7 +301,7 @@ TEST_F(MemorySystemTest, UpdateInterruptionMemoryReplacesExistingEntry) {
     memory_system->UpdateInterruptionMemory(5, 10, 15, 20, 100);
     memory_system->UpdateInterruptionMemory(5, 10, 15, 25, 200);  // Same keys, different entity+time
 
-    InterruptionMemory* found = memory_system->FindInterruptionMemory(5, 10, 15);
+    const InterruptionMemory* found = memory_system->FindInterruptionMemory(5, 10, 15);
     ASSERT_NE(nullptr, found);
 
     EXPECT_EQ(1, memory_system->GetInterruptionMemoryCount());
@@ -329,7 +329,7 @@ TEST_F(MemorySystemTest, InvalidInterruptionUpdateDoesNotRemoveExistingMemoryAnd
 
     // Original memory should still exist (validation failed before removal)
     EXPECT_EQ(1, memory_system->GetInterruptionMemoryCount());
-    InterruptionMemory* found = memory_system->FindInterruptionMemory(5, 10, 15);
+    const InterruptionMemory* found = memory_system->FindInterruptionMemory(5, 10, 15);
     ASSERT_NE(nullptr, found);
     EXPECT_EQ(20, found->GetInterruptedTargetEntityId());  // Original data preserved
     EXPECT_EQ(100, found->GetLastUsedTime());              // Original time preserved

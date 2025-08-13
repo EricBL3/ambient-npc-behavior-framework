@@ -47,9 +47,16 @@ bool InterruptionMemory::MatchesMemory(const IMemory &other) const
         return false;
     }
 
-    return this->interrupted_action_id == other_transition_memory->interrupted_action_id &&
-        this->interrupted_sequence_id == other_transition_memory->interrupted_sequence_id &&
-            this->interrupted_sequence_node_id == other_transition_memory->interrupted_sequence_node_id;
+    return MatchesMemory(other_transition_memory->interrupted_action_id,
+        other_transition_memory->interrupted_sequence_id,
+        other_transition_memory->interrupted_sequence_node_id);
+}
+
+bool InterruptionMemory::MatchesMemory(int other_action_id, int other_sequence_id, int other_sequence_node_id) const
+{
+    return this->interrupted_action_id == other_action_id &&
+        this->interrupted_sequence_id == other_sequence_id &&
+        this->interrupted_sequence_node_id == other_sequence_node_id;
 }
 
 int InterruptionMemory::GetInterruptedActionId() const

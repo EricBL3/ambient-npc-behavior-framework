@@ -37,9 +37,9 @@ public:
     bool UpdateActionMemory(int action_id, int target_entity_id, int current_time);
     bool UpdateInterruptionMemory(int action_id, int sequence_id, int node_id, int entity_id, int current_time);
 
-    TransitionMemory* FindTransitionMemory(int target_node_id) const;
-    ActionMemory* FindActionMemory(int action_id, int target_entity_id) const;
-    InterruptionMemory* FindInterruptionMemory(int action_id, int sequence_id, int node_id) const;
+    const TransitionMemory* FindTransitionMemory(int target_node_id) const;
+    const ActionMemory* FindActionMemory(int action_id, int target_entity_id) const;
+    const InterruptionMemory* FindInterruptionMemory(int action_id, int sequence_id, int node_id) const;
 
     // Returns the node_id that has been used less recently.
     int GetLeastRecentlyVisitedNode(const std::vector<int>& node_ids) const;

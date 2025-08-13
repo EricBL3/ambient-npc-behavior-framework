@@ -78,19 +78,46 @@ bool MemorySystem::UpdateInterruptionMemory(int action_id, int sequence_id, int 
     throw std::logic_error("Not implemented");
 }
 
-TransitionMemory * MemorySystem::FindTransitionMemory(int target_node_id) const
+const TransitionMemory * MemorySystem::FindTransitionMemory(int target_node_id) const
 {
-    throw std::logic_error("Not implemented");
+    for (const auto& memory : transition_memories)
+    {
+        if (memory.MatchesMemory(target_node_id))
+        {
+            return &memory;
+        }
+    }
+
+    // If memory not found, return nullptr
+    return nullptr;
 }
 
-ActionMemory * MemorySystem::FindActionMemory(int action_id, int target_entity_id) const
+const ActionMemory * MemorySystem::FindActionMemory(int action_id, int target_entity_id) const
 {
-    throw std::logic_error("Not implemented");
+    for (const auto& memory : action_memories)
+    {
+        if (memory.MatchesMemory(action_id, target_entity_id))
+        {
+            return &memory;
+        }
+    }
+
+    // If memory not found, return nullptr
+    return nullptr;
 }
 
-InterruptionMemory * MemorySystem::FindInterruptionMemory(int action_id, int sequence_id, int node_id) const
+const InterruptionMemory * MemorySystem::FindInterruptionMemory(int action_id, int sequence_id, int node_id) const
 {
-    throw std::logic_error("Not implemented");
+    for (const auto& memory : interruption_memories)
+    {
+        if (memory.MatchesMemory(action_id, sequence_id, node_id))
+        {
+            return &memory;
+        }
+    }
+
+    // If memory not found, return nullptr
+    return nullptr;
 }
 
 int MemorySystem::GetLeastRecentlyVisitedNode(const std::vector<int> &node_ids) const
