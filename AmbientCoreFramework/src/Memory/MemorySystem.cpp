@@ -4,29 +4,62 @@
 
 #include "MemorySystem.h"
 
+#include <iostream>
+
 void MemorySystem::LogError(const std::string &message) const
 {
-    throw std::logic_error("Not implemented");
+    std::cerr << "[MemorySystem Error]: " << message << std::endl;
+}
+
+void MemorySystem::EnforceMaxTransitionMemories()
+{
+    if (GetTransitionMemoryCount() > GetMaxTransitionMemories())
+    {
+        // Removes first entry because it is the oldest one.
+        transition_memories.erase(transition_memories.begin());
+    }
+}
+
+void MemorySystem::EnforceMaxActionMemories()
+{
+    if (GetActionMemoryCount() > GetMaxActionMemories())
+    {
+        // Removes first entry because it is the oldest one.
+        action_memories.erase(action_memories.begin());
+    }
+}
+
+void MemorySystem::EnforceMaxInterruptionMemories()
+{
+    if (GetInterruptionMemoryCount() > GetMaxInterruptionMemories())
+    {
+        // Removes first entry because it is the oldest one.
+        interruption_memories.erase(interruption_memories.begin());
+    }
 }
 
 MemorySystem::MemorySystem(int max_transitions, int max_actions, int max_interruptions)
 {
-    throw std::logic_error("Not implemented");
+    SetMaxTransitionMemories(max_transitions);
+    SetMaxActionMemories(max_actions);
+    SetMaxInterruptionMemories(max_interruptions);
+
+    ClearAllMemories();
 }
 
 int MemorySystem::GetMaxTransitionMemories() const
 {
-    throw std::logic_error("Not implemented");
+    return max_transition_memories;
 }
 
 int MemorySystem::GetMaxActionMemories() const
 {
-    throw std::logic_error("Not implemented");
+    return max_action_memories;
 }
 
 int MemorySystem::GetMaxInterruptionMemories() const
 {
-    throw std::logic_error("Not implemented");
+    return max_interruption_memories;
 }
 
 bool MemorySystem::UpdateTransitionMemory(int target_node_id, int current_time)
@@ -82,35 +115,58 @@ bool MemorySystem::RemoveInterruptionMemory(int action_id, int sequence_id, int 
 
 void MemorySystem::SetMaxTransitionMemories(int max_transitions)
 {
-    throw std::logic_error("Not implemented");
+    if (max_transitions <= 0)
+    {
+        LogError("MemorySystem: max_transitions must be greater than 0, keeping current value");
+        return;
+    }
+
+    this->max_transition_memories = max_transitions;
+    EnforceMaxTransitionMemories();
 }
 
 void MemorySystem::SetMaxActionMemories(int max_actions)
 {
-    throw std::logic_error("Not implemented");
+    if (max_actions <= 0)
+    {
+        LogError("MemorySystem: max_actions must be greater than 0, keeping current value");
+        return;
+    }
+
+    this->max_action_memories = max_actions;
+    EnforceMaxActionMemories();
 }
 
 void MemorySystem::SetMaxInterruptionMemories(int max_interruptions)
 {
-    throw std::logic_error("Not implemented");
+    if (max_interruptions <= 0)
+    {
+        LogError("MemorySystem: max_interruptions must be greater than 0, keeping current value");
+        return;
+    }
+
+    this->max_interruption_memories = max_interruptions;
+    EnforceMaxInterruptionMemories();
 }
 
 void MemorySystem::ClearAllMemories()
 {
-    throw std::logic_error("Not implemented");
+    transition_memories.clear();
+    action_memories.clear();
+    interruption_memories.clear();
 }
 
 size_t MemorySystem::GetTransitionMemoryCount() const
 {
-    throw std::logic_error("Not implemented");
+    return transition_memories.size();
 }
 
 size_t MemorySystem::GetActionMemoryCount() const
 {
-    throw std::logic_error("Not implemented");
+    return action_memories.size();
 }
 
 size_t MemorySystem::GetInterruptionMemoryCount() const
 {
-    throw std::logic_error("Not implemented");
+    return interruption_memories.size();
 }

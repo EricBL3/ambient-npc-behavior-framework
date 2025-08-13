@@ -21,6 +21,9 @@ private:
 
     void LogError(const std::string& message) const;
 
+    void EnforceMaxTransitionMemories();
+    void EnforceMaxActionMemories();
+    void EnforceMaxInterruptionMemories();
 
 
 public:

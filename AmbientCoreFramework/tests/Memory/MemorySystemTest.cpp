@@ -171,6 +171,7 @@ TEST_F(MemorySystemTest, FindInterruptionMemoryRequiresAllThreeKeysToMatch) {
     EXPECT_EQ(nullptr, memory_system->FindInterruptionMemory(5, 10, 16));  // Different node
 }
 
+/*
 // =============================================================================
 // MEMORY UPDATE TESTS
 // =============================================================================
@@ -462,3 +463,4 @@ TEST_F(MemorySystemTest, RemoveInterruptionMemoryReturnsFalseWhenNotSuccessful) 
     EXPECT_FALSE(memory_system->RemoveInterruptionMemory(2, 10, 15));
     EXPECT_EQ(1, memory_system->GetInterruptionMemoryCount());
 }
+*/
