@@ -49,7 +49,7 @@ public:
     // Returns the entity_id that has been used less recently with the action_id.
     int GetLeastRecentlyUsedEntityForAction(int action_id, const std::vector<int>& entity_ids) const;
 
-    void ClearInterruptionMemories(int sequence_id);
+    void ClearSequenceInterruptionMemories(int sequence_id);
     bool RemoveInterruptionMemory(int action_id, int sequence_id, int node_id);
 
     void SetMaxTransitionMemories(int max_transitions);

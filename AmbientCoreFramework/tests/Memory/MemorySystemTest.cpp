@@ -171,7 +171,6 @@ TEST_F(MemorySystemTest, FindInterruptionMemoryRequiresAllThreeKeysToMatch) {
     EXPECT_EQ(nullptr, memory_system->FindInterruptionMemory(5, 10, 16));  // Different node
 }
 
-/*
 // =============================================================================
 // MEMORY UPDATE TESTS
 // =============================================================================
@@ -334,7 +333,7 @@ TEST_F(MemorySystemTest, InvalidInterruptionUpdateDoesNotRemoveExistingMemoryAnd
     EXPECT_EQ(20, found->GetInterruptedTargetEntityId());  // Original data preserved
     EXPECT_EQ(100, found->GetLastUsedTime());              // Original time preserved
 }
-
+/*
 // =============================================================================
 // RECENCY SELECTION TESTS
 // =============================================================================
@@ -414,6 +413,7 @@ TEST_F(MemorySystemTest, GetLeastRecentlyUsedEntityHandlesEqualTimestamps) {
 
     EXPECT_TRUE(selected == 10 || selected == 11);
 }
+*/
 
 // =============================================================================
 // CLEANUP TESTS
@@ -434,7 +434,7 @@ TEST_F(MemorySystemTest, ClearInterruptionMemoriesRemovesAllFromSequence) {
     memory_system->UpdateInterruptionMemory(6, 10, 16, 21, 200);  // Sequence 10
     memory_system->UpdateInterruptionMemory(7, 12, 17, 22, 300);  // Sequence 12
 
-    memory_system->ClearInterruptionMemories(10);
+    memory_system->ClearSequenceInterruptionMemories(10);
 
     EXPECT_EQ(1, memory_system->GetInterruptionMemoryCount());
     EXPECT_EQ(nullptr, memory_system->FindInterruptionMemory(5, 10, 15));
@@ -445,7 +445,7 @@ TEST_F(MemorySystemTest, ClearInterruptionMemoriesRemovesAllFromSequence) {
 TEST_F(MemorySystemTest, ClearInterruptionMemoriesDoesNothingWhenNoneFound) {
     memory_system->UpdateInterruptionMemory(5, 10, 15, 20, 100);
 
-    memory_system->ClearInterruptionMemories(999);  // Non-existent sequence
+    memory_system->ClearSequenceInterruptionMemories(999);  // Non-existent sequence
 
     EXPECT_EQ(1, memory_system->GetInterruptionMemoryCount());  // No change
 }
@@ -463,4 +463,3 @@ TEST_F(MemorySystemTest, RemoveInterruptionMemoryReturnsFalseWhenNotSuccessful) 
     EXPECT_FALSE(memory_system->RemoveInterruptionMemory(2, 10, 15));
     EXPECT_EQ(1, memory_system->GetInterruptionMemoryCount());
 }
-*/

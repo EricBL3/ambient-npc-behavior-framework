@@ -208,9 +208,17 @@ int MemorySystem::GetLeastRecentlyUsedEntityForAction(int action_id, const std::
     throw std::logic_error("Not implemented");
 }
 
-void MemorySystem::ClearInterruptionMemories(int sequence_id)
+// Removes all the interruption memories of the specified sequence_id.
+void MemorySystem::ClearSequenceInterruptionMemories(int sequence_id)
 {
-    throw std::logic_error("Not implemented");
+    // Iterate backwards through the vector to remove the elements safely.
+    for (int i = static_cast<int>(interruption_memories.size()) - 1; i >= 0; i--)
+    {
+        if (interruption_memories[i].GetInterruptedSequenceId() == sequence_id)
+        {
+            interruption_memories.erase(interruption_memories.begin() + i);
+        }
+    }
 }
 
 bool MemorySystem::RemoveInterruptionMemory(int action_id, int sequence_id, int node_id)
