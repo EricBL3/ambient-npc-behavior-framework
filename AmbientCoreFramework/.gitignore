@@ -85,3 +85,5 @@ vcpkg/vcpkg.exe
 .Trashes
 ehthumbs.db
 Thumbs.db
+
+docs/doxygen

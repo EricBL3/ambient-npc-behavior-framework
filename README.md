@@ -118,3 +118,12 @@ cmake --build build --config Debug
 # Run tests with verbose output
 cd build && ctest --verbose && cd ..
 ```
+## Generating Documentation
+1. Install Doxygen in your system.
+2. Run `doxygen Doxyfile` in the project root (AmbientCoreFramework folder).
+3. Open the documentation with one of the following commands
+  ```
+  open docs/doxygen/html/index.html   # macOS
+  xdg-open docs/doxygen/html/index.html # Linux
+  start docs\doxygen\html\index.html   # Windows (PowerShell or CMD)
+  ```
