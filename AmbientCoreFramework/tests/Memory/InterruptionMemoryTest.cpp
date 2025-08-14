@@ -1,9 +1,20 @@
-//
-// Created by Eric Buitron on 2025-08-12.
-//
+/*
+* InterruptionMemoryTest.cpp
+ *
+ * Unit tests for the InterruptionMemory class.
+ * Validates interruption context storage and three-key matching behavior
+ * for action resumption in ambient characters.
+ *
+ * Author: Eric Buitrón López
+ * Created: 8/12/2025
+ */
 
 #include <gtest/gtest.h>
 #include "Memory/InterruptionMemory.h"
+
+// =============================================================================
+// CONSTRUCTION TESTS
+// =============================================================================
 
 TEST(InterruptionMemoryTest, ConstructorInitializesCorrectly)
 {
@@ -19,6 +30,31 @@ TEST(InterruptionMemoryTest, ConstructorHandlesNullEntity) {
     InterruptionMemory memory(5, 10, 15, -1, 456);  // -1 indicates null entity
     EXPECT_EQ(-1, memory.GetInterruptedTargetEntityId());
 }
+
+TEST(InterruptionMemoryTest, RejectsNegativeActionId) {
+    EXPECT_THROW(InterruptionMemory(-1, 10, 15, 20, 100), std::invalid_argument);
+}
+
+TEST(InterruptionMemoryTest, RejectsNegativeSequenceId) {
+    EXPECT_THROW(InterruptionMemory(5, -1, 15, 20, 100), std::invalid_argument);
+}
+
+TEST(InterruptionMemoryTest, RejectsNegativeNodeId) {
+    EXPECT_THROW(InterruptionMemory(5, 10, -1, 20, 100), std::invalid_argument);
+}
+
+TEST(InterruptionMemoryTest, RejectsInvalidEntityIds) {
+    EXPECT_THROW(InterruptionMemory(5, 10, 15, -2, 100), std::invalid_argument);  // -2 not allowed
+    EXPECT_THROW(InterruptionMemory(5, 10, 15, -999, 100), std::invalid_argument); // Other negatives not allowed
+}
+
+TEST(InterruptionMemoryTest, RejectsNegativeTime) {
+    EXPECT_THROW(InterruptionMemory(5, 10, 15, 20, -1), std::invalid_argument);
+}
+
+// =============================================================================
+// MEMORY MATCHING TESTS
+// =============================================================================
 
 TEST(InterruptionMemoryTest, MatchesRequiresAllThreeKeys) {
     InterruptionMemory base_memory(5, 10, 15, 20, 100);
@@ -61,25 +97,4 @@ TEST(InterruptionMemoryTest, EntityIdDoesNotAffectMatching) {
     EXPECT_TRUE(memory1.MatchesMemory(memory2));
     EXPECT_TRUE(memory1.MatchesMemory(memory3));
     EXPECT_TRUE(memory2.MatchesMemory(memory3));
-}
-
-TEST(InterruptionMemoryTest, RejectsNegativeActionId) {
-    EXPECT_THROW(InterruptionMemory(-1, 10, 15, 20, 100), std::invalid_argument);
-}
-
-TEST(InterruptionMemoryTest, RejectsNegativeSequenceId) {
-    EXPECT_THROW(InterruptionMemory(5, -1, 15, 20, 100), std::invalid_argument);
-}
-
-TEST(InterruptionMemoryTest, RejectsNegativeNodeId) {
-    EXPECT_THROW(InterruptionMemory(5, 10, -1, 20, 100), std::invalid_argument);
-}
-
-TEST(InterruptionMemoryTest, RejectsInvalidEntityIds) {
-    EXPECT_THROW(InterruptionMemory(5, 10, 15, -2, 100), std::invalid_argument);  // -2 not allowed
-    EXPECT_THROW(InterruptionMemory(5, 10, 15, -999, 100), std::invalid_argument); // Other negatives not allowed
-}
-
-TEST(InterruptionMemoryTest, RejectsNegativeTime) {
-    EXPECT_THROW(InterruptionMemory(5, 10, 15, 20, -1), std::invalid_argument);
 }

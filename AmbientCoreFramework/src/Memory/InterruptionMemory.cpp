@@ -1,8 +1,19 @@
-//
-// Created by Eric Buitron on 2025-08-12.
-//
+/*
+* InterruptionMemory.cpp
+ *
+ * Implementation of interruption context storage for ambient character behavioral continuity.
+ * Stores action state to enable characters to resume behaviors after handling interruptions
+ * (emergencies, player interactions, etc.).
+ *
+ * Author: Eric Buitrón López
+ * Created: 8/12/2025
+ */
 
 #include "InterruptionMemory.h"
+
+// =============================================================================
+// CONSTRUCTION
+// =============================================================================
 
 InterruptionMemory::InterruptionMemory(
     int interrupted_action_id,
@@ -38,6 +49,10 @@ InterruptionMemory::InterruptionMemory(
     this->interrupted_target_entity_id = interrupted_target_entity_id;
 }
 
+// =============================================================================
+// MEMORY MATCHING (Framework Core Functionality)
+// =============================================================================
+
 // The interruption memory must match in the action_id, sequence_id and sequence_node_id properties.
 bool InterruptionMemory::MatchesMemory(const IMemory &other) const
 {
@@ -58,6 +73,10 @@ bool InterruptionMemory::MatchesMemory(int other_action_id, int other_sequence_i
         this->interrupted_sequence_id == other_sequence_id &&
         this->interrupted_sequence_node_id == other_sequence_node_id;
 }
+
+// =============================================================================
+// CONTEXT DATA ACCESS
+// =============================================================================
 
 int InterruptionMemory::GetInterruptedActionId() const
 {

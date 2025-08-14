@@ -1,8 +1,18 @@
-﻿//
-// Created by Eric on 8/11/2025.
-//
+﻿/*
+* TransitionMemory.cpp
+ *
+ * Implementation of transition decision tracking for ambient character behavioral variety.
+ * Stores which sequence nodes characters have visited to enable recency-based selection.
+ *
+ * Author: Eric Buitrón López
+ * Created: 8/11/2025
+ */
 
 #include "TransitionMemory.h"
+
+// =============================================================================
+// CONSTRUCTION
+// =============================================================================
 
 TransitionMemory::TransitionMemory(int node_id, int time) : IMemory(time)
 {
@@ -14,6 +24,10 @@ TransitionMemory::TransitionMemory(int node_id, int time) : IMemory(time)
     target_node_id = node_id;
     last_used_time = time;
 }
+
+// =============================================================================
+// MEMORY MATCHING
+// =============================================================================
 
 // The transition memory must match on target_node_id.
 bool TransitionMemory::MatchesMemory(int other_node_id) const
@@ -32,6 +46,10 @@ bool TransitionMemory::MatchesMemory(const IMemory& other) const
 
     return MatchesMemory(other_transition_memory->target_node_id);
 }
+
+// =============================================================================
+// DATA ACCESS
+// =============================================================================
 
 int TransitionMemory::GetTargetNodeId() const
 {

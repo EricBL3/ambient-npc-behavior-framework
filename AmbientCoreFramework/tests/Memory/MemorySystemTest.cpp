@@ -1,6 +1,11 @@
-//
-// Created by Eric on 8/12/2025.
-//
+/*
+* MemorySystemTest.cpp
+ *
+ * Unit tests for the MemorySystem class.
+ *
+ * Author: Eric Buitrón López
+ * Created: 8/13/2025
+*/
 
 #include <gtest/gtest.h>
 #include "Memory/MemorySystem.h"
@@ -333,7 +338,7 @@ TEST_F(MemorySystemTest, InvalidInterruptionUpdateDoesNotRemoveExistingMemoryAnd
     EXPECT_EQ(20, found->GetInterruptedTargetEntityId());  // Original data preserved
     EXPECT_EQ(100, found->GetLastUsedTime());              // Original time preserved
 }
-/*
+
 // =============================================================================
 // RECENCY SELECTION TESTS
 // =============================================================================
@@ -413,7 +418,7 @@ TEST_F(MemorySystemTest, GetLeastRecentlyUsedEntityHandlesEqualTimestamps) {
 
     EXPECT_TRUE(selected == 10 || selected == 11);
 }
-*/
+
 
 // =============================================================================
 // CLEANUP TESTS

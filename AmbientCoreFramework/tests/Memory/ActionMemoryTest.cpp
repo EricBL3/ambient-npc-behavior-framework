@@ -1,9 +1,20 @@
-//
-// Created by Eric on 8/11/2025.
-//
+/*
+* ActionMemoryTest.cpp
+ *
+ * Unit tests for the ActionMemory class.
+ * Validates action-entity pair tracking and dual-key matching behavior
+ * for creating natural entity selection variety in ambient characters.
+ *
+ * Author: Eric Buitrón López
+ * Created: 8/11/2025
+ */
 
 #include <gtest/gtest.h>
 #include "Memory/ActionMemory.h"
+
+// =============================================================================
+// CONSTRUCTION TESTS
+// =============================================================================
 
 TEST(ActionMemoryTest, ConstructorInitializesCorrectly) {
     ActionMemory memory(20, 3, 456);
@@ -11,6 +22,20 @@ TEST(ActionMemoryTest, ConstructorInitializesCorrectly) {
     EXPECT_EQ(3, memory.GetTargetEntityId());
     EXPECT_EQ(456, memory.GetLastUsedTime());
 }
+
+TEST(ActionMemoryTest, RejectsNegativeValues) {
+    EXPECT_THROW(ActionMemory(-1, 1, 100), std::invalid_argument);
+    EXPECT_THROW(ActionMemory(1, -1, 100), std::invalid_argument);
+    EXPECT_THROW(ActionMemory(1, 1, -1), std::invalid_argument);
+}
+
+TEST(ActionMemoryTest, AcceptsZeroValues) {
+    EXPECT_NO_THROW(ActionMemory(0, 0, 0));
+}
+
+// =============================================================================
+// MEMORY MATCHING TESTS
+// =============================================================================
 
 TEST(ActionMemoryTest, MatchesActionMemory) {
     ActionMemory memory1(5, 3, 100);
@@ -29,12 +54,3 @@ TEST(ActionMemoryTest, RequiresBothActionAndEntityToMatch) {
     EXPECT_FALSE(base_memory.MatchesMemory(different_entity));
 }
 
-TEST(ActionMemoryTest, RejectsNegativeValues) {
-    EXPECT_THROW(ActionMemory(-1, 1, 100), std::invalid_argument);
-    EXPECT_THROW(ActionMemory(1, -1, 100), std::invalid_argument);
-    EXPECT_THROW(ActionMemory(1, 1, -1), std::invalid_argument);
-}
-
-TEST(ActionMemoryTest, AcceptsZeroValues) {
-    EXPECT_NO_THROW(ActionMemory(0, 0, 0));
-}

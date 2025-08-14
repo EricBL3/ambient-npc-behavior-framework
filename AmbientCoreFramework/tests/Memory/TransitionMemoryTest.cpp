@@ -1,9 +1,19 @@
-﻿//
-// Created by Eric on 8/11/2025.
-//
+﻿/*
+* TransitionMemoryTest.cpp
+ *
+ * Unit tests for the TransitionMemory class.
+ * Validates transition decision tracking and memory matching behavior.
+ *
+ * Author: Eric Buitrón López
+ * Created: 8/11/2025
+ */
 
 #include <gtest/gtest.h>
 #include "Memory/TransitionMemory.h"
+
+// =============================================================================
+// CONSTRUCTION TESTS
+// =============================================================================
 
 TEST(TransitionMemoryTest, ConstructorInitializesCorrectly)
 {
@@ -11,6 +21,19 @@ TEST(TransitionMemoryTest, ConstructorInitializesCorrectly)
     EXPECT_EQ(20, memory.GetTargetNodeId());
     EXPECT_EQ(456, memory.GetLastUsedTime());
 }
+
+TEST(TransitionMemoryTest, RejectsNegativeValues) {
+    EXPECT_THROW(TransitionMemory(-1, 100), std::invalid_argument);
+    EXPECT_THROW(TransitionMemory(1, -1), std::invalid_argument);
+}
+
+TEST(TransitionMemoryTest, AcceptsZeroValues) {
+    EXPECT_NO_THROW(TransitionMemory(0, 0));
+}
+
+// =============================================================================
+// MEMORY MATCHING TESTS
+// =============================================================================
 
 TEST(TransitionMemoryTest, MatchesMemoryWithSameNodeId) {
     TransitionMemory memory1(5, 100);
@@ -26,12 +49,4 @@ TEST(TransitionMemoryTest, DoesNotMatchDifferentNodeId) {
     
     EXPECT_FALSE(memory1.MatchesMemory(memory2));
     EXPECT_FALSE(memory2.MatchesMemory(memory1));
-}
-TEST(TransitionMemoryTest, RejectsNegativeValues) {
-    EXPECT_THROW(TransitionMemory(-1, 100), std::invalid_argument);
-    EXPECT_THROW(TransitionMemory(1, -1), std::invalid_argument);
-}
-
-TEST(TransitionMemoryTest, AcceptsZeroValues) {
-    EXPECT_NO_THROW(TransitionMemory(0, 0));
 }

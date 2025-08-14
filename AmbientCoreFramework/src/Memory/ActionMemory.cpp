@@ -1,8 +1,19 @@
-//
-// Created by Eric on 8/11/2025.
-//
+/*
+* ActionMemory.cpp
+ *
+ * Implementation of action execution tracking for ambient character behavioral variety.
+ * Records which entities have been used for specific actions to enable recency-based
+ * entity selection that creates natural behavioral patterns.
+ *
+ * Author: Eric Buitrón López
+ * Created: 8/11/2025
+ */
 
 #include "ActionMemory.h"
+
+// =============================================================================
+// CONSTRUCTION
+// =============================================================================
 
 ActionMemory::ActionMemory(int action_id, int target_entity_id, int last_used_time) : IMemory(last_used_time)
 {
@@ -19,6 +30,10 @@ ActionMemory::ActionMemory(int action_id, int target_entity_id, int last_used_ti
 	this->action_id = action_id;
 	this->target_entity_id = target_entity_id;
 }
+
+// =============================================================================
+// MEMORY MATCHING (Framework Core Functionality)
+// =============================================================================
 
 // The action memory must match in action_id and target_entity_id.
 bool ActionMemory::MatchesMemory(const IMemory& other) const
@@ -37,6 +52,10 @@ bool ActionMemory::MatchesMemory(int other_action_id, int other_target_entity_id
 	return this->action_id == other_action_id &&
 		this->target_entity_id == other_target_entity_id;
 }
+
+// =============================================================================
+// DATA ACCESS
+// =============================================================================
 
 int ActionMemory::GetActionId() const
 {
