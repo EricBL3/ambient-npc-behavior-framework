@@ -55,6 +55,21 @@ void MemorySystem::RemoveExistingTransitionMemory(int target_node_id)
     }
 }
 
+void MemorySystem::RemoveExistingActionMemory(int action_id, int target_entity_id)
+{
+    // Search for existing memory with same target_node_id
+    auto iterator = std::find_if(action_memories.begin(), action_memories.end(),
+        [action_id, target_entity_id](const ActionMemory& memory) // lambda function: for each memory in the vector
+        {
+           return  memory.MatchesMemory(action_id, target_entity_id); // return true if it matches
+        });
+
+    // Remove existing memory if found
+    if (iterator != action_memories.end()) {
+        action_memories.erase(iterator);
+    }
+}
+
 MemorySystem::MemorySystem(int max_transitions, int max_actions, int max_interruptions)
 {
     SetMaxTransitionMemories(max_transitions);
@@ -102,13 +117,46 @@ bool MemorySystem::UpdateTransitionMemory(int target_node_id, int current_time)
 
 bool MemorySystem::UpdateActionMemory(int action_id, int target_entity_id, int current_time)
 {
-    throw std::logic_error("Not implemented");
+    try
+    {
+        ActionMemory new_memory(action_id, target_entity_id, current_time);
+
+        // remove the action memory if it exists already to prevent duplicates.
+        RemoveExistingActionMemory(action_id, target_entity_id);
+
+        // use std::move to move the created memory instead of copying it in another object
+        action_memories.push_back(std::move(new_memory));
+        EnforceMaxActionMemories();
+
+        return true;
+    } catch (const std::exception& e)
+    {
+        LogError("UpdateActionMemory failed: " + std::string(e.what()));
+        return false;
+    }
 }
 
 bool MemorySystem::UpdateInterruptionMemory(int action_id, int sequence_id, int node_id, int entity_id,
     int current_time)
 {
-    throw std::logic_error("Not implemented");
+    try
+    {
+        InterruptionMemory new_memory(action_id, sequence_id, node_id, entity_id, current_time);
+
+        // remove interruption memory if it exists already to prevent duplicates.
+        RemoveInterruptionMemory(action_id, sequence_id, node_id);
+
+        // use std::move to move the created memory instead of copying it in another object
+        interruption_memories.push_back(std::move(new_memory));
+        EnforceMaxInterruptionMemories();
+
+        return true;
+
+    } catch (const std::exception& e)
+    {
+        LogError("UpdateInterruptionMemory failed: " + std::string(e.what()));
+        return false;
+    }
 }
 
 // Search for the first transition memory that matches the target_node_id
@@ -167,7 +215,20 @@ void MemorySystem::ClearInterruptionMemories(int sequence_id)
 
 bool MemorySystem::RemoveInterruptionMemory(int action_id, int sequence_id, int node_id)
 {
-    throw std::logic_error("Not implemented");
+    // Search for existing memory with same action_id AND sequence_id AND node_id
+    auto iterator = std::find_if(interruption_memories.begin(), interruption_memories.end(),
+        [action_id, sequence_id, node_id](const InterruptionMemory& memory) // lambda function: for each memory in the vector
+        {
+           return  memory.MatchesMemory(action_id, sequence_id, node_id); // return true if it matches
+        });
+
+    // Remove existing memory if found
+    if (iterator != interruption_memories.end()) {
+        interruption_memories.erase(iterator);
+        return true;
+    }
+
+    return false;
 }
 
 void MemorySystem::SetMaxTransitionMemories(int max_transitions)
