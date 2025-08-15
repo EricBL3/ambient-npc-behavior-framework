@@ -132,7 +132,7 @@ public:
      * @see GetLastUsedTime()
      */
     [[nodiscard]]
-    virtual bool IsOlderThan(const IMemory& other) const {
+    virtual bool IsOlderThan(IMemory& other) const {
         return GetLastUsedTime() < other.GetLastUsedTime();
     }
 };
