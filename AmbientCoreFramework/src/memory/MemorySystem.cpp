@@ -9,6 +9,8 @@
 #include <algorithm>
 #include <iostream>
 
+#include "utils/PerformanceTracker.h"
+
 // =============================================================================
 // CONSTRUCTION & CONFIGURATION
 // =============================================================================
@@ -23,7 +25,6 @@
  * @rationale
  * - Delegates individual validation to setter methods for consistency
  * - ClearAllMemories() ensures clean initial state
- * - Different capacity recommendations reflect different usage patterns
  * @complexity O(1) - simple initialization
  * @datastructures Uses std::vector for each memory type (allows efficient iteration and removal)
  */
@@ -36,37 +37,16 @@ MemorySystem::MemorySystem(int max_transitions, int max_actions, int max_interru
     ClearAllMemories();
 }
 
-/**
- * @brief Gets the maximum number of transition memories allowed
- * @return Current maximum transition memory capacity
- *
- * @algorithm Direct member access
- * @complexity O(1) - simple getter
- */
 int MemorySystem::GetMaxTransitionMemories() const
 {
     return max_transition_memories;
 }
 
-/**
- * @brief Gets the maximum number of action memories allowed
- * @return Current maximum action memory capacity
- *
- * @algorithm Direct member access
- * @complexity O(1) - simple getter
- */
 int MemorySystem::GetMaxActionMemories() const
 {
     return max_action_memories;
 }
 
-/**
- * @brief Gets the maximum number of interruption memories allowed
- * @return Current maximum interruption memory capacity
- *
- * @algorithm Direct member access
- * @complexity O(1) - simple getter
- */
 int MemorySystem::GetMaxInterruptionMemories() const
 {
     return max_interruption_memories;
@@ -114,6 +94,7 @@ void MemorySystem::SetMaxActionMemories(int max_actions)
 
     this->max_action_memories = max_actions;
     EnforceMaxActionMemories();
+
 }
 
 /**
@@ -134,6 +115,7 @@ void MemorySystem::SetMaxInterruptionMemories(int max_interruptions)
 
     this->max_interruption_memories = max_interruptions;
     EnforceMaxInterruptionMemories();
+
 }
 
 // =============================================================================
@@ -342,6 +324,7 @@ const InterruptionMemory * MemorySystem::FindInterruptionMemory(int action_id, i
 
     // if found, return pointer to the memory; otherwise return nullptr
     return (iterator !=  interruption_memories.end()) ? &(*iterator) : nullptr;
+
 }
 
 // =============================================================================
@@ -353,12 +336,6 @@ const InterruptionMemory * MemorySystem::FindInterruptionMemory(int action_id, i
  * @param node_ids Vector of node identifiers that are currently valid choices
  * @return Node ID that should be selected for behavioral variety, or -1 on error
  *
- * @algorithm Two-stage selection: unused first, then least-recently-used
- * @rationale
- * - Prioritizes exploration (unused nodes) over exploitation (least recently used nodes)
- * - Random selection among unused nodes prevents deterministic patterns
- * - Fallback to least recently used when all nodes have been visited
- * - Error handling allows graceful degradation
  * @complexity O(n*m) where n = node_ids.size(), m = transition_memories.size()
  * @datastructures
  * - std::vector for input options (allows efficient iteration)
@@ -366,7 +343,6 @@ const InterruptionMemory * MemorySystem::FindInterruptionMemory(int action_id, i
  * @performance_notes
  * - Complexity acceptable for small input sizes (typical: 2-5 nodes)
  * - Could optimize with hash maps for larger node sets (>20 nodes)
- * - Random selection prevents predictable behavioral patterns
  */
 int MemorySystem::GetLeastRecentlyVisitedNode(const std::vector<int> &node_ids) const
 {
@@ -380,6 +356,7 @@ int MemorySystem::GetLeastRecentlyVisitedNode(const std::vector<int> &node_ids) 
     std::vector<int> unused = FindUnusedTransitionNodes(node_ids);
     if (!unused.empty())
     {
+        // Random selection among unused nodes prevents deterministic patterns
         return SelectRandomFromVector(unused);
     }
 
@@ -398,12 +375,10 @@ int MemorySystem::GetLeastRecentlyVisitedNode(const std::vector<int> &node_ids) 
  * - Same two-stage approach as transition selection (unused then least recently used)
  * - Action-specific memory lookup enables entity variety per action type
  * - Allows same entity for different actions, different entities for same action
- * - Compound matching (action_id + entity_id) provides fine-grained variety
  * @complexity O(n*m) where n = entity_ids.size(), m = action_memories.size()
- * @datastructures Uses action-specific memory collections for precise variety control
- * @performance_notes
- * - Compound matching adds slight overhead but enables richer behavioral patterns
- * - Entity variety more important than micro-optimizations for ambient NPCs
+ * @datastructures
+*  - std::vector for input options (allows efficient iteration)
+ * - Internal vectors for collecting unused/oldest entities
  */
 int MemorySystem::GetLeastRecentlyUsedEntityForAction(int action_id, const std::vector<int> &entity_ids) const
 {
@@ -417,6 +392,7 @@ int MemorySystem::GetLeastRecentlyUsedEntityForAction(int action_id, const std::
     std::vector<int> unused = FindUnusedActionEntities(action_id, entity_ids);
     if (!unused.empty())
     {
+        // Random selection among unused entities prevents deterministic patterns
         return SelectRandomFromVector(unused);
     }
 
@@ -866,37 +842,16 @@ std::vector<int> MemorySystem::FindUnusedActionEntities(int action_id, const std
 // DIAGNOSTIC & MONITORING
 // =============================================================================
 
-/**
- * @brief Gets the current number of transition memories stored
- * @return Count of transition memories currently in the system
- *
- * @algorithm Direct std::vector::size() access
- * @complexity O(1) - vector size is cached
- */
 size_t MemorySystem::GetTransitionMemoryCount() const
 {
     return transition_memories.size();
 }
 
-/**
- * @brief Gets the current number of action memories stored
- * @return Count of action memories currently in the system
- *
- * @algorithm Direct std::vector::size() access
- * @complexity O(1) - vector size is cached
- */
 size_t MemorySystem::GetActionMemoryCount() const
 {
     return action_memories.size();
 }
 
-/**
- * @brief Gets the current number of interruption memories stored
- * @return Count of interruption memories currently in the system
- *
- * @algorithm Direct std::vector::size() access
- * @complexity O(1) - vector size is cached
- */
 size_t MemorySystem::GetInterruptionMemoryCount() const
 {
     return interruption_memories.size();
