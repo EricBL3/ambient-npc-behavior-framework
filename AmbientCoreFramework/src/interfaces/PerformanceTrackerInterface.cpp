@@ -8,7 +8,10 @@
 #include "../include/PerformanceTrackerInterface.h"
 #include "utils/PerformanceTracker.h"
 
-extern "C" double GetLastDurationMicroseconds()
+extern "C"
 {
-    return PerformanceTracker::GetLastDurationMicroseconds();
+    AmbientCoreFramework_API double GetLastDurationMicroseconds()
+    {
+        return PerformanceTracker::GetLastDurationMicroseconds();
+    }
 }
