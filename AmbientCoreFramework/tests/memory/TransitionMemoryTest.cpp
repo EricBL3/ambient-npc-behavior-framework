@@ -9,7 +9,7 @@
  */
 
 #include <gtest/gtest.h>
-#include "Memory/TransitionMemory.h"
+#include "memory/TransitionMemory.h"
 
 // =============================================================================
 // CONSTRUCTION TESTS

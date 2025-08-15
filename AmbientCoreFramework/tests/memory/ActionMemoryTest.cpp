@@ -10,7 +10,7 @@
  */
 
 #include <gtest/gtest.h>
-#include "Memory/ActionMemory.h"
+#include "memory/ActionMemory.h"
 
 // =============================================================================
 // CONSTRUCTION TESTS

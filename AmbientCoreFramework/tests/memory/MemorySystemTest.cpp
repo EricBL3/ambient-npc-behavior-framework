@@ -8,7 +8,7 @@
 */
 
 #include <gtest/gtest.h>
-#include "Memory/MemorySystem.h"
+#include "memory/MemorySystem.h"
 
 class MemorySystemTest : public testing::Test {
 protected:

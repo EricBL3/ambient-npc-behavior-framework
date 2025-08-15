@@ -10,7 +10,7 @@
  */
 
 #include <gtest/gtest.h>
-#include "Memory/InterruptionMemory.h"
+#include "memory/InterruptionMemory.h"
 
 // =============================================================================
 // CONSTRUCTION TESTS
