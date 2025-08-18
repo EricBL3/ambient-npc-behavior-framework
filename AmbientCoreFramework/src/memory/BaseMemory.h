@@ -66,12 +66,11 @@ public:
      * @pre time >= 0
      * @post last_used_time == time
      */
-    explicit BaseMemory(const int time) {
+    explicit BaseMemory(const int time) : last_used_time(time) {
         if(time < 0)
         {
             throw std::invalid_argument("BaseMemory: time cannot be negative, got " + std::to_string(time));
         }
-        last_used_time = time;
     }
 
     /**
@@ -115,7 +114,6 @@ public:
      *
      * @post return value >= 0
      */
-    [[nodiscard]]
     int GetLastUsedTime() const { return last_used_time; }
 
     /**
@@ -131,7 +129,6 @@ public:
      *
      * @see GetLastUsedTime()
      */
-    [[nodiscard]]
     virtual bool IsOlderThan(BaseMemory& other) const {
         return GetLastUsedTime() < other.GetLastUsedTime();
     }

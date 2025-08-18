@@ -92,10 +92,7 @@ public:
     // DATA ACCESS
     // =============================================================================
 
-    [[nodiscard]]
     int GetActionId() const;
-
-    [[nodiscard]]
     int GetTargetEntityId() const;
 
 };

@@ -36,15 +36,12 @@ public:
      * @param node_id The identifier of the sequence node that will be created
      * @throws std::invalid_argument if node_id < 0
      */
-    explicit SequenceNode(const int node_id)
+    explicit SequenceNode(int node_id) : node_id(node_id), has_completed(false)
     {
         if(node_id < 0)
         {
             throw std::invalid_argument("SequenceNode: node id cannot be negative, got " + std::to_string(node_id));
         }
-
-        this->node_id = node_id;
-        has_completed = false;
     }
 
     virtual ~SequenceNode() = default;
@@ -66,7 +63,7 @@ public:
         return node_id;
     }
 
-    bool GetHasCompleted() const
+    bool IsCompleted() const
     {
         return has_completed;
     }

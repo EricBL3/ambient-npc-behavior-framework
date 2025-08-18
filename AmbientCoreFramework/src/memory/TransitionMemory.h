@@ -85,6 +85,5 @@ public:
     // DATA ACCESS
     // =============================================================================
 
-    [[nodiscard]]
     int GetTargetNodeId() const;
 };

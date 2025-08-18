@@ -38,7 +38,8 @@ InterruptionMemory::InterruptionMemory(
     int interrupted_sequence_node_id,
     int interrupted_target_entity_id,
     int time
-) : BaseMemory(time)
+) : BaseMemory(time), interrupted_action_id(interrupted_action_id), interrupted_sequence_id(interrupted_sequence_id),
+    interrupted_sequence_node_id(interrupted_sequence_node_id), interrupted_target_entity_id(interrupted_target_entity_id)
 {
     if(interrupted_action_id < 0)
     {
@@ -63,13 +64,6 @@ InterruptionMemory::InterruptionMemory(
         throw std::invalid_argument("InterruptionMemory: interrupted_target_entity_id cannot be less than -1 (null/none), got " +
             std::to_string(interrupted_target_entity_id));
     }
-
-    this->interrupted_action_id = interrupted_action_id;
-    this->interrupted_sequence_id = interrupted_sequence_id;
-    this->interrupted_sequence_node_id = interrupted_sequence_node_id;
-    this->interrupted_target_entity_id = interrupted_target_entity_id;
-
-    // Note: last_used_time is set by the BaseMemory constructor
 }
 
 // =============================================================================
@@ -103,7 +97,7 @@ InterruptionMemory::InterruptionMemory(
 bool InterruptionMemory::MatchesMemory(const BaseMemory &other) const
 {
     // Safe type conversion - returns nullptr if 'other' is not an InterruptionMemory
-    const auto other_transition_memory = dynamic_cast<const InterruptionMemory*>(&other);
+    const auto other_transition_memory (dynamic_cast<const InterruptionMemory*>(&other));
     if(!other_transition_memory)
     {
         return false;

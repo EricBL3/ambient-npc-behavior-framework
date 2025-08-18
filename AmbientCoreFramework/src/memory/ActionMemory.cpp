@@ -28,7 +28,8 @@
  * - Early validation prevents invalid combinations from being stored
  * @complexity O(1) - simple validation and assignment operations
  */
-ActionMemory::ActionMemory(int action_id, int target_entity_id, int last_used_time) : BaseMemory(last_used_time)
+ActionMemory::ActionMemory(int action_id, int target_entity_id, int last_used_time) :
+	BaseMemory(last_used_time), action_id(action_id), target_entity_id(target_entity_id)
 {
 	if(action_id < 0)
     {
@@ -39,10 +40,6 @@ ActionMemory::ActionMemory(int action_id, int target_entity_id, int last_used_ti
     {
         throw std::invalid_argument("ActionMemory: target_entity_id cannot be negative, got " + std::to_string(target_entity_id));
     }
-
-	this->action_id = action_id;
-	this->target_entity_id = target_entity_id;
-	// Note: last_used_time is set by the BaseMemory constructor
 }
 
 // =============================================================================
@@ -76,7 +73,7 @@ ActionMemory::ActionMemory(int action_id, int target_entity_id, int last_used_ti
 bool ActionMemory::MatchesMemory(const BaseMemory& other) const
 {
 	// Safe type conversion - returns nullptr if 'other' is not an ActionMemory
-	const auto other_transition_memory = dynamic_cast<const ActionMemory*>(&other);
+	const auto other_transition_memory (dynamic_cast<const ActionMemory*>(&other));
 	if(!other_transition_memory)
 	{
 		return false;

@@ -24,15 +24,12 @@
  * @rationale Validation ensures data integrity. Delegates time validity to base class
  * @complexity O(1)  - simple assignment operations
  */
-TransitionMemory::TransitionMemory(int node_id, int time) : BaseMemory(time)
+TransitionMemory::TransitionMemory(int node_id, int time) : BaseMemory(time), target_node_id(node_id)
 {
     if(node_id < 0)
     {
         throw std::invalid_argument("TransitionMemory: node_id cannot be negative, got " + std::to_string(node_id));
     }
-    
-    target_node_id = node_id;
-    // Note: last_used_time is set by the BaseMemory constructor
 }
 
 // =============================================================================
@@ -80,7 +77,7 @@ bool TransitionMemory::MatchesMemory(int other_node_id) const
 bool TransitionMemory::MatchesMemory(const BaseMemory& other) const
 {
     // Safe type conversion that returns nullptr if other is not a TransitionMemory
-    const auto other_transition_memory = dynamic_cast<const TransitionMemory*>(&other);
+    const auto other_transition_memory {dynamic_cast<const TransitionMemory*>(&other)};
     if(!other_transition_memory)
     {
         return false;

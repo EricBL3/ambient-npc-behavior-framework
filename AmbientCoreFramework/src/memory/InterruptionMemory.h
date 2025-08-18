@@ -115,15 +115,8 @@ public:
     // CONTEXT DATA ACCESS
     // =============================================================================
 
-    [[nodiscard]]
     int GetInterruptedActionId() const;
-
-    [[nodiscard]]
     int GetInterruptedSequenceId() const;
-
-    [[nodiscard]]
     int GetInterruptedSequenceNodeId() const;
-
-    [[nodiscard]]
     int GetInterruptedTargetEntityId() const;
 };

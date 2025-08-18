@@ -73,6 +73,7 @@ void MemorySystem::SetMaxTransitionMemories(int max_transitions)
     }
 
     this->max_transition_memories = max_transitions;
+    transition_memories.reserve(max_transitions);
     EnforceMaxTransitionMemories();
 }
 
@@ -93,6 +94,7 @@ void MemorySystem::SetMaxActionMemories(int max_actions)
     }
 
     this->max_action_memories = max_actions;
+    action_memories.reserve(max_actions);
     EnforceMaxActionMemories();
 
 }
@@ -114,6 +116,7 @@ void MemorySystem::SetMaxInterruptionMemories(int max_interruptions)
     }
 
     this->max_interruption_memories = max_interruptions;
+    interruption_memories.reserve(max_interruptions);
     EnforceMaxInterruptionMemories();
 
 }
@@ -353,7 +356,7 @@ int MemorySystem::GetLeastRecentlyVisitedNode(const std::vector<int> &node_ids) 
     }
 
     // Try to get an unused node first
-    std::vector<int> unused = FindUnusedTransitionNodes(node_ids);
+    std::vector<int> unused {FindUnusedTransitionNodes(node_ids)};
     if (!unused.empty())
     {
         // Random selection among unused nodes prevents deterministic patterns
@@ -389,7 +392,7 @@ int MemorySystem::GetLeastRecentlyUsedEntityForAction(int action_id, const std::
     }
 
     // Try to get an unused entity first
-    std::vector<int> unused = FindUnusedActionEntities(action_id, entity_ids);
+    std::vector<int> unused {FindUnusedActionEntities(action_id, entity_ids)};
     if (!unused.empty())
     {
         // Random selection among unused entities prevents deterministic patterns
@@ -549,10 +552,13 @@ int MemorySystem::SelectRandomFromVector(const std::vector<int> &options) const
  */
 void MemorySystem::EnforceMaxTransitionMemories()
 {
-    if (GetTransitionMemoryCount() > GetMaxTransitionMemories())
+    auto excess_memories_count = transition_memories.size() > max_transition_memories ?
+        static_cast<int>(transition_memories.size() - max_transition_memories) :
+        0;
+
+    if ( excess_memories_count > 0)
     {
-        // Removes first entry because it is the oldest one.
-        transition_memories.erase(transition_memories.begin());
+        transition_memories.erase(transition_memories.begin(), transition_memories.begin() + excess_memories_count);
     }
 }
 
@@ -565,10 +571,13 @@ void MemorySystem::EnforceMaxTransitionMemories()
  */
 void MemorySystem::EnforceMaxActionMemories()
 {
-    if (GetActionMemoryCount() > GetMaxActionMemories())
+    auto excess_memories_count = action_memories.size() > max_action_memories ?
+        static_cast<int>(action_memories.size() - max_action_memories) :
+        0;
+
+    if ( excess_memories_count > 0)
     {
-        // Removes first entry because it is the oldest one.
-        action_memories.erase(action_memories.begin());
+        action_memories.erase(action_memories.begin(), action_memories.begin() + excess_memories_count);
     }
 }
 
@@ -581,10 +590,13 @@ void MemorySystem::EnforceMaxActionMemories()
  */
 void MemorySystem::EnforceMaxInterruptionMemories()
 {
-    if (GetInterruptionMemoryCount() > GetMaxInterruptionMemories())
+    auto excess_memories_count = interruption_memories.size() > max_interruption_memories ?
+        static_cast<int>(interruption_memories.size() - max_interruption_memories) :
+        0;
+
+    if ( excess_memories_count > 0)
     {
-        // Removes first entry because it is the oldest one.
-        interruption_memories.erase(interruption_memories.begin());
+        interruption_memories.erase(interruption_memories.begin(), interruption_memories.begin() + excess_memories_count);
     }
 }
 
@@ -680,6 +692,7 @@ int MemorySystem::FindOldestTransitionNode(const std::vector<int> &node_ids) con
     }
 
     std::vector<int> oldest_nodes;
+    oldest_nodes.reserve(node_ids.size());
     int oldest_time = INT_MAX;
 
     // Search for memories and track oldest timestamp(s)
@@ -692,18 +705,18 @@ int MemorySystem::FindOldestTransitionNode(const std::vector<int> &node_ids) con
             continue;
         }
 
-        int current_time = memory->GetLastUsedTime();
+        int current_time {memory->GetLastUsedTime()};
 
         // If there's a new oldest_time, we restart the oldest_nodes vector.
         if (current_time < oldest_time)
         {
             oldest_time = current_time;
             oldest_nodes.clear();
-            oldest_nodes.push_back(node_id);
+            oldest_nodes.emplace_back(node_id);
         } // If it there is a tie, we just add it to the existing oldest_nodes vector.
         else if (current_time == oldest_time)
         {
-            oldest_nodes.push_back(node_id);
+            oldest_nodes.emplace_back(node_id);
         }
     }
 
@@ -741,6 +754,7 @@ int MemorySystem::FindOldestActionEntity(int action_id, const std::vector<int> &
     }
 
     std::vector<int> oldest_nodes;
+    oldest_nodes.reserve(entity_ids.size());
     int oldest_time = INT_MAX;
 
     // Search for action-specific memories and track oldest timestamp(s)
@@ -762,11 +776,11 @@ int MemorySystem::FindOldestActionEntity(int action_id, const std::vector<int> &
         {
             oldest_time = current_time;
             oldest_nodes.clear();
-            oldest_nodes.push_back(entity_id);
+            oldest_nodes.emplace_back(entity_id);
         }
         else if (current_time == oldest_time)
         {
-            oldest_nodes.push_back(entity_id);
+            oldest_nodes.emplace_back(entity_id);
         }
     }
 
@@ -802,7 +816,7 @@ std::vector<int> MemorySystem::FindUnusedTransitionNodes(const std::vector<int> 
         const TransitionMemory* memory = FindTransitionMemory(node_id);
         if (memory == nullptr)
         {
-            unused_nodes.push_back(node_id);
+            unused_nodes.emplace_back(node_id);
         }
     }
 
@@ -831,7 +845,7 @@ std::vector<int> MemorySystem::FindUnusedActionEntities(int action_id, const std
         const ActionMemory* memory = FindActionMemory(action_id, entity_id);
         if (memory == nullptr)
         {
-            unused_entities.push_back(entity_id);
+            unused_entities.emplace_back(entity_id);
         }
     }
 
