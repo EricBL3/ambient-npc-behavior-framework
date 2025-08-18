@@ -30,7 +30,7 @@ add_library(AmbientCoreFramework SHARED
 
 # Properties for both libraries
 set_target_properties(AmbientCoreFramework AmbientCoreFramework_Static PROPERTIES
-    CXX_STANDARD 17
+    CXX_STANDARD 20
     CXX_STANDARD_REQUIRED YES
 )
 
