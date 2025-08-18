@@ -25,12 +25,12 @@ private:
     int transition_id;
 
     /**
-     * A reference to the destination node of this transition
+     * @brief A reference to the destination node of this transition
      */
     SequenceNode* to_node;
 
     /**
-     * The preconditions that must be satisfied for the transition to be valid
+     * @brief The preconditions that must be satisfied for the transition to be valid
      */
     std::vector<StateOperation> preconditions;
 
@@ -44,18 +44,16 @@ public:
     explicit Transition(int transition_id, SequenceNode* to_node, size_t initial_preconditions_count = 0);
 
     /**
-     * Modifies the reference of the destination node.
-     * @param node The new destination node of the transition
-     */
-    void SetToNode(SequenceNode* node);
-
-    /**
-     * Adds a new precondition to the transition.
+     * @brief Adds a new precondition to the transition.
      * @param precondition The StateOperation that will be used as a precondition for the transition
+     *
      */
     void AddPrecondition(const StateOperation& precondition);
 
-    const std::vector<StateOperation>& GetPreconditions() const;
+    void SetToNode(SequenceNode* node) { to_node = node; }
 
-    SequenceNode* GetToNode() const;
+    SequenceNode* GetToNode() const { return to_node; }
+
+    const std::vector<StateOperation>& GetPreconditions() const { return preconditions; }
+
 };

@@ -14,22 +14,7 @@ Transition::Transition(int transition_id, SequenceNode* to_node, size_t initial_
     preconditions.reserve(initial_preconditions_count);
 }
 
-void Transition::SetToNode(SequenceNode* node)
-{
-    this->to_node = node;
-}
-
 void Transition::AddPrecondition(const StateOperation& precondition)
 {
     preconditions.emplace_back(precondition);
-}
-
-const std::vector<StateOperation>& Transition::GetPreconditions() const
-{
-    return preconditions;
-}
-
-SequenceNode* Transition::GetToNode() const
-{
-    return to_node;
 }
