@@ -9,7 +9,7 @@
  */
 
 #pragma once
-#include "IMemory.h"
+#include "BaseMemory.h"
 
 /**
  * @ingroup memory_group
@@ -51,7 +51,7 @@
  *
  * @see IMemory, MemorySystem
  */
-class TransitionMemory : public IMemory
+class TransitionMemory : public BaseMemory
 {
 private:
     // =============================================================================
@@ -76,7 +76,7 @@ public:
     // =============================================================================
 
     [[nodiscard]]
-    bool MatchesMemory(const IMemory& other) const override;
+    bool MatchesMemory(const BaseMemory& other) const override;
 
     [[nodiscard]]
     bool MatchesMemory(int other_node_id) const;

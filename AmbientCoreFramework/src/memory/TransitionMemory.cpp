@@ -24,7 +24,7 @@
  * @rationale Validation ensures data integrity. Delegates time validity to base class
  * @complexity O(1)  - simple assignment operations
  */
-TransitionMemory::TransitionMemory(int node_id, int time) : IMemory(time)
+TransitionMemory::TransitionMemory(int node_id, int time) : BaseMemory(time)
 {
     if(node_id < 0)
     {
@@ -32,7 +32,7 @@ TransitionMemory::TransitionMemory(int node_id, int time) : IMemory(time)
     }
     
     target_node_id = node_id;
-    // Note: last_used_time is set by the IMemory constructor
+    // Note: last_used_time is set by the BaseMemory constructor
 }
 
 // =============================================================================
@@ -56,7 +56,7 @@ bool TransitionMemory::MatchesMemory(int other_node_id) const
 /**
  * @brief Checks if this memory matches another memory instance polymorphically
  *
- * Implements the IMemory interface by safely checking if the other memory
+ * Implements the BaseMemory interface by safely checking if the other memory
  * is also a TransitionMemory with the same target_node_id. Uses dynamic_cast
  * for type safety in polymorphic scenarios.
  *
@@ -77,7 +77,7 @@ bool TransitionMemory::MatchesMemory(int other_node_id) const
  * - Alternative approaches (type enums) would require more complex maintenance
  * - Current approach prioritizes type safety over micro-optimizations
  */
-bool TransitionMemory::MatchesMemory(const IMemory& other) const
+bool TransitionMemory::MatchesMemory(const BaseMemory& other) const
 {
     // Safe type conversion that returns nullptr if other is not a TransitionMemory
     const auto other_transition_memory = dynamic_cast<const TransitionMemory*>(&other);

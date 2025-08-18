@@ -38,7 +38,7 @@ InterruptionMemory::InterruptionMemory(
     int interrupted_sequence_node_id,
     int interrupted_target_entity_id,
     int time
-) : IMemory(time)
+) : BaseMemory(time)
 {
     if(interrupted_action_id < 0)
     {
@@ -69,7 +69,7 @@ InterruptionMemory::InterruptionMemory(
     this->interrupted_sequence_node_id = interrupted_sequence_node_id;
     this->interrupted_target_entity_id = interrupted_target_entity_id;
 
-    // Note: last_used_time is set by the IMemory constructor
+    // Note: last_used_time is set by the BaseMemory constructor
 }
 
 // =============================================================================
@@ -79,7 +79,7 @@ InterruptionMemory::InterruptionMemory(
 /**
  * @brief Checks if this memory matches another memory instance polymorphically
  *
- * Implements the IMemory interface by safely checking if the other memory
+ * Implements the BaseMemory interface by safely checking if the other memory
  * is also an InterruptionMemory with the same execution context (action_id,
  * sequence_id, and sequence_node_id). Uses dynamic_cast for type safety.
  *
@@ -100,7 +100,7 @@ InterruptionMemory::InterruptionMemory(
  * - Most complex matching logic but necessary for precise context identification
  * - Entity ID excluded from matching allows flexibility in resumption scenarios
  */
-bool InterruptionMemory::MatchesMemory(const IMemory &other) const
+bool InterruptionMemory::MatchesMemory(const BaseMemory &other) const
 {
     // Safe type conversion - returns nullptr if 'other' is not an InterruptionMemory
     const auto other_transition_memory = dynamic_cast<const InterruptionMemory*>(&other);

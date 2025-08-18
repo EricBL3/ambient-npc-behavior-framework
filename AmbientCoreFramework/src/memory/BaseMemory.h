@@ -1,6 +1,6 @@
 ﻿/**
- * @file IMemory.h
- * @brief Base interface for all memory types in the ambient character behavior framework
+ * @file BaseMemory.h
+ * @brief Base class for all memory types in the ambient character behavior framework
  * @author Eric Buitrón López
  * @date 8/11/2025
  *
@@ -19,9 +19,9 @@
 #include <string>
 
 /**
- * @brief Abstract base interface for all memory types in the behavior framework.
+ * @brief Abstract base class for all memory types in the behavior framework.
  *
- * IMemory provides the fundamental abstraction that allows the memory system
+ * BaseMemory provides the fundamental abstraction that allows the memory system
  * to manage different types of character memories (transitions, actions,
  * interruptions) through a uniform interface while preserving their specific
  * matching and comparison behaviors.
@@ -35,7 +35,7 @@
  *
  * @see TransitionMemory, ActionMemory, InterruptionMemory, MemorySystem
  */
-class IMemory
+class BaseMemory
 {
 protected:
     // =============================================================================
@@ -66,10 +66,10 @@ public:
      * @pre time >= 0
      * @post last_used_time == time
      */
-    explicit IMemory(const int time) {
+    explicit BaseMemory(const int time) {
         if(time < 0)
         {
-            throw std::invalid_argument("IMemory: time cannot be negative, got " + std::to_string(time));
+            throw std::invalid_argument("BaseMemory: time cannot be negative, got " + std::to_string(time));
         }
         last_used_time = time;
     }
@@ -77,9 +77,9 @@ public:
     /**
      * @brief Virtual destructor for proper polymorphic cleanup
      *
-     * Ensures derived classes are properly destroyed when accessed through IMemory pointers.
+     * Ensures derived classes are properly destroyed when accessed through BaseMemory pointers.
      */
-    virtual ~IMemory() = default;
+    virtual ~BaseMemory() = default;
 
     // =============================================================================
     // MEMORY INTERFACE
@@ -102,7 +102,7 @@ public:
      * @note Performance critical - called during every character decision cycle
      */
     [[nodiscard]]
-    virtual bool MatchesMemory(const IMemory& other) const = 0;
+    virtual bool MatchesMemory(const BaseMemory& other) const = 0;
 
     // =============================================================================
     // TIME-BASED OPERATIONS
@@ -132,7 +132,7 @@ public:
      * @see GetLastUsedTime()
      */
     [[nodiscard]]
-    virtual bool IsOlderThan(IMemory& other) const {
+    virtual bool IsOlderThan(BaseMemory& other) const {
         return GetLastUsedTime() < other.GetLastUsedTime();
     }
 };

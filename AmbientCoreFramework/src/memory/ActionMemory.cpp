@@ -28,7 +28,7 @@
  * - Early validation prevents invalid combinations from being stored
  * @complexity O(1) - simple validation and assignment operations
  */
-ActionMemory::ActionMemory(int action_id, int target_entity_id, int last_used_time) : IMemory(last_used_time)
+ActionMemory::ActionMemory(int action_id, int target_entity_id, int last_used_time) : BaseMemory(last_used_time)
 {
 	if(action_id < 0)
     {
@@ -42,7 +42,7 @@ ActionMemory::ActionMemory(int action_id, int target_entity_id, int last_used_ti
 
 	this->action_id = action_id;
 	this->target_entity_id = target_entity_id;
-	// Note: last_used_time is set by the IMemory constructor
+	// Note: last_used_time is set by the BaseMemory constructor
 }
 
 // =============================================================================
@@ -52,7 +52,7 @@ ActionMemory::ActionMemory(int action_id, int target_entity_id, int last_used_ti
 /**
  * @brief Checks if this memory matches another memory instance polymorphically
  *
- * Implements the IMemory interface by safely checking if the other memory
+ * Implements the BaseMemory interface by safely checking if the other memory
  * is also an ActionMemory with the same action_id AND target_entity_id.
  * Uses dynamic_cast for type safety in polymorphic scenarios.
  *
@@ -73,7 +73,7 @@ ActionMemory::ActionMemory(int action_id, int target_entity_id, int last_used_ti
  * - Compound matching (2 comparisons) still O(1)
  * - Alternative approaches would require complex type hierarchies
  */
-bool ActionMemory::MatchesMemory(const IMemory& other) const
+bool ActionMemory::MatchesMemory(const BaseMemory& other) const
 {
 	// Safe type conversion - returns nullptr if 'other' is not an ActionMemory
 	const auto other_transition_memory = dynamic_cast<const ActionMemory*>(&other);

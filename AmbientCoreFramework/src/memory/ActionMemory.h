@@ -9,7 +9,7 @@
  */
 
 #pragma once
-#include "IMemory.h"
+#include "BaseMemory.h"
 
 /**
  * @ingroup memory_group
@@ -53,7 +53,7 @@
  *
  * @see IMemory, MemorySystem
  */
-class ActionMemory : public IMemory {
+class ActionMemory : public BaseMemory {
 private:
     // =============================================================================
     // MEMBER VARIABLES
@@ -83,7 +83,7 @@ public:
     // =============================================================================
 
     [[nodiscard]]
-    bool MatchesMemory(const IMemory& other) const override;
+    bool MatchesMemory(const BaseMemory& other) const override;
 
     [[nodiscard]]
     bool MatchesMemory(int other_action_id, int other_target_entity_id) const;
