@@ -38,6 +38,13 @@ public:
     /**
      *
      * @param transition_id The identifier of the transition
+     */
+    explicit Transition(int transition_id) :
+    Transition(transition_id, nullptr) {}
+
+    /**
+     *
+     * @param transition_id The identifier of the transition
      * @param to_node The destination node of this transition
      * @param initial_preconditions_count The initial number of preconditions for this transition (default is 0).
      */
