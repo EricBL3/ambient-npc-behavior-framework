@@ -9,10 +9,22 @@
 
 #include "Action.h"
 
+#include <stdexcept>
+
 Action::Action(int action_id, int max_duration, InterruptionBehaviorType interruption_behavior,
-    int initial_preconditions_count, int initial_immediate_effects_count, int initial_completion_effects_count) :
+               size_t initial_preconditions_count, size_t initial_immediate_effects_count, size_t initial_completion_effects_count) :
     action_id(action_id), max_duration(max_duration), interruption_behavior(interruption_behavior)
 {
+    if (action_id < 0)
+    {
+        throw std::invalid_argument("Action: action_id cannot be negative");
+    }
+
+    if (max_duration < 0)
+    {
+        throw std::invalid_argument("Action: max_duration cannot be negative");
+    }
+
     preconditions.reserve(initial_preconditions_count);
     immediate_effects.reserve(initial_immediate_effects_count);
     completion_effects.reserve(initial_completion_effects_count);

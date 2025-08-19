@@ -58,9 +58,12 @@ public:
      * @param initial_preconditions_count The initial number of preconditions for this action (default is 0).
      * @param initial_immediate_effects_count The initial number of immediate effects for this action (default is 0).
      * @param initial_completion_effects_count The initial number of completion effects for this action (default is 0).
+     *
+     * @throw std::invalid_argument if any parameter < 0.
      */
     explicit Action(int action_id, int max_duration, InterruptionBehaviorType interruption_behavior,
-                    int initial_preconditions_count = 0, int initial_immediate_effects_count = 0, int initial_completion_effects_count = 0);
+                    size_t initial_preconditions_count = 0, size_t initial_immediate_effects_count = 0,
+                    size_t initial_completion_effects_count = 0);
 
     /**
      * @brief Adds a new precondition to the transition.
