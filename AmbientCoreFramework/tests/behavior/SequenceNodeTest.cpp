@@ -15,9 +15,13 @@
 #include "behavior/NestedSequenceNode.h"
 #include "behavior/Sequence.h"
 
+// =============================================================================
+// CONSTRUCTOR TESTS
+// =============================================================================
+
 TEST(SequenceNodeTest, ActionSequenceNodeConstructorInitializesCorrectly)
 {
-    Action action{};
+    Action action(0, 30, InterruptionBehaviorType::NON_RESUMABLE);
     ActionSequenceNode action_node(0, &action);
 
     EXPECT_EQ(0, action_node.GetNodeId());
@@ -28,7 +32,7 @@ TEST(SequenceNodeTest, ActionSequenceNodeConstructorInitializesCorrectly)
 
 TEST(SequenceNodeTest, NestedSequenceNodeConstructorInitializesCorrectly)
 {
-    Sequence sequence{};
+    Sequence sequence(0);
     NestedSequenceNode sequence_node(1, &sequence);
 
     EXPECT_EQ(1, sequence_node.GetNodeId());
@@ -48,13 +52,17 @@ TEST(SequenceNodeTest, EndSequenceNodeConstructorInitializesCorrectly)
 
 TEST(SequenceNodeTest, ConstructorRejectsNegativeNodeId)
 {
-    Action action{};
-    Sequence sequence{};
+    Action action(0, 30, InterruptionBehaviorType::NON_RESUMABLE);
+    Sequence sequence(0);
 
     EXPECT_THROW(ActionSequenceNode(-1, &action), std::invalid_argument);
     EXPECT_THROW(NestedSequenceNode(-50, &sequence), std::invalid_argument);
     EXPECT_THROW(EndSequenceNode(-999), std::invalid_argument);
 }
+
+// =============================================================================
+// HAS COMPLETED TESTS
+// =============================================================================
 
 TEST(SequenceNodeTest, CanModifyHasCompleted)
 {
