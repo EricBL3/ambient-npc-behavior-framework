@@ -18,9 +18,9 @@ using namespace AmbientCharacterBehavior;
 
 /**
  * @brief Constructs MemorySystem with specified capacity limits for each memory type
- * @param max_transitions Maximum transition memories (recommended: 5-10)
- * @param max_actions Maximum action memories (recommended: 10-20)
- * @param max_interruptions Maximum interruption memories (recommended: 3-5)
+ * @param max_transitions Maximum transition memories (default is 10)
+ * @param max_actions Maximum action memories (default is 20)
+ * @param max_interruptions Maximum interruption memories (default is 5)
  *
  * @algorithm Validates and stores capacity limits, initializes empty memory collections
  * @rationale

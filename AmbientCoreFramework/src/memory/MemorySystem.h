@@ -141,7 +141,7 @@ public:
     // CONSTRUCTION & CONFIGURATION
     // =============================================================================
 
-    MemorySystem(int max_transitions, int max_actions, int max_interruptions);
+    explicit MemorySystem(int max_transitions = 10, int  = 20, int max_interruptions = 5);
 
     int GetMaxTransitionMemories() const;
     int GetMaxActionMemories() const;
