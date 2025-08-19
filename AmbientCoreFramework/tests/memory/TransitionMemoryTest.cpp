@@ -11,6 +11,8 @@
 #include <gtest/gtest.h>
 #include "memory/TransitionMemory.h"
 
+using namespace AmbientCharacterBehavior;
+
 // =============================================================================
 // CONSTRUCTION TESTS
 // =============================================================================

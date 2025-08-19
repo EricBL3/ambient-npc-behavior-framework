@@ -12,6 +12,7 @@
 
 #include "SequenceNodeType.h"
 
+namespace AmbientCharacterBehavior {
 /**
  * @brief Abstract base class for sequence nodes in the behavior framework.
  *
@@ -68,3 +69,5 @@ public:
         return has_completed;
     }
 };
+
+}

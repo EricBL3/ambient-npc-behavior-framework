@@ -15,6 +15,8 @@
 #include "behavior/NestedSequenceNode.h"
 #include "behavior/Sequence.h"
 
+using namespace AmbientCharacterBehavior;
+
 // =============================================================================
 // CONSTRUCTOR TESTS
 // =============================================================================

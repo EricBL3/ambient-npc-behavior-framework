@@ -9,8 +9,9 @@
 
 #pragma once
 #include "SequenceNode.h"
+#include "Action.h"
 
-class Action;
+namespace AmbientCharacterBehavior {
 
 /**
  * @brief A node that stores a reference to an action that will be executed.
@@ -28,7 +29,7 @@ public:
      * @param node_id The identifier of the action sequence node that will be created
      * @param action A reference to the target action
      */
-    ActionSequenceNode(const int node_id, Action* action) : SequenceNode(node_id), target_action(action) {}
+    ActionSequenceNode(int node_id, Action* action) : SequenceNode(node_id), target_action(action) {}
 
     Action* GetTargetAction() const { return target_action; }
 
@@ -41,3 +42,5 @@ public:
         return SequenceNodeType::ACTION_NODE;
     }
 };
+
+}

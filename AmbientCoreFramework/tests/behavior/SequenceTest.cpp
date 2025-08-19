@@ -8,8 +8,9 @@
 */
 
 #include <gtest/gtest.h>
-
 #include "behavior/Sequence.h"
+
+using namespace AmbientCharacterBehavior;
 
 class SequenceTest : public testing::Test {
 protected:

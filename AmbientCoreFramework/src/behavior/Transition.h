@@ -12,6 +12,8 @@
 #include "SequenceNode.h"
 #include "integration/StateOperation.h"
 
+namespace AmbientCharacterBehavior {
+
 /**
  * @brief This class represents the conditional connection that exists between sequence nodes in a sequence.
  *
@@ -68,3 +70,5 @@ public:
     int GetTransitionId() const { return transition_id; }
 
 };
+
+}

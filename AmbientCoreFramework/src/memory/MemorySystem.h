@@ -13,6 +13,7 @@
 #include "InterruptionMemory.h"
 #include "TransitionMemory.h"
 
+namespace AmbientCharacterBehavior {
 /**
  * @ingroup memory_group
  * @brief Central coordinator for all character memory types and behavioral variety generation
@@ -194,3 +195,4 @@ public:
     size_t GetInterruptionMemoryCount() const;
 };
 
+}

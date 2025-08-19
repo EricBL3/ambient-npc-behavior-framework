@@ -13,6 +13,8 @@
 #include "integration/StateOperation.h"
 #include "utils/InterruptionBehaviorType.h"
 
+namespace AmbientCharacterBehavior {
+
 /**
  * @brief An atomic behavior that characters can perform.
  */
@@ -96,3 +98,5 @@ public:
     const std::vector<StateOperation>& GetCompletionEffects() const { return completion_effects; }
 
 };
+
+}

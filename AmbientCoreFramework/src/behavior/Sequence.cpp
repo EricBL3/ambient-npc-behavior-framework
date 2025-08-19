@@ -12,6 +12,8 @@
 #include "EndSequenceNode.h"
 #include "NestedSequenceNode.h"
 
+using namespace AmbientCharacterBehavior;
+
 Sequence::Sequence(int sequence_id) :
         sequence_id(sequence_id), entry_point_index(-1), has_entry_point(false),  current_node_index(-1), has_current_node(false),
         sequence_state(SequenceState::NORMAL), next_node_id(0), next_transition_id(0)

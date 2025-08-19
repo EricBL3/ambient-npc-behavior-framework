@@ -8,9 +8,9 @@
 
 #pragma once
 #include "SequenceNode.h"
+#include "Sequence.h"
 
-class Sequence;
-
+namespace AmbientCharacterBehavior {
 /**
  * @brief A node that stores the reference to another sequence to be executed as a subsequence.
  */
@@ -40,3 +40,5 @@ public:
         return SequenceNodeType::NESTED_SEQUENCE_NODE;
     }
 };
+
+}

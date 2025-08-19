@@ -10,6 +10,7 @@
 #pragma once
 #include "BaseMemory.h"
 
+namespace AmbientCharacterBehavior {
 /**
  * @ingroup memory_group
  * @brief Preserves execution context when character actions are interrupted
@@ -120,3 +121,5 @@ public:
     int GetInterruptedSequenceNodeId() const;
     int GetInterruptedTargetEntityId() const;
 };
+
+}

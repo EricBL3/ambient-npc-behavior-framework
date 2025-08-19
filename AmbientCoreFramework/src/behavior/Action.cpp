@@ -8,8 +8,9 @@
 */
 
 #include "Action.h"
-
 #include <stdexcept>
+
+using namespace AmbientCharacterBehavior;
 
 Action::Action(int action_id, int max_duration, InterruptionBehaviorType interruption_behavior,
                size_t initial_preconditions_count, size_t initial_immediate_effects_count, size_t initial_completion_effects_count) :

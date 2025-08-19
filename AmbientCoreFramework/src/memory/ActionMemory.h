@@ -11,6 +11,7 @@
 #pragma once
 #include "BaseMemory.h"
 
+namespace AmbientCharacterBehavior {
 /**
  * @ingroup memory_group
  * @brief Records when specific actions were performed on specific entities
@@ -96,3 +97,5 @@ public:
     int GetTargetEntityId() const;
 
 };
+
+}

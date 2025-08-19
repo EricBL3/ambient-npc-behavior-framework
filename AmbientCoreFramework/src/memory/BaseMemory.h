@@ -18,6 +18,7 @@
 #include <stdexcept>
 #include <string>
 
+namespace AmbientCharacterBehavior {
 /**
  * @brief Abstract base class for all memory types in the behavior framework.
  *
@@ -133,5 +134,7 @@ public:
         return GetLastUsedTime() < other.GetLastUsedTime();
     }
 };
+
+}
 
 /** @} */ // End of memory_group

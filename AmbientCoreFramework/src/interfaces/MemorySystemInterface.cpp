@@ -10,6 +10,8 @@
 #include "memory/MemorySystem.h"
 #include "utils/PerformanceTracker.h"
 
+using namespace AmbientCharacterBehavior;
+
 extern "C"
 {
     AmbientCoreFramework_API MemorySystemHandle CreateMemorySystem(int max_transitions, int max_actions, int max_interruptions)

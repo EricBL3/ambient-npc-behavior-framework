@@ -10,6 +10,8 @@
 #include <gtest/gtest.h>
 #include "memory/MemorySystem.h"
 
+using namespace AmbientCharacterBehavior;
+
 class MemorySystemTest : public testing::Test {
 protected:
     void SetUp() override {

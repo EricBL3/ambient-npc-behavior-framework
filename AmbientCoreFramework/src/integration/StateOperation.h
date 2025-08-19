@@ -9,6 +9,8 @@
 #pragma once
 #include <vector>
 
+namespace AmbientCharacterBehavior {
+
 /**
  * @brief Class for evaluating conditions and modifying state in the behavior framework.
  */
@@ -50,3 +52,5 @@ public:
     int GetOperation() const { return operation; }
     const std::vector<int>& GetValues() const { return values; }
 };
+
+}

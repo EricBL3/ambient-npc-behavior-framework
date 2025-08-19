@@ -9,12 +9,14 @@
 #pragma once
 #include "SequenceNode.h"
 
+namespace AmbientCharacterBehavior {
+
 /**
  * @brief A node that marks the end of a sequence.
  */
 class EndSequenceNode : public SequenceNode {
 public:
-    EndSequenceNode(const int node_id) : SequenceNode(node_id) {}
+    explicit EndSequenceNode(int node_id) : SequenceNode(node_id) {}
 
     /**
      *
@@ -25,3 +27,5 @@ public:
         return SequenceNodeType::END_SEQUENCE_NODE;
     }
 };
+
+}

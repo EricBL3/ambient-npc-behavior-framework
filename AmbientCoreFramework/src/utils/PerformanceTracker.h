@@ -2,6 +2,7 @@
 #pragma once
 #include <chrono>
 
+namespace AmbientCharacterBehavior {
 /**
  * @brief Static method timing tracker for DLL performance measurement
  *
@@ -24,3 +25,4 @@ public:
 
     static void Reset();
 };
+}

@@ -12,6 +12,8 @@
 #include <gtest/gtest.h>
 #include "memory/InterruptionMemory.h"
 
+using namespace AmbientCharacterBehavior;
+
 // =============================================================================
 // CONSTRUCTION TESTS
 // =============================================================================

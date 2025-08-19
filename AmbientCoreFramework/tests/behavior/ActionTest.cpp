@@ -11,6 +11,8 @@
 
 #include "behavior/Action.h"
 
+using namespace AmbientCharacterBehavior;
+
 class ActionTest : public testing::Test {
 protected:
     void SetUp() override {

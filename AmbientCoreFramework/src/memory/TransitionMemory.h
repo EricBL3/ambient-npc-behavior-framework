@@ -11,6 +11,7 @@
 #pragma once
 #include "BaseMemory.h"
 
+namespace AmbientCharacterBehavior {
 /**
  * @ingroup memory_group
  * @brief Records when specific sequence nodes were last visited by a character
@@ -87,3 +88,5 @@ public:
 
     int GetTargetNodeId() const;
 };
+
+}

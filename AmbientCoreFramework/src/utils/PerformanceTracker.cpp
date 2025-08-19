@@ -9,6 +9,8 @@
 
 #include "PerformanceTracker.h"
 
+using namespace AmbientCharacterBehavior;
+
 std::chrono::high_resolution_clock::time_point PerformanceTracker::start_time;
 double PerformanceTracker::last_duration_microseconds = 0.0;
 bool PerformanceTracker::is_timing = false;

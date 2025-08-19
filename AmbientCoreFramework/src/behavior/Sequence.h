@@ -15,6 +15,7 @@
 #include "Transition.h"
 #include "utils/SequenceState.h"
 
+namespace AmbientCharacterBehavior {
 /**
  * @brief A directed graph representing behavioral patterns that characters follow.
  *
@@ -175,3 +176,5 @@ private:
     bool IsValidNodeId(int node_id) const;
 
 };
+
+}

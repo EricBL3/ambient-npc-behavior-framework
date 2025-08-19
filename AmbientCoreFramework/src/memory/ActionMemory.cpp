@@ -9,6 +9,7 @@
  */
 
 #include "ActionMemory.h"
+using namespace AmbientCharacterBehavior;
 
 // =============================================================================
 // CONSTRUCTION

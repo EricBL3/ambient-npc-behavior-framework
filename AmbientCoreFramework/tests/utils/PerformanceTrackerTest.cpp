@@ -3,6 +3,8 @@
 #include <chrono>
 #include <thread>
 
+using namespace AmbientCharacterBehavior;
+
 class PerformanceTrackerTest : public testing::Test {
 protected:
     void SetUp() override
