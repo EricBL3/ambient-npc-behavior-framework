@@ -56,17 +56,6 @@ TEST(TransitionTest, SetToNodeWorksCorrectly)
     EXPECT_EQ(&node, transition.GetToNode());
 }
 
-TEST(TransitionTest, SetToNodeRejectsNullptr)
-{
-    Transition transition(0, 5);
-
-    EXPECT_EQ(nullptr, transition.GetToNode());
-
-    EXPECT_THROW(transition.SetToNode(nullptr), std::invalid_argument);
-
-    EXPECT_EQ(nullptr, transition.GetToNode());
-}
-
 // =============================================================================
 // ADD PRECONDITIONS TESTS
 // =============================================================================

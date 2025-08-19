@@ -23,13 +23,3 @@ void Transition::AddPrecondition(const StateOperation& precondition)
 {
     preconditions.emplace_back(precondition);
 }
-
-void Transition::SetToNode(SequenceNode *node)
-{
-    if (node == nullptr)
-    {
-        throw std::invalid_argument("Transition: node cannot be null");
-    }
-
-    to_node = node;
-}

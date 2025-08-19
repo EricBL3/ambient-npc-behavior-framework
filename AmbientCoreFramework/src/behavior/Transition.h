@@ -38,6 +38,8 @@ public:
     /**
      * @param initial_preconditions_count The initial number of preconditions for this transition (default is 0).
      * @param transition_id The identifier of the transition
+     *
+     * @throw std::invalid_argument if transition_id < 0
      */
     explicit Transition(int transition_id, size_t initial_preconditions_count = 0) :
     Transition(transition_id, nullptr, initial_preconditions_count) {}
@@ -57,7 +59,7 @@ public:
      */
     void AddPrecondition(const StateOperation& precondition);
 
-    void SetToNode(SequenceNode* node);
+    void SetToNode(SequenceNode* node) {to_node = node; }
 
     SequenceNode* GetToNode() const { return to_node; }
 
