@@ -59,7 +59,7 @@ public:
      * @param initial_immediate_effects_count The initial number of immediate effects for this action (default is 0).
      * @param initial_completion_effects_count The initial number of completion effects for this action (default is 0).
      *
-     * @throw std::invalid_argument if any parameter < 0.
+     * @throw std::invalid_argument if action_id or max_duration < 0.
      */
     explicit Action(int action_id, int max_duration, InterruptionBehaviorType interruption_behavior,
                     size_t initial_preconditions_count = 0, size_t initial_immediate_effects_count = 0,
