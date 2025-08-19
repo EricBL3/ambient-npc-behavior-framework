@@ -63,13 +63,13 @@ public:
     /**
      * @brief Constructs a new sequence
      *
-     * The constructor will set entry_point and current_node to a nullptr and initialize sequence_state to SequenceState::NORMAL
+     * The constructor will initialize sequence_state to SequenceState::NORMAL
      *
      * @param sequence_id The identifier of the sequence
+     *
+     * @throw std::invalid_argument if sequence_id < 0
      */
-    explicit Sequence(int sequence_id) :
-        sequence_id(sequence_id), entry_point_index(-1), has_entry_point(false),  current_node_index(-1), has_current_node(false),
-        sequence_state(SequenceState::NORMAL), next_node_id(0), next_transition_id(0) {}
+    explicit Sequence(int sequence_id);
 
     int GetSequenceId() const { return sequence_id; }
 
@@ -105,13 +105,17 @@ public:
      * @brief Adds a new action sequence node to the sequence.
      * @param action The action that will be referenced by the node
      * @return The node_id of the created sequence node.
+     *
+     * @throw std::invalid_argument if action is nullptr
      */
     int AddActionSequenceNode(Action* action);
 
     /**
      * @brief Adds a new nested sequence node to the sequence.
-     * @param sequence The sequence that will be referenced by the node
+     * @param sequence The nested sequence that will be referenced by the node
      * @return The node_id of the created sequence node.
+     *
+     * @throw std::invalid_argument if sequence is nullptr
      */
     int AddNestedSequenceNode(Sequence* sequence);
 
@@ -125,11 +129,11 @@ public:
      * @brief Adds a new transition to the sequence.
      * @param from_node_id The node id from which the transition starts.
      *
-     * @return True if the transition could be added, false if not (due to an invalid from_node_id).
+     * @return The transition_id of the created transition (or -1 if if it couldn't be added).
      *
      * @note The transition will be empty which means that the to_node and preconditions must still be defined.
      */
-    bool AddTransition(int from_node_id);
+    int AddTransition(int from_node_id);
 
     /**
      * Sets the entry point for the sequence.
