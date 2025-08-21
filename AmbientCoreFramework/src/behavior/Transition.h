@@ -27,9 +27,9 @@ private:
     int transition_id;
 
     /**
-     * @brief A reference to the destination node of this transition
+     * @brief The identifier of the destination node of this transition
      */
-    SequenceNode* to_node;
+    int to_node_index;
 
     /**
      * @brief The preconditions that must be satisfied for the transition to be valid
@@ -37,22 +37,16 @@ private:
     std::vector<StateOperation> preconditions;
 
 public:
-    /**
-     * @param initial_preconditions_count The initial number of preconditions for this transition (default is 0).
-     * @param transition_id The identifier of the transition
-     *
-     * @throw std::invalid_argument if transition_id < 0
-     */
-    explicit Transition(int transition_id, size_t initial_preconditions_count = 0) :
-    Transition(transition_id, nullptr, initial_preconditions_count) {}
 
     /**
      *
      * @param transition_id The identifier of the transition
-     * @param to_node The destination node of this transition
+     * @param to_node_index The identifier of the destination node of this transition
      * @param initial_preconditions_count The initial number of preconditions for this transition (default is 0).
+     *
+     * @throw std::invalid_argument if transition_id or to_node_index < 0
      */
-    explicit Transition(int transition_id, SequenceNode* to_node, size_t initial_preconditions_count = 0);
+    explicit Transition(int transition_id, int to_node_index, size_t initial_preconditions_count = 0);
 
     /**
      * @brief Adds a new precondition to the transition.
@@ -61,9 +55,7 @@ public:
      */
     void AddPrecondition(const StateOperation& precondition);
 
-    void SetToNode(SequenceNode* node) {to_node = node; }
-
-    SequenceNode* GetToNode() const { return to_node; }
+    int GetToNodeIndex() const { return to_node_index; }
 
     const std::vector<StateOperation>& GetPreconditions() const { return preconditions; }
 

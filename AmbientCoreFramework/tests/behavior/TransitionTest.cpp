@@ -18,44 +18,29 @@ using namespace AmbientCharacterBehavior;
 // =============================================================================
 TEST(TransitionTest, SimpleConstructorInitializesCorrectly)
 {
-    Transition transition(0, 5);
+    Transition transition(0,  1, 5);
 
     EXPECT_EQ(0, transition.GetTransitionId());
     EXPECT_EQ(5, transition.GetPreconditions().capacity());
     EXPECT_EQ(0, transition.GetPreconditions().size());
-    EXPECT_EQ(nullptr, transition.GetToNode());
+    EXPECT_EQ(1, transition.GetToNodeIndex());
 }
 
 TEST(TransitionTest, ConstructorWithToNodeInitializesCorrectly)
 {
-    EndSequenceNode node(0);
-    Transition transition(0, &node , 5);
+    Transition transition(0, 0 , 5);
 
     EXPECT_EQ(0, transition.GetTransitionId());
     EXPECT_EQ(5, transition.GetPreconditions().capacity());
-    EXPECT_EQ(&node, transition.GetToNode());
+    EXPECT_EQ(0, transition.GetToNodeIndex());
 }
 
 TEST(TransitionTest, ConstructorRejectsNegativeTransitionId)
 {
-    EXPECT_THROW(Transition(-1), std::invalid_argument);
+    EXPECT_THROW(Transition(-1, 0), std::invalid_argument);
+    EXPECT_THROW(Transition(0, -4), std::invalid_argument);
 }
 
-// =============================================================================
-// SET TO NODE TESTS
-// =============================================================================
-
-TEST(TransitionTest, SetToNodeWorksCorrectly)
-{
-    Transition transition(0, 5);
-
-    EXPECT_EQ(nullptr, transition.GetToNode());
-
-    EndSequenceNode node(0);
-    transition.SetToNode(&node);
-
-    EXPECT_EQ(&node, transition.GetToNode());
-}
 
 // =============================================================================
 // ADD PRECONDITIONS TESTS
