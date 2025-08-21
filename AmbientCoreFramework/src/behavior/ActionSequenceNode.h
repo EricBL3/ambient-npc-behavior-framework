@@ -19,19 +19,24 @@ namespace AmbientCharacterBehavior {
 class ActionSequenceNode : public SequenceNode {
 private:
     /**
-     * @brief A reference to the action that will be executed
+     * @brief The identifier of the action that will be executed by this node.
+     *
      */
-    Action* target_action;
+    int target_action_id;
 
 public:
     /**
      *
      * @param node_id The identifier of the action sequence node that will be created
-     * @param action A reference to the target action
+     * @param action_id The identifier of the target action
      */
-    ActionSequenceNode(int node_id, Action* action) : SequenceNode(node_id), target_action(action) {}
+    ActionSequenceNode(int node_id, int action_id) : SequenceNode(node_id), target_action_id(action_id) {}
 
-    Action* GetTargetAction() const { return target_action; }
+    //TODO: Missing implementation which requires a content manager class.
+    [[nodiscard]]
+    Action& GetTargetAction() const;
+
+    int GetTargetActionId() const { return target_action_id; }
 
     /**
      *

@@ -17,19 +17,23 @@ namespace AmbientCharacterBehavior {
 class NestedSequenceNode : public SequenceNode {
 private:
     /**
-     * @brief A reference to the sequence that will be executed as a subsequence.
+     * @brief The identifier of the sequence that will be executed as a subsequence.
      */
-    Sequence* target_sequence;
+    int target_sequence_id;
 
 public:
     /**
      *
      * @param node_id The identifier of the nested sequence node that will be created
-     * @param sequence A reference to the target sequence.
+     * @param sequence_id The identifier of the target sequence.
      */
-    NestedSequenceNode(const int node_id, Sequence* sequence) : SequenceNode(node_id), target_sequence(sequence) {}
+    NestedSequenceNode(const int node_id, int sequence_id) : SequenceNode(node_id), target_sequence_id(sequence_id) {}
 
-    Sequence* GetTargetSequence() const { return target_sequence; }
+    //TODO: Missing implementation which requires a content manager class.
+    [[nodiscard]]
+    Sequence& GetTargetSequence() const;
+
+    int GetTargetSequenceId() const { return target_sequence_id; }
 
     /**
      *

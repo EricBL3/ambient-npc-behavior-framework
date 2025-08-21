@@ -23,23 +23,21 @@ using namespace AmbientCharacterBehavior;
 
 TEST(SequenceNodeTest, ActionSequenceNodeConstructorInitializesCorrectly)
 {
-    Action action(0, 30, InterruptionBehaviorType::NON_RESUMABLE);
-    ActionSequenceNode action_node(0, &action);
+    ActionSequenceNode action_node(0, 0);
 
     EXPECT_EQ(0, action_node.GetNodeId());
     EXPECT_FALSE(action_node.IsCompleted());
-    EXPECT_EQ(&action, action_node.GetTargetAction());
+    EXPECT_EQ(0, action_node.GetTargetActionId());
     EXPECT_EQ(SequenceNodeType::ACTION_NODE, action_node.GetNodeType());
 }
 
 TEST(SequenceNodeTest, NestedSequenceNodeConstructorInitializesCorrectly)
 {
-    Sequence sequence(0);
-    NestedSequenceNode sequence_node(1, &sequence);
+    NestedSequenceNode sequence_node(1, 0);
 
     EXPECT_EQ(1, sequence_node.GetNodeId());
     EXPECT_FALSE(sequence_node.IsCompleted());
-    EXPECT_EQ(&sequence, sequence_node.GetTargetSequence());
+    EXPECT_EQ(0, sequence_node.GetTargetSequenceId());
     EXPECT_EQ(SequenceNodeType::NESTED_SEQUENCE_NODE, sequence_node.GetNodeType());
 }
 
@@ -54,11 +52,9 @@ TEST(SequenceNodeTest, EndSequenceNodeConstructorInitializesCorrectly)
 
 TEST(SequenceNodeTest, ConstructorRejectsNegativeNodeId)
 {
-    Action action(0, 30, InterruptionBehaviorType::NON_RESUMABLE);
-    Sequence sequence(0);
 
-    EXPECT_THROW(ActionSequenceNode(-1, &action), std::invalid_argument);
-    EXPECT_THROW(NestedSequenceNode(-50, &sequence), std::invalid_argument);
+    EXPECT_THROW(ActionSequenceNode(-1, 0), std::invalid_argument);
+    EXPECT_THROW(NestedSequenceNode(-50, 0), std::invalid_argument);
     EXPECT_THROW(EndSequenceNode(-999), std::invalid_argument);
 }
 
