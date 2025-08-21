@@ -9,11 +9,9 @@
 
 #include <gtest/gtest.h>
 
-#include "behavior/Action.h"
 #include "behavior/ActionSequenceNode.h"
 #include "behavior/EndSequenceNode.h"
 #include "behavior/NestedSequenceNode.h"
-#include "behavior/Sequence.h"
 
 using namespace AmbientCharacterBehavior;
 

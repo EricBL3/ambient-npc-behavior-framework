@@ -99,68 +99,90 @@ public:
      * @return A collection with available transitions from a specific node. If no transitions are available, an empty
      * collection will be returned.
      */
+    [[nodiscard]]
     const std::vector<Transition>& GetTransitionsFromNode(int node_id) const;
-
 
     /**
      * @brief Adds a new action sequence node to the sequence.
-     * @param action The action that will be referenced by the node
+     * @param action_id The identifier of the action that will be referenced by the node
      * @return The node_id of the created sequence node.
      *
-     * @throw std::invalid_argument if action is nullptr
      */
-    int AddActionSequenceNode(Action* action);
+    [[nodiscard]]
+    int AddActionSequenceNode(int action_id);
 
     /**
      * @brief Adds a new nested sequence node to the sequence.
-     * @param sequence The nested sequence that will be referenced by the node
+     * @param nested_sequence_id The identifier of the sequence that will be referenced by the node
      * @return The node_id of the created sequence node.
      *
-     * @throw std::invalid_argument if sequence is nullptr
      */
-    int AddNestedSequenceNode(Sequence* sequence);
+    [[nodiscard]]
+    int AddNestedSequenceNode(int nested_sequence_id);
 
     /**
      * @brief Adds a new end sequence node to the sequence.
      * @return The node_id of the created sequence node.
      */
+    [[nodiscard]]
     int AddEndSequenceNode();
 
     /**
      * @brief Adds a new transition to the sequence.
      * @param from_node_id The node id from which the transition starts.
+     * @param to_node_id The node id of the destination of the transition.
      *
-     * @return The transition_id of the created transition (or -1 if if it couldn't be added).
+     * @return The transition_id of the created transition (or -1 if it couldn't be added).
      *
      * @note The transition will be empty which means that the to_node and preconditions must still be defined.
      */
-    int AddTransition(int from_node_id);
+    [[nodiscard]]
+    int AddTransition(int from_node_id, int to_node_id);
+
+    /**
+     * @brief
+     * @param transition The transition from which we want to get the destination node.
+     * @return A reference to the sequence node that the transition points to or nullptr if the destination node doesn't exist.
+     */
+    [[nodiscard]]
+    const SequenceNode* GetTransitionToNode(const Transition& transition) const { return GetNode(transition.GetToNodeIndex()); }
 
     /**
      * Sets the entry point for the sequence.
      * @param node_id The identifier of the node that will be set up as the entry point.
      * @return True if the entry point could be set, false if not (due to an invalid node_id)
      */
+    [[nodiscard]]
     bool SetEntryPoint(int node_id);
 
     /**
      *
-     * @return The sequence node that represents the entry point of the sequence.
+     * @return The sequence node that represents the entry point of the sequence or a nullptr if there isn't one.
      */
-    const SequenceNode* GetEntryPoint() const;
+    [[nodiscard]]
+    const SequenceNode* GetEntryPoint() const { return has_entry_point ? GetNode(entry_point_index) : nullptr; }
 
     /**
      * Sets the current node for execution in the sequence.
      * @param node_id The identifier of the node that will be set up as the current node.
      * @return True if the current node could be set, false if not (due to an invalid node_id)
      */
+    [[nodiscard]]
     bool SetCurrentNode(int node_id);
 
     /**
      *
-     * @return The sequence node that represents the current node of the sequence.
+     * @return The sequence node that represents the current node of the sequence or a nullptr if there isn't one.
      */
-    const SequenceNode* GetCurrentNode() const;
+    [[nodiscard]]
+    const SequenceNode* GetCurrentNode() const { return has_current_node ? GetNode(current_node_index) : nullptr; }
+
+    /**
+     * @param node_id the identifier of the node to get
+     * @return A reference to the sequence node or nullptr if the node_id is not in the sequence.
+     */
+    [[nodiscard]]
+    const SequenceNode* GetNode(int node_id) const { return IsValidNodeId(node_id) ? nodes[node_id].get() : nullptr; }
 
     /**
      * @brief Resets the current node index to the entry node index for handling failure recovery.
@@ -173,7 +195,8 @@ private:
      * @param node_id The identifier of the node to check
      * @return True if the node_id exists, false if not (or invalid)
      */
-    bool IsValidNodeId(int node_id) const;
+    [[nodiscard]]
+    bool IsValidNodeId(int node_id) const { return node_id >= 0 && node_id < static_cast<int>(nodes.size()); }
 
 };
 

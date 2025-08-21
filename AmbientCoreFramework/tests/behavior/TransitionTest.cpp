@@ -8,7 +8,6 @@
 */
 
 #include <gtest/gtest.h>
-#include "behavior/EndSequenceNode.h"
 #include "behavior/Transition.h"
 
 using namespace AmbientCharacterBehavior;

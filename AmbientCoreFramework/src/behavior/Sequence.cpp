@@ -36,29 +36,21 @@ const std::vector<Transition> & Sequence::GetTransitionsFromNode(int node_id) co
     return empty_transitions;
 }
 
-int Sequence::AddActionSequenceNode(Action *action)
+int Sequence::AddActionSequenceNode(int action_id)
 {
-    if (!action)
-    {
-        throw std::invalid_argument("Sequence: action cannot be null");
-    }
 
     int node_id = next_node_id++;
-    nodes.push_back(std::make_unique<ActionSequenceNode>(node_id, action));
+    nodes.push_back(std::make_unique<ActionSequenceNode>(node_id, action_id));
     transitions.resize(nodes.size());
 
     return node_id;
 }
 
-int Sequence::AddNestedSequenceNode(Sequence *sequence)
+int Sequence::AddNestedSequenceNode(int nested_sequence_id)
 {
-    if (!sequence)
-    {
-        throw std::invalid_argument("Sequence: sequence cannot be null");
-    }
 
     int node_id = next_node_id++;
-    nodes.push_back(std::make_unique<NestedSequenceNode>(node_id, sequence));
+    nodes.push_back(std::make_unique<NestedSequenceNode>(node_id, nested_sequence_id));
     transitions.resize(nodes.size());
 
     return node_id;
@@ -73,12 +65,12 @@ int Sequence::AddEndSequenceNode()
     return node_id;
 }
 
-int Sequence::AddTransition(int from_node_id)
+int Sequence::AddTransition(int from_node_id, int to_node_id)
 {
-    if (IsValidNodeId(from_node_id))
+    if (IsValidNodeId(from_node_id) && IsValidNodeId(to_node_id))
     {
         int transition_id = next_transition_id++;
-        transitions[from_node_id].emplace_back(transition_id);
+        transitions[from_node_id].emplace_back(transition_id, to_node_id);
         return transition_id;
     }
 
@@ -97,16 +89,6 @@ bool Sequence::SetEntryPoint(int node_id)
     return false;
 }
 
-const SequenceNode * Sequence::GetEntryPoint() const
-{
-    if (has_entry_point && IsValidNodeId(entry_point_index))
-    {
-        return nodes[entry_point_index].get();
-    }
-
-    return nullptr;
-}
-
 bool Sequence::SetCurrentNode(int node_id)
 {
     if (IsValidNodeId(node_id))
@@ -119,16 +101,6 @@ bool Sequence::SetCurrentNode(int node_id)
     return false;
 }
 
-const SequenceNode * Sequence::GetCurrentNode() const
-{
-    if (has_current_node && IsValidNodeId(current_node_index))
-    {
-        return nodes[current_node_index].get();
-    }
-
-    return nullptr;
-}
-
 void Sequence::ResetToEntry()
 {
     if (has_entry_point)
@@ -136,9 +108,4 @@ void Sequence::ResetToEntry()
         current_node_index = entry_point_index;
         has_current_node = true;
     }
-}
-
-bool Sequence::IsValidNodeId(int node_id) const
-{
-    return node_id >= 0 && node_id < static_cast<int>(nodes.size());
 }

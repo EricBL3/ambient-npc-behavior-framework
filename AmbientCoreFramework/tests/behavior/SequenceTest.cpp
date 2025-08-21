@@ -57,8 +57,7 @@ TEST_F(SequenceTest, SetSequenceStateWorksCorrectly)
 
 TEST_F(SequenceTest, AddActionSequenceNodeWorksCorrectly)
 {
-    Action action(0, 10, InterruptionBehaviorType::RESUMABLE);
-    auto action_node_id = sequence->AddActionSequenceNode(&action);
+    auto action_node_id = sequence->AddActionSequenceNode(0);
 
     EXPECT_EQ(0, action_node_id);
     EXPECT_EQ(1, sequence->GetTransitions().capacity());
@@ -67,8 +66,7 @@ TEST_F(SequenceTest, AddActionSequenceNodeWorksCorrectly)
 
 TEST_F(SequenceTest, AddNestedSequenceWorksCorrectly)
 {
-    Sequence subsequence(0);
-    auto subsequence_node_id = sequence->AddNestedSequenceNode(&subsequence);
+    auto subsequence_node_id = sequence->AddNestedSequenceNode(0);
 
     EXPECT_EQ(0, subsequence_node_id);
     EXPECT_EQ(1, sequence->GetTransitions().capacity());
@@ -84,15 +82,6 @@ TEST_F(SequenceTest, AddEndSequenceNodeWorksCorrectly)
     EXPECT_EQ(1, sequence->GetNodes().size());
 }
 
-TEST_F(SequenceTest, AddNodeFunctionsRejectNullptr)
-{
-    EXPECT_THROW(sequence->AddActionSequenceNode(nullptr), std::invalid_argument);
-    EXPECT_THROW(sequence->AddNestedSequenceNode(nullptr), std::invalid_argument);
-
-    EXPECT_EQ(0, sequence->GetTransitions().capacity());
-    EXPECT_EQ(0, sequence->GetNodes().size());
-}
-
 // =============================================================================
 // ADD TRANSITION TESTS
 // =============================================================================
@@ -100,8 +89,9 @@ TEST_F(SequenceTest, AddNodeFunctionsRejectNullptr)
 TEST_F(SequenceTest, AddTransitionWorksCorrectly)
 {
     Action action(0, 10, InterruptionBehaviorType::RESUMABLE);
-    auto action_node_id = sequence->AddActionSequenceNode(&action);
-    auto transition_id = sequence->AddTransition(action_node_id);
+    auto action_node_id = sequence->AddActionSequenceNode(0);
+    auto second_node_id = sequence->AddActionSequenceNode(1);
+    auto transition_id = sequence->AddTransition(action_node_id, second_node_id);
 
     EXPECT_EQ(0, transition_id);
     EXPECT_EQ(1, sequence->GetTransitions()[action_node_id].size());
@@ -110,11 +100,19 @@ TEST_F(SequenceTest, AddTransitionWorksCorrectly)
 
 TEST_F(SequenceTest, AddTransitionDoesNothingOnFailure)
 {
-    auto transition_id = sequence->AddTransition(0);
+    auto valid_action_node_id = sequence->AddActionSequenceNode(0);
 
-    EXPECT_EQ(-1, transition_id);
-    EXPECT_EQ(0, sequence->GetTransitions().size());
+    auto invalid_from_node_transition_id = sequence->AddTransition(5, valid_action_node_id);
+    auto invalid_to_node_transition_id = sequence->AddTransition(valid_action_node_id, 5);
+    auto invalid_transition_id = sequence->AddTransition(5, 5);
 
+    EXPECT_EQ(-1, invalid_from_node_transition_id);
+    EXPECT_EQ(-1, invalid_to_node_transition_id);
+    EXPECT_EQ(-1, invalid_transition_id);
+
+    for (auto const& bucket : sequence->GetTransitions()) {
+        EXPECT_TRUE(bucket.empty());
+    }
 }
 
 // =============================================================================
@@ -123,10 +121,11 @@ TEST_F(SequenceTest, AddTransitionDoesNothingOnFailure)
 
 TEST_F(SequenceTest, GetTransitionsFromNodeWorksCorrectly)
 {
-    Action action(0, 10, InterruptionBehaviorType::RESUMABLE);
-    auto action_node_id = sequence->AddActionSequenceNode(&action);
-    sequence->AddTransition(action_node_id);
-    sequence->AddTransition(action_node_id);
+    auto action_node_id = sequence->AddActionSequenceNode(0);
+    auto second_node_id = sequence->AddActionSequenceNode(1);
+
+    [[maybe_unused]] auto res1 = sequence->AddTransition(action_node_id, second_node_id);
+    [[maybe_unused]] auto res2 = sequence->AddTransition(action_node_id, second_node_id);
 
     auto transitions = sequence->GetTransitionsFromNode(action_node_id);
 
@@ -166,7 +165,7 @@ TEST_F(SequenceTest, SetEntryPointReturnsFalseOnFailure)
 TEST_F(SequenceTest, GetEntryPointWorksIfNodeFound)
 {
     auto end_node_id = sequence->AddEndSequenceNode();
-    sequence->SetEntryPoint(end_node_id);
+    [[maybe_unused]] auto res = sequence->SetEntryPoint(end_node_id);
 
     auto entry_point = sequence->GetEntryPoint();
     auto exists = entry_point != nullptr;
@@ -208,7 +207,7 @@ TEST_F(SequenceTest, SetCurrentNodeReturnsFalseOnFailure)
 TEST_F(SequenceTest, GetCurrentNodeWorksIfNodeFound)
 {
     auto end_node_id = sequence->AddEndSequenceNode();
-    sequence->SetCurrentNode(end_node_id);
+    [[maybe_unused]] auto res = sequence->SetCurrentNode(end_node_id);
 
     auto current_node = sequence->GetCurrentNode();
     auto exists = current_node != nullptr;
@@ -231,9 +230,9 @@ TEST_F(SequenceTest, GetCurrentNodeReturnsNullIfNodeNotFound)
 TEST_F(SequenceTest, ResetToEntryWorksIfHasEntryPoint)
 {
     auto end_node_id = sequence->AddEndSequenceNode();
-    sequence->SetEntryPoint(end_node_id);
+    [[maybe_unused]] auto res = sequence->SetEntryPoint(end_node_id);
     auto other_end_node_id = sequence->AddEndSequenceNode();
-    sequence->SetCurrentNode(other_end_node_id);
+    [[maybe_unused]] auto res2 = sequence->SetCurrentNode(other_end_node_id);
 
     EXPECT_EQ(other_end_node_id, sequence->GetCurrentNodeIndex());
 
@@ -244,11 +243,38 @@ TEST_F(SequenceTest, ResetToEntryWorksIfHasEntryPoint)
 TEST_F(SequenceTest, ResetToEntryDoesNothingIfNoEntryPoint)
 {
     auto other_end_node_id = sequence->AddEndSequenceNode();
-    sequence->SetCurrentNode(other_end_node_id);
+    [[maybe_unused]] auto res = sequence->SetCurrentNode(other_end_node_id);
 
     EXPECT_EQ(other_end_node_id, sequence->GetCurrentNodeIndex());
 
     sequence->ResetToEntry();
 
     EXPECT_EQ(other_end_node_id, sequence->GetCurrentNodeIndex());
+}
+
+// =============================================================================
+// Get Transition To Node TESTS
+// =============================================================================
+
+TEST_F(SequenceTest, GetTransitionToNodeWorksCorrectly)
+{
+    auto action_node_id = sequence->AddActionSequenceNode(0);
+    auto second_node_id = sequence->AddActionSequenceNode(1);
+    auto second_node = sequence->GetNode(second_node_id);
+    [[maybe_unused]] auto res1 = sequence->AddTransition(action_node_id, second_node_id);
+
+    auto transition = sequence->GetTransitionsFromNode(action_node_id).front();
+
+    auto to_node = sequence->GetTransitionToNode(transition);
+
+    EXPECT_EQ(second_node, to_node);
+    EXPECT_EQ(second_node->GetNodeId(), to_node->GetNodeId());
+}
+
+TEST_F(SequenceTest, GetTransitionToNodeReturnsNullptrIfNodeNotValid)
+{
+    auto action_node_id = sequence->AddActionSequenceNode(0);
+    auto res = sequence->AddTransition(action_node_id, 5);
+
+    EXPECT_EQ(-1, res);
 }
