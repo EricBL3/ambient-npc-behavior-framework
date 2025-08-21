@@ -1,5 +1,5 @@
 /**
-* @file MemorySystem.cpp
+ * @file MemorySystem.cpp
  * @brief Implementation of the core memory management for ambient character behavioral variety
  * @author Eric Buitrón López
  * @date 8/13/2025
@@ -22,12 +22,6 @@ using namespace AmbientCharacterBehavior;
  * @param max_actions Maximum action memories (default is 20)
  * @param max_interruptions Maximum interruption memories (default is 5)
  *
- * @algorithm Validates and stores capacity limits, initializes empty memory collections
- * @rationale
- * - Delegates individual validation to setter methods for consistency
- * - ClearAllMemories() ensures clean initial state
- * @complexity O(1) - simple initialization
- * @datastructures Uses std::vector for each memory type (allows efficient iteration and removal)
  */
 MemorySystem::MemorySystem(int max_transitions, int max_actions, int max_interruptions)
 {
@@ -54,69 +48,65 @@ int MemorySystem::GetMaxInterruptionMemories() const
 }
 
 /**
- * @brief Sets the maximum number of transition memories with validation and enforcement
+ * @brief Sets the maximum number of transition memories (increasing its container if necessary) and enforces the
+ * new memory limits.
+ *
  * @param max_transitions New maximum capacity (must be > 0)
  *
- * @algorithm Validation + assignment + immediate capacity enforcement
- * @rationale
- * - Validation prevents invalid configurations that could break memory management
- * - Immediate enforcement ensures current memories comply with new limit
- * - Error logging maintains system stability while alerting to configuration issues
- * @complexity O(1) if no enforcement needed, O(k) where k = memories to remove
- * @datastructures Triggers vector manipulation if current size exceeds new limit
  */
 void MemorySystem::SetMaxTransitionMemories(int max_transitions)
 {
-    if (max_transitions <= 0)
+    if (max_transitions <= 0 || max_transitions == max_transition_memories)
     {
-        LogError("MemorySystem: max_transitions must be greater than 0, keeping current value");
+        LogError("MemorySystem: max_transitions must be greater than 0 and different from the current maximum, "
+                 "keeping current value");
         return;
     }
 
-    this->max_transition_memories = max_transitions;
+    max_transition_memories = max_transitions;
     transition_memories.reserve(max_transitions);
     EnforceMaxTransitionMemories();
 }
 
 /**
- * @brief Sets the maximum number of action memories with validation and enforcement
+ * @brief Sets the maximum number of action memories (increasing its container if necessary) and enforces the
+ * new memory limits.
+ *
  * @param max_actions New maximum capacity (must be > 0)
  *
- * @algorithm Validation + assignment + immediate capacity enforcement
- * @rationale Same validation and enforcement pattern as transition memories
- * @complexity O(1) if no enforcement needed, O(k) where k = memories to remove
  */
 void MemorySystem::SetMaxActionMemories(int max_actions)
 {
-    if (max_actions <= 0)
+    if (max_actions <= 0 || max_actions == max_action_memories)
     {
-        LogError("MemorySystem: max_actions must be greater than 0, keeping current value");
+        LogError("MemorySystem: max_actions must be greater than 0, and different from the current maximum, "
+                 "keeping current value");
         return;
     }
 
-    this->max_action_memories = max_actions;
+    max_action_memories = max_actions;
     action_memories.reserve(max_actions);
     EnforceMaxActionMemories();
 
 }
 
 /**
- * @brief Sets the maximum number of interruption memories with validation and enforcement
+ * @brief Sets the maximum number of interruption memories (increasing its container if necessary) and enforces the
+ * new memory limits.
+ *
  * @param max_interruptions New maximum capacity (must be > 0)
  *
- * @algorithm Validation + assignment + immediate capacity enforcement
- * @rationale Same validation and enforcement pattern as other memory types
- * @complexity O(1) if no enforcement needed, O(k) where k = memories to remove
  */
 void MemorySystem::SetMaxInterruptionMemories(int max_interruptions)
 {
-    if (max_interruptions <= 0)
+    if (max_interruptions <= 0 || max_interruptions == max_interruption_memories)
     {
-        LogError("MemorySystem: max_interruptions must be greater than 0, keeping current value");
+        LogError("MemorySystem: max_interruptions must be greater than 0, and different from the current maximum, "
+                 "keeping current value");
         return;
     }
 
-    this->max_interruption_memories = max_interruptions;
+    max_interruption_memories = max_interruptions;
     interruption_memories.reserve(max_interruptions);
     EnforceMaxInterruptionMemories();
 
@@ -132,32 +122,20 @@ void MemorySystem::SetMaxInterruptionMemories(int max_interruptions)
  * @param current_time Simulation timestamp when the transition was taken
  * @return true if update succeeded, false if validation or creation failed
  *
- * @algorithm Remove-then-add pattern with capacity enforcement
- * @rationale
- * - Remove existing prevents duplicate memories for same node
- * - std::move avoids unnecessary copying of memory objects
- * - Exception handling ensures system stability on invalid input
- * - Capacity enforcement maintains bounded memory usage
- *
- * @complexity O(n) where n = current transition memory count (due to removal search)
- * @datastructures std::vector allows efficient push_back and maintains insertion order
- * @performance_notes
- * - Linear search for removal is acceptable given small memory capacities (5-10)
- * - Move semantics optimize memory object management
- * - Exception handling prevents crashes but logs errors for debugging
  */
 bool MemorySystem::UpdateTransitionMemory(int target_node_id, int current_time)
 {
     try
     {
+        // Create the new memory first. If the arguments are invalid this will throw an exception.
         TransitionMemory new_memory(target_node_id, current_time);
 
         // Remove existing memory to prevent duplicates
         RemoveExistingTransitionMemory(target_node_id);
 
         // Add new memory at end (newest memories at back, oldest at front)
-        // use std::move to move the created memory instead of copying it in another object
-        transition_memories.push_back(std::move(new_memory));
+        transition_memories.push_back(new_memory);
+
         EnforceMaxTransitionMemories();
 
         return true;
@@ -175,26 +153,20 @@ bool MemorySystem::UpdateTransitionMemory(int target_node_id, int current_time)
  * @param current_time Simulation timestamp when the action was executed
  * @return true if update succeeded, false if validation or creation failed
  *
- * @algorithm Remove-then-add pattern with compound matching and capacity enforcement
- * @rationale
- * - Compound removal (action_id + entity_id) prevents duplicate memories
- * - std::move optimization avoids unnecessary object copying
- * - Exception handling maintains system stability
- * - Capacity enforcement maintains bounded memory usage
- * @complexity O(n) where n = current action memory count (due to compound removal search)
- * @datastructures std::vector maintains insertion order (newest last, oldest first)
  */
 bool MemorySystem::UpdateActionMemory(int action_id, int target_entity_id, int current_time)
 {
     try
     {
+        // Create the new memory first. If the arguments are invalid this will throw an exception.
         ActionMemory new_memory(action_id, target_entity_id, current_time);
 
         // remove the action memory if it exists already to prevent duplicates.
         RemoveExistingActionMemory(action_id, target_entity_id);
 
-        // use std::move to move the created memory instead of copying it in another object
-        action_memories.push_back(std::move(new_memory));
+        // Add new memory at end (newest memories at back, oldest at front)
+        action_memories.push_back(new_memory);
+
         EnforceMaxActionMemories();
 
         return true;
@@ -214,27 +186,21 @@ bool MemorySystem::UpdateActionMemory(int action_id, int target_entity_id, int c
  * @param current_time Simulation timestamp when the interruption occurred
  * @return true if update succeeded, false if validation or creation failed
  *
- * @algorithm Remove-then-add pattern with triple matching and capacity enforcement
- * @rationale
- * - Triple removal (action_id + sequence_id + node_id) prevents duplicate contexts
- * - Preserves complete execution context for seamless resumption
- * - Exception handling critical for interruption scenarios
- * - Capacity enforcement prevents unbounded context accumulation
- * @complexity O(n) where n = current interruption memory count (due to triple removal search)
- * @datastructures std::vector maintains insertion order for FIFO capacity management
  */
 bool MemorySystem::UpdateInterruptionMemory(int action_id, int sequence_id, int node_id, int entity_id,
     int current_time)
 {
     try
     {
+        // Create the new memory first. If the arguments are invalid this will throw an exception.
         InterruptionMemory new_memory(action_id, sequence_id, node_id, entity_id, current_time);
 
         // remove interruption memory if it exists already to prevent duplicates.
         RemoveInterruptionMemory(action_id, sequence_id, node_id);
 
-        // use std::move to move the created memory instead of copying it in another object
-        interruption_memories.push_back(std::move(new_memory));
+        // Add new memory at end (newest memories at back, oldest at front)
+        interruption_memories.push_back(new_memory);
+
         EnforceMaxInterruptionMemories();
 
         return true;
@@ -255,18 +221,10 @@ bool MemorySystem::UpdateInterruptionMemory(int action_id, int sequence_id, int 
  * @param target_node_id Node identifier to search for
  * @return Pointer to matching memory or nullptr if not found
  *
- * @algorithm Linear search using std::find_if with lambda predicate
- * @rationale
- * - Linear search necessary since memories aren't sorted by node_id
- * - Lambda function provides clean, readable matching logic
- * - const return pointer prevents external modification of memory state
- * - nullptr return allows safe null-checking by callers
- * @complexity O(n) where n = transition_memories.size()
- * @datastructures std::vector allows efficient iteration, small size makes linear search acceptable
- * @performance_notes Could optimize with hash map for large memory capacities (>50)
  */
 const TransitionMemory * MemorySystem::FindTransitionMemory(int target_node_id) const
 {
+    // find_if performs a linear search over the memories
     auto iterator = std::find_if(transition_memories.begin(), transition_memories.end(),
         [target_node_id](const TransitionMemory& memory) // lambda function: for each memory in the vector
         {
@@ -283,16 +241,10 @@ const TransitionMemory * MemorySystem::FindTransitionMemory(int target_node_id) 
  * @param target_entity_id Entity identifier to search for
  * @return Pointer to matching memory or nullptr if not found
  *
- * @algorithm Linear search using std::find_if with compound lambda predicate
- * @rationale
- * - Compound matching (action_id + entity_id) enables fine-grained memory lookup
- * - Lambda captures both parameters for clean compound comparison
- * - const return pointer maintains memory integrity
- * @complexity O(n) where n = action_memories.size()
- * @datastructures std::vector iteration with compound matching predicate
  */
 const ActionMemory * MemorySystem::FindActionMemory(int action_id, int target_entity_id) const
 {
+    // find_if performs a linear search over the memories
     auto iterator = std::find_if(action_memories.begin(), action_memories.end(),
         [action_id, target_entity_id](const ActionMemory& memory) // lambda function: for each memory in the vector
         {
@@ -310,16 +262,10 @@ const ActionMemory * MemorySystem::FindActionMemory(int action_id, int target_en
  * @param node_id Sequence node identifier to search for
  * @return Pointer to matching memory or nullptr if not found
  *
- * @algorithm Linear search using std::find_if with triple lambda predicate
- * @rationale
- * - Triple matching (action_id + sequence_id + node_id) ensures precise context identification
- * - Lambda captures all three parameters for complete context comparison
- * - Entity_id not included in search (preserved for resumption but not identity)
- * @complexity O(n) where n = interruption_memories.size()
- * @datastructures std::vector iteration with triple matching predicate
  */
 const InterruptionMemory * MemorySystem::FindInterruptionMemory(int action_id, int sequence_id, int node_id) const
 {
+    // find_if performs a linear search over the memories
     auto iterator = std::find_if(interruption_memories.begin(), interruption_memories.end(),
         [action_id, sequence_id, node_id](const InterruptionMemory& memory) // lambda function: for each memory in the vector
         {
@@ -340,13 +286,6 @@ const InterruptionMemory * MemorySystem::FindInterruptionMemory(int action_id, i
  * @param node_ids Vector of node identifiers that are currently valid choices
  * @return Node ID that should be selected for behavioral variety, or -1 on error
  *
- * @complexity O(n*m) where n = node_ids.size(), m = transition_memories.size()
- * @datastructures
- * - std::vector for input options (allows efficient iteration)
- * - Internal vectors for collecting unused/oldest nodes
- * @performance_notes
- * - Complexity acceptable for small input sizes (typical: 2-5 nodes)
- * - Could optimize with hash maps for larger node sets (>20 nodes)
  */
 int MemorySystem::GetLeastRecentlyVisitedNode(const std::vector<int> &node_ids) const
 {
@@ -374,15 +313,6 @@ int MemorySystem::GetLeastRecentlyVisitedNode(const std::vector<int> &node_ids) 
  * @param entity_ids Vector of entity identifiers that support the action
  * @return Entity ID that should be selected for variety, or -1 on error
  *
- * @algorithm Action-specific two-stage selection with compound memory matching
- * @rationale
- * - Same two-stage approach as transition selection (unused then least recently used)
- * - Action-specific memory lookup enables entity variety per action type
- * - Allows same entity for different actions, different entities for same action
- * @complexity O(n*m) where n = entity_ids.size(), m = action_memories.size()
- * @datastructures
-*  - std::vector for input options (allows efficient iteration)
- * - Internal vectors for collecting unused/oldest entities
  */
 int MemorySystem::GetLeastRecentlyUsedEntityForAction(int action_id, const std::vector<int> &entity_ids) const
 {
@@ -412,20 +342,11 @@ int MemorySystem::GetLeastRecentlyUsedEntityForAction(int action_id, const std::
  * @brief Removes all interruption memories associated with a specific sequence
  * @param sequence_id Unique identifier of the sequence whose memories should be cleared
  *
- * @algorithm Reverse iteration with conditional removal
- * @rationale
- * - Reverse iteration prevents iterator invalidation during removal
- * - Sequence-based cleanup essential for handling sequence failures
- * - Maintains memory consistency when sequences are abandoned or reset
- * - Used when fallback sequences are activated due to failures
- * @complexity O(n) where n = interruption_memories.size()
- * @datastructures std::vector::erase() with reverse indexing for safe removal
- * @performance_notes Reverse iteration more efficient than forward iteration with erase()
  */
 void MemorySystem::ClearSequenceInterruptionMemories(int sequence_id)
 {
     // Iterate backwards through the vector to remove the elements safely.
-    for (int i = static_cast<int>(interruption_memories.size()) - 1; i >= 0; i--)
+    for (auto i = static_cast<int>(interruption_memories.size()) - 1; i >= 0; i--)
     {
         if (interruption_memories[i].GetInterruptedSequenceId() == sequence_id)
         {
@@ -441,14 +362,6 @@ void MemorySystem::ClearSequenceInterruptionMemories(int sequence_id)
  * @param node_id Sequence node identifier of the memory to remove
  * @return true if memory was found and removed, false if not found
  *
- * @algorithm Linear search with conditional removal
- * @rationale
- * - Triple matching ensures precise memory identification for removal
- * - Used when interruption contexts are successfully resumed
- * - Boolean return indicates whether cleanup was necessary
- * - Prevents memory leaks from abandoned interruption contexts
- * @complexity O(n) where n = interruption_memories.size()
- * @datastructures std::find_if + std::vector::erase() for targeted removal
  */
 bool MemorySystem::RemoveInterruptionMemory(int action_id, int sequence_id, int node_id)
 {
@@ -471,13 +384,6 @@ bool MemorySystem::RemoveInterruptionMemory(int action_id, int sequence_id, int 
 /**
  * @brief Clears all memories from all memory collections
  *
- * @algorithm Direct vector clearing for all memory types
- * @rationale
- * - Complete reset functionality for character initialization or debugging
- * - Ensures clean state without memory leaks or stale references
- * - Used during character creation or when resetting behavioral state
- * @complexity O(1) - std::vector::clear() is constant time
- * @datastructures Calls clear() on all std::vector instances
  */
 void MemorySystem::ClearAllMemories()
 {
@@ -494,14 +400,6 @@ void MemorySystem::ClearAllMemories()
  * @brief Logs error messages to standard error output
  * @param message Error message to log
  *
- * @algorithm Direct output to std::cerr with formatted prefix
- * @rationale
- * - Centralized error logging for consistent message formatting
- * - std::cerr ensures error visibility even when stdout is redirected
- * - Formatted prefix enables easy filtering of memory system errors
- * - Non-throwing design maintains system stability during errors
- * @complexity O(1) - simple string output
- * @datastructures Uses std::string for message handling
  */
 void MemorySystem::LogError(const std::string &message) const
 {
@@ -514,14 +412,6 @@ void MemorySystem::LogError(const std::string &message) const
  * @return Randomly selected integer from the vector, or -1 if empty
  *
  * @algorithm Modulo-based random selection using rand()
- * @rationale
- * - Random selection prevents deterministic behavioral patterns
- * - Modulo operation provides uniform distribution across options
- * - Error handling for empty vectors prevents crashes
- * - Simple rand() acceptable for behavioral variety (not cryptographic security)
- * @complexity O(1) - single random number generation and modulo operation
- * @datastructures std::vector random access by index
- * @performance_notes Could upgrade to std::random_device for better randomness
  */
 int MemorySystem::SelectRandomFromVector(const std::vector<int> &options) const
 {
@@ -542,14 +432,6 @@ int MemorySystem::SelectRandomFromVector(const std::vector<int> &options) const
  * @brief Enforces maximum transition memory capacity by removing the oldest entries
  *
  * @algorithm Conditional oldest-first removal using front-of-vector deletion
- * @rationale
- * - FIFO removal maintains recency-based ordering (oldest memories removed first)
- * - Front deletion leverages vector ordering (newest at back, oldest at front)
- * - Only removes when necessary (count > max) for efficiency
- * - Maintains bounded memory usage for performance scalability
- * @complexity O(n) due to std::vector::erase() from beginning
- * @datastructures std::vector front removal shifts all remaining elements
- * @optimization_notes Could use std::deque for O(1) front removal if capacity limits are large
  */
 void MemorySystem::EnforceMaxTransitionMemories()
 {
@@ -566,9 +448,6 @@ void MemorySystem::EnforceMaxTransitionMemories()
 /**
  * @brief Enforces maximum action memory capacity by removing the oldest entries
  *
- * @algorithm Same FIFO enforcement pattern as transition memories
- * @rationale Same bounded memory management strategy
- * @complexity O(n) due to front vector deletion
  */
 void MemorySystem::EnforceMaxActionMemories()
 {
@@ -585,9 +464,6 @@ void MemorySystem::EnforceMaxActionMemories()
 /**
  * @brief Enforces maximum interruption memory capacity by removing the oldest entries
  *
- * @algorithm Same FIFO enforcement pattern as other memory types
- * @rationale Same bounded memory management strategy
- * @complexity O(n) due to front vector deletion
  */
 void MemorySystem::EnforceMaxInterruptionMemories()
 {
@@ -609,13 +485,6 @@ void MemorySystem::EnforceMaxInterruptionMemories()
  * @brief Removes existing transition memory matching the specified node ID
  * @param target_node_id Node identifier of the memory to remove
  *
- * @algorithm Linear search with conditional removal
- * @rationale
- * - Used by UpdateTransitionMemory to implement update-not-duplicate semantics
- * - Silent failure (no error if not found) since absence is valid state
- * - Maintains memory uniqueness constraint for transition decisions
- * @complexity O(n) where n = transition_memories.size()
- * @datastructures std::find_if + conditional std::vector::erase()
  */
 void MemorySystem::RemoveExistingTransitionMemory(int target_node_id)
 {
@@ -637,13 +506,6 @@ void MemorySystem::RemoveExistingTransitionMemory(int target_node_id)
  * @param action_id Action identifier of the memory to remove
  * @param target_entity_id Entity identifier of the memory to remove
  *
- * @algorithm Linear search with compound matching and conditional removal
- * @rationale
- * - Used by UpdateActionMemory to implement update-not-duplicate semantics
- * - Compound matching ensures precise memory identification
- * - Silent failure maintains robustness during updates
- * @complexity O(n) where n = action_memories.size()
- * @datastructures std::find_if with compound lambda + conditional std::vector::erase()
  */
 void MemorySystem::RemoveExistingActionMemory(int action_id, int target_entity_id)
 {
@@ -669,20 +531,6 @@ void MemorySystem::RemoveExistingActionMemory(int action_id, int target_entity_i
  * @param node_ids Vector of node identifiers to search through
  * @return Node ID with the oldest timestamp, or -1 on error
  *
- * @algorithm Linear search with timestamp comparison and tie handling
- * @rationale
- * - Linear search necessary since memories aren't sorted by timestamp
- * - Tie handling prevents deterministic selection when timestamps match
- * - Multiple nodes with same timestamp get random selection
- * - Error logging helps debug missing memory scenarios
- * @complexity O(n*m) where n = node_ids.size(), m = transition_memories.size()
- * @datastructures
- * - std::vector for collecting tied results
- * - INT_MAX as initial comparison value
- * @performance_notes
- * - Could optimize with timestamp indexing for larger memory sizes
- * - Current approach prioritizes simplicity over micro-optimizations
- * - Random tie-breaking essential for behavioral variety
  */
 int MemorySystem::FindOldestTransitionNode(const std::vector<int> &node_ids) const
 {
@@ -697,7 +545,7 @@ int MemorySystem::FindOldestTransitionNode(const std::vector<int> &node_ids) con
     int oldest_time = INT_MAX;
 
     // Search for memories and track oldest timestamp(s)
-    for (int node_id : node_ids)
+    for (auto node_id : node_ids)
     {
         const TransitionMemory* memory = FindTransitionMemory(node_id);
         if (memory == nullptr)
@@ -737,14 +585,6 @@ int MemorySystem::FindOldestTransitionNode(const std::vector<int> &node_ids) con
  * @param entity_ids Vector of entity identifiers to compare
  * @return Entity ID with the oldest timestamp for this action, or -1 on error
  *
- * @algorithm Linear search with action-specific timestamp comparison and tie handling
- * @rationale
- * - Action-specific memory lookup enables per-action entity variety
- * - Same timestamp comparison and tie-breaking logic as transition nodes
- * - Error logging helps debug missing memory scenarios for action-entity combinations
- * @complexity O(n*m) where n = entity_ids.size(), m = action_memories.size()
- * @datastructures std::vector for collecting tied results + action-specific memory lookup
- * @performance_notes Compound matching adds overhead but enables richer behavioral variety
  */
 int MemorySystem::FindOldestActionEntity(int action_id, const std::vector<int> &entity_ids) const
 {
@@ -800,14 +640,6 @@ int MemorySystem::FindOldestActionEntity(int action_id, const std::vector<int> &
  * @param node_ids Vector of node identifiers to check
  * @return Vector of node IDs that have no corresponding transition memory
  *
- * @algorithm Linear search with negative matching (collect nodes WITHOUT memories)
- * @rationale
- * - Enables exploration priority (unused nodes selected before LRU nodes)
- * - Null memory check identifies truly unused options
- * - Encourages behavioral variety by prioritizing new experiences
- * @complexity O(n*m) where n = node_ids.size(), m = transition_memories.size()
- * @datastructures std::vector accumulation of nodes without corresponding memories
- * @performance_notes Could optimize with memory indexing for large node sets
  */
 std::vector<int> MemorySystem::FindUnusedTransitionNodes(const std::vector<int> &node_ids) const
 {
@@ -830,13 +662,6 @@ std::vector<int> MemorySystem::FindUnusedTransitionNodes(const std::vector<int> 
  * @param entity_ids Vector of entity identifiers to check
  * @return Vector of entity IDs that have no corresponding action memory for this action
  *
- * @algorithm Linear search with action-specific negative matching
- * @rationale
- * - Enables exploration priority for action-entity combinations
- * - Action-specific checking allows same entity for different actions
- * - Prioritizes entity variety within each action type
- * @complexity O(n*m) where n = entity_ids.size(), m = action_memories.size()
- * @datastructures std::vector accumulation with action-specific memory checking
  */
 std::vector<int> MemorySystem::FindUnusedActionEntities(int action_id, const std::vector<int> &entity_ids) const
 {

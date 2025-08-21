@@ -45,10 +45,6 @@ protected:
 
     /**
      * @brief Simulation timestamp when this memory was last updated
-     *
-     * Used for recency based comparisons to implement least recently used selection.
-     * Must be non-negative and typically represents game time or frame count.
-     *
      * @invariant last_used_time >= 0
      */
     int last_used_time;
@@ -63,9 +59,6 @@ public:
      * @param time Simulation time when this memory should be considered created
      *
      * @throws std::invalid_argument if time < 0
-     *
-     * @pre time >= 0
-     * @post last_used_time == time
      */
     explicit BaseMemory(const int time) : last_used_time(time) {
         if(time < 0)
@@ -74,11 +67,6 @@ public:
         }
     }
 
-    /**
-     * @brief Virtual destructor for proper polymorphic cleanup
-     *
-     * Ensures derived classes are properly destroyed when accessed through BaseMemory pointers.
-     */
     virtual ~BaseMemory() = default;
 
     // =============================================================================
@@ -108,30 +96,18 @@ public:
     // TIME-BASED OPERATIONS
     // =============================================================================
 
-    /**
-     * @brief Gets the timestamp when this memory was last updated
-     *
-     * @return Simulation time value used for recency comparisons
-     *
-     * @post return value >= 0
-     */
     int GetLastUsedTime() const { return last_used_time; }
 
     /**
      * @brief Compares recency with another memory least recently used selection
      *
-     * Enables the memory system to  identify which memories are older and should be prioritized for selection or
-     * removal.
-     *
      * @param other Memory to compare recency against
-     * @return true if this memory is older (has a smaller timestamp)
+     * @return true if this memory is older (has a smaller last_used_time)
      *
      * @note Does not check if memories are of the same type or represent the same decision. It only compares timestamps.
-     *
-     * @see GetLastUsedTime()
      */
     virtual bool IsOlderThan(BaseMemory& other) const {
-        return GetLastUsedTime() < other.GetLastUsedTime();
+        return last_used_time < other.GetLastUsedTime();
     }
 };
 

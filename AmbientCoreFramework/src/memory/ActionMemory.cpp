@@ -4,8 +4,6 @@
  * @author Eric Buitrón López
  * @date 8/11/2025
  *
- * Records which entities have been used for specific actions to enable recency-based
- * entity selection that creates natural behavioral patterns.
  */
 
 #include "ActionMemory.h"
@@ -22,12 +20,6 @@ using namespace AmbientCharacterBehavior;
  * @param last_used_time Simulation timestamp when the action was performed
  * @throws std::invalid_argument if action_id < 0 or target_entity_id < 0 or last_used_time < 0
  *
- * @algorithm Dual validation + member initialization
- * @rationale
- * - Both action_id and target_entity_id must be validated for compound matching
- * - Delegates time validation to base class for consistency
- * - Early validation prevents invalid combinations from being stored
- * @complexity O(1) - simple validation and assignment operations
  */
 ActionMemory::ActionMemory(int action_id, int target_entity_id, int last_used_time) :
 	BaseMemory(last_used_time), action_id(action_id), target_entity_id(target_entity_id)
@@ -56,20 +48,6 @@ ActionMemory::ActionMemory(int action_id, int target_entity_id, int last_used_ti
  *
  * @param other Memory instance to compare against
  * @return true if other is ActionMemory with same action_id and target_entity_id
- *
- * @algorithm Two-stage matching: type check + compound value comparison
- * @rationale
- * - dynamic_cast provides type safety for polymorphic memory collections
- * - Delegates to optimized compound comparison after type verification
- * - Returns false for incompatible types rather than throwing exceptions
- * - ActionMemory requires both identifiers to match (stricter than TransitionMemory)
- *
- * @complexity O(1) - dynamic_cast + two integer comparisons
- * @datastructures Uses dynamic_cast for safe polymorphic type checking
- * @performance_notes
- * - dynamic_cast overhead acceptable for decision-making frequency
- * - Compound matching (2 comparisons) still O(1)
- * - Alternative approaches would require complex type hierarchies
  */
 bool ActionMemory::MatchesMemory(const BaseMemory& other) const
 {
@@ -84,17 +62,14 @@ bool ActionMemory::MatchesMemory(const BaseMemory& other) const
 }
 
 /**
- * @brief Convenience method to check compound action-entity matching
+* @brief Checks if this memory matches the provided parameters.
+ *
+ * Alternative way of checking if a memory matches if full memory object is not available.
+ *
  * @param other_action_id Action identifier to compare against
  * @param other_target_entity_id Entity identifier to compare against
  * @return true if both action_id and target_entity_id match
  *
- * @algorithm Direct integer comparisons
- * @rationale
- * - Both identifiers must match for ActionMemory identity
- * - Short-circuit evaluation optimizes for action_id mismatches (likely more common)
- * - Separates compound logic from polymorphic type checking
- * @complexity O(1) - two integer comparisons with short-circuit
  */
 bool ActionMemory::MatchesMemory(int other_action_id, int other_target_entity_id) const
 {
@@ -106,25 +81,11 @@ bool ActionMemory::MatchesMemory(int other_action_id, int other_target_entity_id
 // DATA ACCESS
 // =============================================================================
 
-/**
- * @brief Gets the action identifier that this memory represents
- * @return Unique identifier of the action that was performed
- *
- * @algorithm Direct member access
- * @complexity O(1) - simple member variable access
- */
 int ActionMemory::GetActionId() const
 {
 	return this->action_id;
 }
 
-/**
- * @brief Gets the entity identifier that this memory represents
- * @return Unique identifier of the entity that was used for the action
- *
- * @algorithm Direct member access
- * @complexity O(1) - simple member variable access
- */
 int ActionMemory::GetTargetEntityId() const
 {
 	return this->target_entity_id;

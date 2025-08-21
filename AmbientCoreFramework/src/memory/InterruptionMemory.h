@@ -4,7 +4,6 @@
  * @author Eric Buitrón López
  * @date 8/12/2025
  *
- * Enables resumption of actions after interruptions by preserving the execution state.
  */
 
 #pragma once
@@ -14,49 +13,6 @@ namespace AmbientCharacterBehavior {
 /**
  * @ingroup memory_group
  * @brief Preserves execution context when character actions are interrupted
- *
- * InterruptionMemory enables behavioral continuity by storing context
- * information when a character's action is interrupted by external events
- * (emergencies, player interactions, environmental changes). This allows
- * characters to try to resume their previous activity after handling
- * the interruption, maintaining believable behavioral flow.
- *
- * **Domain Context:**
- * Ambient characters often need to respond to immediate events that interrupt
- * their current actions - a fire alarm while eating lunch, rain while reading
- * in the park, or a player interaction while walking. Without interruption
- * memory, characters would lose their context and start completely new behaviors,
- * creating unrealistic discontinuity in their apparent "lives."
- *
- * **Matching Strategy:**
- * InterruptionMemory uses triple matching - memories match only if action_id,
- * sequence_id, AND sequence_node_id are identical. The target_entity_id is
- * preserved for resumption but not used for matching, since the same action
- * context can be interrupted in multiple ways.
- *
- * **Usage Pattern:**
- * ```cpp
- * // Character is sitting on bench when fire alarm triggers
- * if (action.IsResumable()) {
- *     memory_system.UpdateInterruptionMemory(
- *         SIT_ACTION, LEISURE_SEQUENCE, SITTING_NODE, bench_id, current_time
- *     );
- * }
- *
- * // After handling emergency, attempt to resume
- * auto context = memory_system.FindInterruptionContext(
- *     SIT_ACTION, LEISURE_SEQUENCE, SITTING_NODE
- * );
- * if (context && bench_still_available) {
- *     // Resume sitting on the same bench
- *     character.ResumeAction(context);
- * }
- * ```
- *
- * **Performance Characteristics:**
- * - Construction: O(1)
- * - Matching: O(1) (triple comparison)
- * - Memory footprint: 5 integers (3 for matching + entity_id + timestamp)
  *
  * @see IMemory, MemorySystem
  */
@@ -94,7 +50,7 @@ public:
     // CONSTRUCTION
     // =============================================================================
 
-    InterruptionMemory(
+    explicit InterruptionMemory(
         int interrupted_action_id,
         int interrupted_sequence_id,
         int interrupted_sequence_node_id,
