@@ -25,15 +25,15 @@ class BehavioralEntity : public StatefulEntity {
 private:
     MemorySystem memory;
 
-    Sequence* main_sequence;
+    std::shared_ptr<Sequence> main_sequence;
 
-    std::stack<Sequence*> sequences;
+    std::stack<std::shared_ptr<Sequence>> sequences;
 
-    std::vector<Sequence*> fallback_sequences;
+    std::vector<std::shared_ptr<Sequence>> fallback_sequences;
 
-    std::unordered_map<int, Sequence*> interruption_handlers;
+    std::unordered_map<int, std::shared_ptr<Sequence>> interruption_handlers;
 
-    Entity* current_action_target;
+    int current_action_target_index;
 
     bool is_processing;
 
@@ -47,8 +47,8 @@ public:
      * @throw std::invalid_argument if entity_id or current_location_id < 0.
      */
     explicit BehavioralEntity(int entity_id, int current_location_id, std::string name = "") :
-        StatefulEntity(entity_id, current_location_id, name),
-        main_sequence(nullptr), current_action_target(nullptr), is_processing(false) {}
+        StatefulEntity(entity_id, current_location_id, std::move(name)),
+        main_sequence(nullptr), current_action_target_index(-1), is_processing(false) {}
 
 };
 } // AmbientCharacterBehavior

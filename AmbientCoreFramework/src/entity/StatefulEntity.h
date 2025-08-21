@@ -30,13 +30,14 @@ public:
      * @throw std::invalid_argument if entity_id or current_location_id < 0.
      */
     explicit StatefulEntity(int entity_id, int current_location_id, std::string name = "") :
-        Entity(entity_id, current_location_id, name) {}
+        Entity(entity_id, current_location_id, std::move(name)) {}
 
     /**
      * @brief Checks if the stateful entity accepts a specific action
      * @param action_id The identifier of the action to look for
      * @return True if the action is supported, false if not.
      */
+    [[nodiscard]]
     bool SupportsAction(int action_id) const { return accepted_actions_ids.find(action_id) != accepted_actions_ids.end(); }
 
     /**
