@@ -72,9 +72,9 @@ TEST_F(MemorySystemTest, SetMaxMemoriesRejectsNegativeValues) {
 
 TEST_F(MemorySystemTest, SetMaxTransitionMemoriesEnforcesNewCapacityImmediately) {
     // Fill with 3 memories
-    memory_system->UpdateTransitionMemory(1, 100);
-    memory_system->UpdateTransitionMemory(2, 200);
-    memory_system->UpdateTransitionMemory(3, 300);
+    [[maybe_unused]] auto res = memory_system->UpdateTransitionMemory(1, 100);
+    [[maybe_unused]] auto res1 = memory_system->UpdateTransitionMemory(2, 200);
+    [[maybe_unused]] auto res2 = memory_system->UpdateTransitionMemory(3, 300);
 
     // Reduce capacity to 2
     memory_system->SetMaxTransitionMemories(2);
@@ -85,9 +85,9 @@ TEST_F(MemorySystemTest, SetMaxTransitionMemoriesEnforcesNewCapacityImmediately)
 }
 
 TEST_F(MemorySystemTest, SetMaxActionMemoriesEnforcesNewCapacityImmediately) {
-    memory_system->UpdateActionMemory(1, 10, 100);
-    memory_system->UpdateActionMemory(2, 20, 200);
-    memory_system->UpdateActionMemory(3, 30, 300);
+    [[maybe_unused]] auto res = memory_system->UpdateActionMemory(1, 10, 100);
+    [[maybe_unused]] auto res1 = memory_system->UpdateActionMemory(2, 20, 200);
+    [[maybe_unused]] auto res2 = memory_system->UpdateActionMemory(3, 30, 300);
 
     memory_system->SetMaxActionMemories(2);
 
@@ -96,8 +96,8 @@ TEST_F(MemorySystemTest, SetMaxActionMemoriesEnforcesNewCapacityImmediately) {
 }
 
 TEST_F(MemorySystemTest, SetMaxInterruptionMemoriesEnforcesNewCapacityImmediately) {
-    memory_system->UpdateInterruptionMemory(1, 10, 11, 20, 100);
-    memory_system->UpdateInterruptionMemory(2, 10, 12, 21, 200);
+    [[maybe_unused]] auto res = memory_system->UpdateInterruptionMemory(1, 10, 11, 20, 100);
+    [[maybe_unused]] auto res1 = memory_system->UpdateInterruptionMemory(2, 10, 12, 21, 200);
 
     memory_system->SetMaxInterruptionMemories(1);
 
@@ -111,7 +111,7 @@ TEST_F(MemorySystemTest, SetMaxInterruptionMemoriesEnforcesNewCapacityImmediatel
 
 // Transition Memory Find Tests
 TEST_F(MemorySystemTest, FindTransitionMemoryReturnsCorrectMemory) {
-    memory_system->UpdateTransitionMemory(5, 100);
+   [[maybe_unused]] auto res = memory_system->UpdateTransitionMemory(5, 100);
 
     const TransitionMemory* found = memory_system->FindTransitionMemory(5);
     ASSERT_NE(nullptr, found);
@@ -124,8 +124,8 @@ TEST_F(MemorySystemTest, FindTransitionMemoryReturnsNullptrWhenNotFound) {
 }
 
 TEST_F(MemorySystemTest, FindTransitionMemoryMatchesOnlyNodeId) {
-    memory_system->UpdateTransitionMemory(5, 100);
-    memory_system->UpdateTransitionMemory(7, 200);
+    [[maybe_unused]] auto res = memory_system->UpdateTransitionMemory(5, 100);
+    [[maybe_unused]] auto res1 = memory_system->UpdateTransitionMemory(7, 200);
 
     EXPECT_NE(nullptr, memory_system->FindTransitionMemory(5));
     EXPECT_NE(nullptr, memory_system->FindTransitionMemory(7));
@@ -134,7 +134,7 @@ TEST_F(MemorySystemTest, FindTransitionMemoryMatchesOnlyNodeId) {
 
 // Action Memory Find Tests
 TEST_F(MemorySystemTest, FindActionMemoryReturnsCorrectMemory) {
-    memory_system->UpdateActionMemory(3, 10, 100);
+   [[maybe_unused]] auto res =  memory_system->UpdateActionMemory(3, 10, 100);
 
     const ActionMemory* found = memory_system->FindActionMemory(3, 10);
     ASSERT_NE(nullptr, found);
@@ -147,7 +147,7 @@ TEST_F(MemorySystemTest, FindActionMemoryReturnsNullptrWhenNotFound) {
 }
 
 TEST_F(MemorySystemTest, FindActionMemoryRequiresBothKeysToMatch) {
-    memory_system->UpdateActionMemory(3, 10, 100);
+   [[maybe_unused]] auto res =  memory_system->UpdateActionMemory(3, 10, 100);
 
     EXPECT_NE(nullptr, memory_system->FindActionMemory(3, 10));   // Both match
     EXPECT_EQ(nullptr, memory_system->FindActionMemory(3, 11));   // Different entity
@@ -156,7 +156,7 @@ TEST_F(MemorySystemTest, FindActionMemoryRequiresBothKeysToMatch) {
 
 // Interruption Memory Find Tests
 TEST_F(MemorySystemTest, FindInterruptionMemoryReturnsCorrectMemory) {
-    memory_system->UpdateInterruptionMemory(5, 10, 15, 20, 100);
+   [[maybe_unused]] auto res =  memory_system->UpdateInterruptionMemory(5, 10, 15, 20, 100);
 
     const InterruptionMemory* found = memory_system->FindInterruptionMemory(5, 10, 15);
     ASSERT_NE(nullptr, found);
@@ -170,7 +170,7 @@ TEST_F(MemorySystemTest, FindInterruptionMemoryReturnsNullptrWhenNotFound) {
 }
 
 TEST_F(MemorySystemTest, FindInterruptionMemoryRequiresAllThreeKeysToMatch) {
-    memory_system->UpdateInterruptionMemory(5, 10, 15, 20, 100);
+   [[maybe_unused]] auto res =  memory_system->UpdateInterruptionMemory(5, 10, 15, 20, 100);
 
     EXPECT_NE(nullptr, memory_system->FindInterruptionMemory(5, 10, 15));  // All match
     EXPECT_EQ(nullptr, memory_system->FindInterruptionMemory(6, 10, 15));  // Different action
@@ -189,7 +189,7 @@ TEST_F(MemorySystemTest, UpdateTransitionMemoryCreatesNewEntryAndReturnsTrue) {
 }
 
 TEST_F(MemorySystemTest, UpdateTransitionMemoryStoresCorrectData) {
-    memory_system->UpdateTransitionMemory(5, 100);
+   [[maybe_unused]] auto res =  memory_system->UpdateTransitionMemory(5, 100);
 
     const TransitionMemory* found = memory_system->FindTransitionMemory(5);
     ASSERT_NE(nullptr, found);
@@ -198,8 +198,8 @@ TEST_F(MemorySystemTest, UpdateTransitionMemoryStoresCorrectData) {
 }
 
 TEST_F(MemorySystemTest, UpdateTransitionMemoryReplacesExistingEntry) {
-    memory_system->UpdateTransitionMemory(5, 100);
-    memory_system->UpdateTransitionMemory(5, 200);
+   [[maybe_unused]] auto res =  memory_system->UpdateTransitionMemory(5, 100);
+   [[maybe_unused]] auto res1 =  memory_system->UpdateTransitionMemory(5, 200);
 
     const TransitionMemory* found = memory_system->FindTransitionMemory(5);
     ASSERT_NE(nullptr, found);
@@ -209,10 +209,10 @@ TEST_F(MemorySystemTest, UpdateTransitionMemoryReplacesExistingEntry) {
 }
 
 TEST_F(MemorySystemTest, TransitionMemoryRespectsCapacityLimit) {
-    memory_system->UpdateTransitionMemory(1, 100);
-    memory_system->UpdateTransitionMemory(2, 200);
-    memory_system->UpdateTransitionMemory(3, 300);
-    memory_system->UpdateTransitionMemory(4, 400);  // Should remove oldest
+   [[maybe_unused]] auto res =  memory_system->UpdateTransitionMemory(1, 100);
+   [[maybe_unused]] auto res1 =  memory_system->UpdateTransitionMemory(2, 200);
+   [[maybe_unused]] auto res2 =  memory_system->UpdateTransitionMemory(3, 300);
+   [[maybe_unused]] auto res3 =  memory_system->UpdateTransitionMemory(4, 400);  // Should remove oldest
 
     EXPECT_EQ(3, memory_system->GetTransitionMemoryCount());
     EXPECT_EQ(nullptr, memory_system->FindTransitionMemory(1));
@@ -220,7 +220,7 @@ TEST_F(MemorySystemTest, TransitionMemoryRespectsCapacityLimit) {
 }
 
 TEST_F(MemorySystemTest, InvalidUpdateDoesNotRemoveExistingMemoryAndReturnsFalse) {
-    memory_system->UpdateTransitionMemory(5, 100);  // Valid memory
+   [[maybe_unused]] auto res =  memory_system->UpdateTransitionMemory(5, 100);  // Valid memory
     EXPECT_EQ(1, memory_system->GetTransitionMemoryCount());
 
     // Invalid update returns false
@@ -240,7 +240,7 @@ TEST_F(MemorySystemTest, UpdateActionMemoryCreatesNewEntry) {
 }
 
 TEST_F(MemorySystemTest, UpdateActionMemoryStoresCorrectData) {
-    memory_system->UpdateActionMemory(3, 10, 100);
+   [[maybe_unused]] auto res =  memory_system->UpdateActionMemory(3, 10, 100);
 
     const ActionMemory* found = memory_system->FindActionMemory(3, 10);
     ASSERT_NE(nullptr, found);
@@ -250,8 +250,8 @@ TEST_F(MemorySystemTest, UpdateActionMemoryStoresCorrectData) {
 }
 
 TEST_F(MemorySystemTest, UpdateActionMemoryReplacesExistingEntry) {
-    memory_system->UpdateActionMemory(3, 10, 100);
-    memory_system->UpdateActionMemory(3, 10, 200);  // Same action+entity, different time
+   [[maybe_unused]] auto res =  memory_system->UpdateActionMemory(3, 10, 100);
+   [[maybe_unused]] auto res1 =  memory_system->UpdateActionMemory(3, 10, 200);  // Same action+entity, different time
 
     const ActionMemory* found = memory_system->FindActionMemory(3, 10);
     ASSERT_NE(nullptr, found);
@@ -261,10 +261,10 @@ TEST_F(MemorySystemTest, UpdateActionMemoryReplacesExistingEntry) {
 }
 
 TEST_F(MemorySystemTest, ActionMemoryRespectsCapacityLimit) {
-    memory_system->UpdateActionMemory(1, 10, 100);
-    memory_system->UpdateActionMemory(2, 20, 200);
-    memory_system->UpdateActionMemory(3, 30, 300);
-    memory_system->UpdateActionMemory(4, 40, 400);
+   [[maybe_unused]] auto res =  memory_system->UpdateActionMemory(1, 10, 100);
+   [[maybe_unused]] auto res1 =  memory_system->UpdateActionMemory(2, 20, 200);
+   [[maybe_unused]] auto res2 =  memory_system->UpdateActionMemory(3, 30, 300);
+   [[maybe_unused]] auto res3 =  memory_system->UpdateActionMemory(4, 40, 400);
 
     EXPECT_EQ(3, memory_system->GetActionMemoryCount());
     EXPECT_EQ(nullptr, memory_system->FindActionMemory(1, 10));  // Oldest removed
@@ -272,7 +272,7 @@ TEST_F(MemorySystemTest, ActionMemoryRespectsCapacityLimit) {
 }
 
 TEST_F(MemorySystemTest, InvalidActionUpdateDoesNotRemoveExistingMemoryAndReturnsFalse) {
-    memory_system->UpdateActionMemory(3, 10, 100);  // Valid memory
+   [[maybe_unused]] auto res =  memory_system->UpdateActionMemory(3, 10, 100);  // Valid memory
     EXPECT_EQ(1, memory_system->GetActionMemoryCount());
 
     // Invalid update returns false
@@ -292,7 +292,7 @@ TEST_F(MemorySystemTest, UpdateInterruptionMemoryCreatesNewEntryAndReturnsTrue) 
 }
 
 TEST_F(MemorySystemTest, UpdateInterruptionMemoryStoresCorrectData) {
-    memory_system->UpdateInterruptionMemory(5, 10, 15, 20, 100);
+   [[maybe_unused]] auto res =  memory_system->UpdateInterruptionMemory(5, 10, 15, 20, 100);
 
     const InterruptionMemory* found = memory_system->FindInterruptionMemory(5, 10, 15);
     ASSERT_NE(nullptr, found);
@@ -304,8 +304,8 @@ TEST_F(MemorySystemTest, UpdateInterruptionMemoryStoresCorrectData) {
 }
 
 TEST_F(MemorySystemTest, UpdateInterruptionMemoryReplacesExistingEntry) {
-    memory_system->UpdateInterruptionMemory(5, 10, 15, 20, 100);
-    memory_system->UpdateInterruptionMemory(5, 10, 15, 25, 200);  // Same keys, different entity+time
+   [[maybe_unused]] auto res =  memory_system->UpdateInterruptionMemory(5, 10, 15, 20, 100);
+   [[maybe_unused]] auto res1 =  memory_system->UpdateInterruptionMemory(5, 10, 15, 25, 200);  // Same keys, different entity+time
 
     const InterruptionMemory* found = memory_system->FindInterruptionMemory(5, 10, 15);
     ASSERT_NE(nullptr, found);
@@ -316,9 +316,9 @@ TEST_F(MemorySystemTest, UpdateInterruptionMemoryReplacesExistingEntry) {
 }
 
 TEST_F(MemorySystemTest, InterruptionMemoryRespectsCapacityLimit) {
-    memory_system->UpdateInterruptionMemory(1, 10, 11, 20, 100);
-    memory_system->UpdateInterruptionMemory(2, 10, 12, 21, 200);
-    memory_system->UpdateInterruptionMemory(3, 10, 13, 22, 300);  // At capacity (2)
+   [[maybe_unused]] auto res =  memory_system->UpdateInterruptionMemory(1, 10, 11, 20, 100);
+   [[maybe_unused]] auto res1 =  memory_system->UpdateInterruptionMemory(2, 10, 12, 21, 200);
+   [[maybe_unused]] auto res2 =  memory_system->UpdateInterruptionMemory(3, 10, 13, 22, 300);  // At capacity (2)
 
     // This should remove the oldest (first entry)
     EXPECT_EQ(2, memory_system->GetInterruptionMemoryCount());
@@ -327,7 +327,7 @@ TEST_F(MemorySystemTest, InterruptionMemoryRespectsCapacityLimit) {
 }
 
 TEST_F(MemorySystemTest, InvalidInterruptionUpdateDoesNotRemoveExistingMemoryAndReturnsFalse) {
-    memory_system->UpdateInterruptionMemory(5, 10, 15, 20, 100);  // Valid memory
+   [[maybe_unused]] auto res =  memory_system->UpdateInterruptionMemory(5, 10, 15, 20, 100);  // Valid memory
     EXPECT_EQ(1, memory_system->GetInterruptionMemoryCount());
 
     // Invalid update returns false (invalid entity_id)
@@ -347,8 +347,8 @@ TEST_F(MemorySystemTest, InvalidInterruptionUpdateDoesNotRemoveExistingMemoryAnd
 
 // Transition Memory Recency Tests
 TEST_F(MemorySystemTest, GetLeastRecentlyVisitedNodePrefersNeverUsed) {
-    memory_system->UpdateTransitionMemory(5, 100);
-    memory_system->UpdateTransitionMemory(7, 200);
+   [[maybe_unused]] auto res =  memory_system->UpdateTransitionMemory(5, 100);
+   [[maybe_unused]] auto res1 =  memory_system->UpdateTransitionMemory(7, 200);
 
     std::vector<int> node_ids = {5, 7, 9};  // 9 never used
     int selected = memory_system->GetLeastRecentlyVisitedNode(node_ids);
@@ -357,8 +357,8 @@ TEST_F(MemorySystemTest, GetLeastRecentlyVisitedNodePrefersNeverUsed) {
 }
 
 TEST_F(MemorySystemTest, GetLeastRecentlyVisitedNodeSelectsOldestTimestamp) {
-    memory_system->UpdateTransitionMemory(5, 100);  // Older
-    memory_system->UpdateTransitionMemory(7, 200);  // Newer
+   [[maybe_unused]] auto res =  memory_system->UpdateTransitionMemory(5, 100);  // Older
+   [[maybe_unused]] auto res1 =  memory_system->UpdateTransitionMemory(7, 200);  // Newer
 
     std::vector<int> node_ids = {5, 7};
     int selected = memory_system->GetLeastRecentlyVisitedNode(node_ids);
@@ -374,8 +374,8 @@ TEST_F(MemorySystemTest, GetLeastRecentlyVisitedNodeReturnsMinusOneForEmptyInput
 }
 
 TEST_F(MemorySystemTest, GetLeastRecentlyVisitedNodeHandlesEqualTimestamps) {
-    memory_system->UpdateTransitionMemory(5, 100);
-    memory_system->UpdateTransitionMemory(7, 100);  // Same timestamp so should pick randomly
+   [[maybe_unused]] auto res =  memory_system->UpdateTransitionMemory(5, 100);
+   [[maybe_unused]] auto res1 =  memory_system->UpdateTransitionMemory(7, 100);  // Same timestamp so should pick randomly
 
     std::vector<int> node_ids = {5, 7};
     int selected = memory_system->GetLeastRecentlyVisitedNode(node_ids);
@@ -385,8 +385,8 @@ TEST_F(MemorySystemTest, GetLeastRecentlyVisitedNodeHandlesEqualTimestamps) {
 
 // Action Memory Recency Tests
 TEST_F(MemorySystemTest, GetLeastRecentlyUsedEntityPrefersNeverUsed) {
-    memory_system->UpdateActionMemory(3, 10, 100);
-    memory_system->UpdateActionMemory(3, 11, 200);
+   [[maybe_unused]] auto res =  memory_system->UpdateActionMemory(3, 10, 100);
+   [[maybe_unused]] auto res1 =  memory_system->UpdateActionMemory(3, 11, 200);
 
     std::vector<int> entity_ids = {10, 11, 12};  // 12 never used
     int selected = memory_system->GetLeastRecentlyUsedEntityForAction(3, entity_ids);
@@ -395,8 +395,8 @@ TEST_F(MemorySystemTest, GetLeastRecentlyUsedEntityPrefersNeverUsed) {
 }
 
 TEST_F(MemorySystemTest, GetLeastRecentlyUsedEntitySelectsOldestTimestamp) {
-    memory_system->UpdateActionMemory(3, 10, 100);  // Older
-    memory_system->UpdateActionMemory(3, 11, 200);  // Newer
+   [[maybe_unused]] auto res =  memory_system->UpdateActionMemory(3, 10, 100);  // Older
+   [[maybe_unused]] auto res1 =  memory_system->UpdateActionMemory(3, 11, 200);  // Newer
 
     std::vector<int> entity_ids = {10, 11};
     int selected = memory_system->GetLeastRecentlyUsedEntityForAction(3, entity_ids);
@@ -412,8 +412,8 @@ TEST_F(MemorySystemTest, GetLeastRecentlyUsedEntityReturnsMinusOneForEmptyInput)
 }
 
 TEST_F(MemorySystemTest, GetLeastRecentlyUsedEntityHandlesEqualTimestamps) {
-    memory_system->UpdateActionMemory(3, 10, 100);
-    memory_system->UpdateActionMemory(3, 11, 100); // Same timestamp so should pick randomly
+   [[maybe_unused]] auto res =  memory_system->UpdateActionMemory(3, 10, 100);
+   [[maybe_unused]] auto res1 =  memory_system->UpdateActionMemory(3, 11, 100); // Same timestamp so should pick randomly
 
     std::vector<int> entity_ids = {10, 11};
     int selected = memory_system->GetLeastRecentlyUsedEntityForAction(3, entity_ids);
@@ -426,9 +426,9 @@ TEST_F(MemorySystemTest, GetLeastRecentlyUsedEntityHandlesEqualTimestamps) {
 // CLEANUP TESTS
 // =============================================================================
 TEST_F(MemorySystemTest, ClearAllMemoriesResetsMemories) {
-    memory_system->UpdateTransitionMemory(5, 100);
-    memory_system->UpdateActionMemory(5, 1, 100);
-    memory_system->UpdateInterruptionMemory(2, 1, 2, 1, 200);
+   [[maybe_unused]] auto res =  memory_system->UpdateTransitionMemory(5, 100);
+   [[maybe_unused]] auto res1 =  memory_system->UpdateActionMemory(5, 1, 100);
+   [[maybe_unused]] auto res2 =  memory_system->UpdateInterruptionMemory(2, 1, 2, 1, 200);
     memory_system->ClearAllMemories();
 
     EXPECT_EQ(0, memory_system->GetTransitionMemoryCount());
@@ -437,9 +437,9 @@ TEST_F(MemorySystemTest, ClearAllMemoriesResetsMemories) {
 }
 
 TEST_F(MemorySystemTest, ClearInterruptionMemoriesRemovesAllFromSequence) {
-    memory_system->UpdateInterruptionMemory(5, 10, 15, 20, 100);  // Sequence 10
-    memory_system->UpdateInterruptionMemory(6, 10, 16, 21, 200);  // Sequence 10
-    memory_system->UpdateInterruptionMemory(7, 12, 17, 22, 300);  // Sequence 12
+   [[maybe_unused]] auto res =  memory_system->UpdateInterruptionMemory(5, 10, 15, 20, 100);  // Sequence 10
+   [[maybe_unused]] auto res1 =  memory_system->UpdateInterruptionMemory(6, 10, 16, 21, 200);  // Sequence 10
+   [[maybe_unused]] auto res2 =  memory_system->UpdateInterruptionMemory(7, 12, 17, 22, 300);  // Sequence 12
 
     memory_system->ClearSequenceInterruptionMemories(10);
 
@@ -450,7 +450,7 @@ TEST_F(MemorySystemTest, ClearInterruptionMemoriesRemovesAllFromSequence) {
 }
 
 TEST_F(MemorySystemTest, ClearInterruptionMemoriesDoesNothingWhenNoneFound) {
-    memory_system->UpdateInterruptionMemory(5, 10, 15, 20, 100);
+   [[maybe_unused]] auto res =  memory_system->UpdateInterruptionMemory(5, 10, 15, 20, 100);
 
     memory_system->ClearSequenceInterruptionMemories(999);  // Non-existent sequence
 
@@ -458,14 +458,14 @@ TEST_F(MemorySystemTest, ClearInterruptionMemoriesDoesNothingWhenNoneFound) {
 }
 
 TEST_F(MemorySystemTest, RemoveInterruptionMemoryReturnsTrueWhenSuccessful) {
-    memory_system->UpdateInterruptionMemory(5, 10, 15, 20, 100);
+   [[maybe_unused]] auto res =  memory_system->UpdateInterruptionMemory(5, 10, 15, 20, 100);
 
     EXPECT_TRUE(memory_system->RemoveInterruptionMemory(5, 10, 15));
     EXPECT_EQ(0, memory_system->GetInterruptionMemoryCount());
 }
 
 TEST_F(MemorySystemTest, RemoveInterruptionMemoryReturnsFalseWhenNotSuccessful) {
-    memory_system->UpdateInterruptionMemory(5, 10, 15, 20, 100);
+   [[maybe_unused]] auto res =  memory_system->UpdateInterruptionMemory(5, 10, 15, 20, 100);
 
     EXPECT_FALSE(memory_system->RemoveInterruptionMemory(2, 10, 15));
     EXPECT_EQ(1, memory_system->GetInterruptionMemoryCount());

@@ -135,7 +135,6 @@ public:
 
     void ClearSequenceInterruptionMemories(int sequence_id);
 
-    [[nodiscard]]
     bool RemoveInterruptionMemory(int action_id, int sequence_id, int node_id);
 
     void ClearAllMemories();
