@@ -24,7 +24,7 @@ protected:
      * @brief The identifier of the sequence node.
      * @invariant node_id >= 0
      */
-    int node_id;
+    int32_t node_id;
 
     /**
      * @brief Determines if the sequence node has completed execution.
@@ -37,7 +37,7 @@ public:
      * @param node_id The identifier of the sequence node that will be created
      * @throws std::invalid_argument if node_id < 0
      */
-    explicit SequenceNode(int node_id) : node_id(node_id), has_completed(false)
+    explicit SequenceNode(int32_t node_id) : node_id(node_id), has_completed(false)
     {
         if(node_id < 0)
         {
@@ -59,7 +59,7 @@ public:
         has_completed = true;
     }
 
-    int GetNodeId() const
+    int32_t GetNodeId() const
     {
         return node_id;
     }

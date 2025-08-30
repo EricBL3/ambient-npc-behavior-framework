@@ -24,12 +24,12 @@ namespace AmbientCharacterBehavior {
 class Sequence {
 private:
 
-    int sequence_id;
+    int32_t sequence_id;
 
-    int entry_point_index;
+    int32_t entry_point_index;
     bool has_entry_point;
 
-    int current_node_index;
+    int32_t current_node_index;
     bool has_current_node;
 
     /**
@@ -53,12 +53,12 @@ private:
     /**
      * @brief Stores the value of the next node identifier. Used for auto generated IDs.
      */
-    int next_node_id;
+    int32_t next_node_id;
 
     /**
      * @brief Stores the value of the next transition identifier. Used for auto generated IDs.
      */
-    int next_transition_id;
+    int32_t next_transition_id;
 
 public:
     /**
@@ -70,17 +70,17 @@ public:
      *
      * @throw std::invalid_argument if sequence_id < 0
      */
-    explicit Sequence(int sequence_id);
+    explicit Sequence(int32_t sequence_id);
 
-    int GetSequenceId() const { return sequence_id; }
+    int32_t GetSequenceId() const { return sequence_id; }
 
     const std::vector<std::unique_ptr<SequenceNode>>& GetNodes() const { return nodes; }
 
-    int GetEntryPointIndex() const { return entry_point_index; }
+    int32_t GetEntryPointIndex() const { return entry_point_index; }
 
     bool GetHasEntryPoint() const { return has_entry_point; }
 
-    int GetCurrentNodeIndex() const { return current_node_index; }
+    int32_t GetCurrentNodeIndex() const { return current_node_index; }
 
     bool GetHasCurrentNode() const { return has_current_node; }
 
@@ -100,7 +100,7 @@ public:
      * collection will be returned.
      */
     [[nodiscard]]
-    const std::vector<Transition>& GetTransitionsFromNode(int node_id) const;
+    const std::vector<Transition>& GetTransitionsFromNode(int32_t node_id) const;
 
     /**
      * @brief Adds a new action sequence node to the sequence.
@@ -109,7 +109,7 @@ public:
      *
      */
     [[nodiscard]]
-    int AddActionSequenceNode(int action_id);
+    int32_t AddActionSequenceNode(int32_t action_id);
 
     /**
      * @brief Adds a new nested sequence node to the sequence.
@@ -118,14 +118,14 @@ public:
      *
      */
     [[nodiscard]]
-    int AddNestedSequenceNode(int nested_sequence_id);
+    int32_t AddNestedSequenceNode(int32_t nested_sequence_id);
 
     /**
      * @brief Adds a new end sequence node to the sequence.
      * @return The node_id of the created sequence node.
      */
     [[nodiscard]]
-    int AddEndSequenceNode();
+    int32_t AddEndSequenceNode();
 
     /**
      * @brief Adds a new transition to the sequence.
@@ -137,7 +137,7 @@ public:
      * @note The transition will be empty which means that the to_node and preconditions must still be defined.
      */
     [[nodiscard]]
-    int AddTransition(int from_node_id, int to_node_id);
+    int32_t AddTransition(int32_t from_node_id, int32_t to_node_id);
 
     /**
      * @brief
@@ -153,7 +153,7 @@ public:
      * @return True if the entry point could be set, false if not (due to an invalid node_id)
      */
     [[nodiscard]]
-    bool SetEntryPoint(int node_id);
+    bool SetEntryPoint(int32_t node_id);
 
     /**
      *
@@ -168,7 +168,7 @@ public:
      * @return True if the current node could be set, false if not (due to an invalid node_id)
      */
     [[nodiscard]]
-    bool SetCurrentNode(int node_id);
+    bool SetCurrentNode(int32_t node_id);
 
     /**
      *
@@ -182,7 +182,7 @@ public:
      * @return A reference to the sequence node or nullptr if the node_id is not in the sequence.
      */
     [[nodiscard]]
-    const SequenceNode* GetNode(int node_id) const { return IsValidNodeId(node_id) ? nodes[node_id].get() : nullptr; }
+    const SequenceNode* GetNode(int32_t node_id) const { return IsValidNodeId(node_id) ? nodes[node_id].get() : nullptr; }
 
     /**
      * @brief Resets the current node index to the entry node index for handling failure recovery.
@@ -196,7 +196,7 @@ private:
      * @return True if the node_id exists, false if not (or invalid)
      */
     [[nodiscard]]
-    bool IsValidNodeId(int node_id) const { return node_id >= 0 && node_id < static_cast<int>(nodes.size()); }
+    bool IsValidNodeId(int32_t node_id) const { return node_id >= 0 && node_id < static_cast<int>(nodes.size()); }
 
 };
 

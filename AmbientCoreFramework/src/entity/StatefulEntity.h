@@ -18,7 +18,7 @@ namespace AmbientCharacterBehavior {
  */
 class StatefulEntity : public Entity {
 private:
-    std::unordered_set<int> accepted_actions_ids;
+    std::unordered_set<int32_t> accepted_actions_ids;
 
 public:
     /**
@@ -29,7 +29,7 @@ public:
      *
      * @throw std::invalid_argument if entity_id or current_location_id < 0.
      */
-    explicit StatefulEntity(int entity_id, int current_location_id, std::string name = "") :
+    explicit StatefulEntity(int32_t entity_id, int32_t current_location_id, std::string name = "") :
         Entity(entity_id, current_location_id, std::move(name)) {}
 
     /**
@@ -38,19 +38,19 @@ public:
      * @return True if the action is supported, false if not.
      */
     [[nodiscard]]
-    bool SupportsAction(int action_id) const { return accepted_actions_ids.find(action_id) != accepted_actions_ids.end(); }
+    bool SupportsAction(int32_t action_id) const { return accepted_actions_ids.find(action_id) != accepted_actions_ids.end(); }
 
     /**
      *
      * @param action_id The identifier of the action to add support for.
      */
-    void AddSupportedAction(int action_id) { accepted_actions_ids.insert(action_id); }
+    void AddSupportedAction(int32_t action_id) { accepted_actions_ids.insert(action_id); }
 
     /**
      * @param action_id The identifier of the action to remove support for.
      */
-    void RemoveSupportedAction(int action_id) { accepted_actions_ids.erase(action_id); }
+    void RemoveSupportedAction(int32_t action_id) { accepted_actions_ids.erase(action_id); }
 
-    const std::unordered_set<int>& GetSupportedActions() const { return accepted_actions_ids; }
+    const std::unordered_set<int32_t>& GetSupportedActions() const { return accepted_actions_ids; }
 };
 } // AmbientCharacterBehavior

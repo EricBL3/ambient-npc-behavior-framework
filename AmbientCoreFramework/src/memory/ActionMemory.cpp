@@ -7,6 +7,7 @@
  */
 
 #include "ActionMemory.h"
+
 using namespace AmbientCharacterBehavior;
 
 // =============================================================================
@@ -21,7 +22,7 @@ using namespace AmbientCharacterBehavior;
  * @throws std::invalid_argument if action_id < 0 or target_entity_id < 0 or last_used_time < 0
  *
  */
-ActionMemory::ActionMemory(int action_id, int target_entity_id, int last_used_time) :
+ActionMemory::ActionMemory(int32_t action_id, int32_t target_entity_id, int64_t last_used_time) :
 	BaseMemory(last_used_time), action_id(action_id), target_entity_id(target_entity_id)
 {
 	if(action_id < 0)
@@ -71,7 +72,7 @@ bool ActionMemory::MatchesMemory(const BaseMemory& other) const
  * @return true if both action_id and target_entity_id match
  *
  */
-bool ActionMemory::MatchesMemory(int other_action_id, int other_target_entity_id) const
+bool ActionMemory::MatchesMemory(int32_t other_action_id, int32_t other_target_entity_id) const
 {
 	return this->action_id == other_action_id &&
 		this->target_entity_id == other_target_entity_id;
@@ -81,12 +82,12 @@ bool ActionMemory::MatchesMemory(int other_action_id, int other_target_entity_id
 // DATA ACCESS
 // =============================================================================
 
-int ActionMemory::GetActionId() const
+int32_t ActionMemory::GetActionId() const
 {
 	return this->action_id;
 }
 
-int ActionMemory::GetTargetEntityId() const
+int32_t ActionMemory::GetTargetEntityId() const
 {
 	return this->target_entity_id;
 }

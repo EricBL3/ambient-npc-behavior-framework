@@ -7,7 +7,9 @@
 */
 
 #pragma once
+#include <cstdint>
 #include <string>
+#include <cstdint>
 
 namespace AmbientCharacterBehavior {
 /**
@@ -15,9 +17,9 @@ namespace AmbientCharacterBehavior {
  */
 class Entity {
 private:
-    int entity_id;
+    int32_t entity_id;
 
-    int current_location_id;
+    int32_t current_location_id;
 
     std::string name;
 
@@ -30,9 +32,9 @@ public:
      *
      * @throw std::invalid_argument if entity_id or current_location_id < 0.
      */
-    explicit Entity(int entity_id, int current_location_id, std::string name = "");
+    explicit Entity(int32_t entity_id, int32_t current_location_id, std::string name = "");
 
-    int GetEntityId() const { return entity_id; }
+    int32_t GetEntityId() const { return entity_id; }
 
     /**
      *
@@ -40,9 +42,9 @@ public:
      *
      * @throw std::invalid_argument if new_location_id < 0.
      */
-    void SetCurrentLocationId(int new_location_id);
+    void SetCurrentLocationId(int32_t new_location_id);
 
-    int GetCurrentLocationId() const { return current_location_id; }
+    int32_t GetCurrentLocationId() const { return current_location_id; }
 
     std::string GetName() const { return name; }
 

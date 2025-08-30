@@ -33,7 +33,7 @@ private:
 
     std::unordered_map<int, std::shared_ptr<Sequence>> interruption_handlers;
 
-    int current_action_target_index;
+    int32_t current_action_target_index;
 
     bool is_processing;
 
@@ -46,7 +46,7 @@ public:
      *
      * @throw std::invalid_argument if entity_id or current_location_id < 0.
      */
-    explicit BehavioralEntity(int entity_id, int current_location_id, std::string name = "") :
+    explicit BehavioralEntity(int32_t entity_id, int32_t current_location_id, std::string name = "") :
         StatefulEntity(entity_id, current_location_id, std::move(name)),
         main_sequence(nullptr), current_action_target_index(-1), is_processing(false) {}
 

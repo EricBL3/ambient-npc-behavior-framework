@@ -12,9 +12,14 @@
 
 using namespace AmbientCharacterBehavior;
 
-Action::Action(int action_id, int max_duration, InterruptionBehaviorType interruption_behavior,
-               size_t initial_preconditions_count, size_t initial_immediate_effects_count, size_t initial_completion_effects_count) :
-    action_id(action_id), max_duration(max_duration), interruption_behavior(interruption_behavior)
+Action::Action(
+    int32_t action_id,
+    int64_t max_duration,
+    InterruptionBehaviorType interruption_behavior,
+    size_t initial_preconditions_count,
+    size_t initial_immediate_effects_count,
+    size_t initial_completion_effects_count
+) : action_id(action_id), max_duration(max_duration), interruption_behavior(interruption_behavior)
 {
     if (action_id < 0)
     {

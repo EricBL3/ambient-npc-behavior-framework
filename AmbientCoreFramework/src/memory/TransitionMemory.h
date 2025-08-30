@@ -27,14 +27,14 @@ private:
      * @brief Unique identifier of the sequence node that was visited
      * @invariant target_node_id >= 0
      */
-    int target_node_id;
+    int32_t target_node_id;
 
 public:
     // =============================================================================
     // CONSTRUCTION
     // =============================================================================
 
-    explicit TransitionMemory(int node_id, int time);
+    explicit TransitionMemory(int32_t node_id, int64_t time);
 
     // =============================================================================
     // MEMORY MATCHING
@@ -50,7 +50,7 @@ public:
     // DATA ACCESS
     // =============================================================================
 
-    int GetTargetNodeId() const;
+    int32_t GetTargetNodeId() const;
 };
 
 }

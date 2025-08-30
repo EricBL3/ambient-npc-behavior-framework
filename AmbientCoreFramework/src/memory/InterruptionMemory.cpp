@@ -24,11 +24,11 @@ using namespace AmbientCharacterBehavior;
  * @throws std::invalid_argument if any ID < 0 (except entity_id which allows -1)
  */
 InterruptionMemory::InterruptionMemory(
-    int interrupted_action_id,
-    int interrupted_sequence_id,
-    int interrupted_sequence_node_id,
-    int interrupted_target_entity_id,
-    int time
+    int32_t interrupted_action_id,
+    int32_t interrupted_sequence_id,
+    int32_t interrupted_sequence_node_id,
+    int32_t interrupted_target_entity_id,
+    int64_t time
 ) : BaseMemory(time), interrupted_action_id(interrupted_action_id), interrupted_sequence_id(interrupted_sequence_id),
     interrupted_sequence_node_id(interrupted_sequence_node_id), interrupted_target_entity_id(interrupted_target_entity_id)
 {
@@ -96,7 +96,7 @@ bool InterruptionMemory::MatchesMemory(const BaseMemory &other) const
  * @return true if all three context identifiers match
  *
  */
-bool InterruptionMemory::MatchesMemory(int other_action_id, int other_sequence_id, int other_sequence_node_id) const
+bool InterruptionMemory::MatchesMemory(int32_t other_action_id, int32_t other_sequence_id, int32_t other_sequence_node_id) const
 {
     return this->interrupted_action_id == other_action_id &&
         this->interrupted_sequence_id == other_sequence_id &&
@@ -107,22 +107,22 @@ bool InterruptionMemory::MatchesMemory(int other_action_id, int other_sequence_i
 // CONTEXT DATA ACCESS
 // =============================================================================
 
-int InterruptionMemory::GetInterruptedActionId() const
+int32_t InterruptionMemory::GetInterruptedActionId() const
 {
     return interrupted_action_id;
 }
 
-int InterruptionMemory::GetInterruptedSequenceId() const
+int32_t InterruptionMemory::GetInterruptedSequenceId() const
 {
     return interrupted_sequence_id;
 }
 
-int InterruptionMemory::GetInterruptedSequenceNodeId() const
+int32_t InterruptionMemory::GetInterruptedSequenceNodeId() const
 {
     return interrupted_sequence_node_id;
 }
 
-int InterruptionMemory::GetInterruptedTargetEntityId() const
+int32_t InterruptionMemory::GetInterruptedTargetEntityId() const
 {
     return interrupted_target_entity_id;
 }

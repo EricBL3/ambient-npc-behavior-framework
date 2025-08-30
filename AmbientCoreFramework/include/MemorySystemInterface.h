@@ -6,6 +6,7 @@
  */
 
 #pragma once
+#include <cstdint>
 
 #ifdef _WIN32
     #ifdef AmbientCoreFramework_EXPORTS
@@ -36,7 +37,11 @@ extern "C" {
      * @param max_interruptions Maximum interruption memories (recommended: 3-5)
      * @return Handle to MemorySystem instance, or NULL on failure
      */
-    AmbientCoreFramework_API MemorySystemHandle CreateMemorySystem(int max_transitions, int max_actions, int max_interruptions);
+    AmbientCoreFramework_API MemorySystemHandle CreateMemorySystem(
+        int32_t max_transitions,
+        int32_t max_actions,
+        int32_t max_interruptions
+    );
 
     /**
      * @brief Destroys a specific MemorySystem instance
@@ -55,7 +60,11 @@ extern "C" {
      * @param count Number of nodes in the array
      * @return Selected node ID, or -1 on error
      */
-    AmbientCoreFramework_API int GetLeastRecentlyVisitedNode(MemorySystemHandle handle, int* node_ids, int count);
+    AmbientCoreFramework_API int32_t GetLeastRecentlyVisitedNode(
+        MemorySystemHandle handle,
+        int32_t* node_ids,
+        int32_t count
+    );
 
     /**
      * @brief Selects least recently used entity for specific action
@@ -65,7 +74,12 @@ extern "C" {
      * @param count Number of entities in the array
      * @return Selected entity ID, or -1 on error
      */
-    AmbientCoreFramework_API int GetLeastRecentlyUsedEntityForAction(MemorySystemHandle handle, int action_id, int* entity_ids, int count);
+    AmbientCoreFramework_API int32_t GetLeastRecentlyUsedEntityForAction(
+        MemorySystemHandle handle,
+        int32_t action_id,
+        int32_t* entity_ids,
+        int32_t count
+    );
 
     // =============================================================================
     // MEMORY UPDATES
@@ -76,9 +90,13 @@ extern "C" {
      * @param handle Handle to the MemorySystem instance
      * @param target_node_id Node that was selected
      * @param current_time Simulation timestamp
-     * @return 1 on success, 0 on failure
+     * @return true on success, false on failure
      */
-    AmbientCoreFramework_API int UpdateTransitionMemory(MemorySystemHandle handle, int target_node_id, int current_time);
+    AmbientCoreFramework_API bool UpdateTransitionMemory(
+        MemorySystemHandle handle,
+        int32_t target_node_id,
+        int64_t current_time
+    );
 
     /**
      * @brief Records an action execution to prevent future repetition
@@ -86,9 +104,14 @@ extern "C" {
      * @param action_id Action that was performed
      * @param target_entity_id Entity that was used
      * @param current_time Simulation timestamp
-     * @return 1 on success, 0 on failure
+     * @return true on success, false on failure
      */
-    AmbientCoreFramework_API int UpdateActionMemory(MemorySystemHandle handle, int action_id, int target_entity_id, int current_time);
+    AmbientCoreFramework_API bool UpdateActionMemory(
+        MemorySystemHandle handle,
+        int32_t action_id,
+        int32_t target_entity_id,
+        int64_t current_time
+    );
 
     /**
      * @brief Records interruption context for potential resumption
@@ -98,9 +121,16 @@ extern "C" {
      * @param node_id Sequence node that was interrupted
      * @param entity_id Entity involved (-1 if none)
      * @param current_time Simulation timestamp
-     * @return 1 on success, 0 on failure
+     * @return true on success, false on failure
      */
-    AmbientCoreFramework_API int UpdateInterruptionMemory(MemorySystemHandle handle, int action_id, int sequence_id, int node_id, int entity_id, int current_time);
+    AmbientCoreFramework_API bool UpdateInterruptionMemory(
+        MemorySystemHandle handle,
+        int32_t action_id,
+        int32_t sequence_id,
+        int32_t node_id,
+        int32_t entity_id,
+        int64_t current_time
+    );
 
     // =============================================================================
     // MEMORY SEARCH (For marshalling complexity tests)
@@ -111,11 +141,15 @@ extern "C" {
      * @param handle Handle to the MemorySystem instance
      * @param target_node_id Node to search for
      * @param[out] out_timestamp Pointer to receive the timestamp (if found)
-     * @return 1 if found, 0 if not found
+     * @return true on success, false on failure
      *
      * Used for testing complex marshalling scenarios with output parameters.
      */
-    AmbientCoreFramework_API int FindTransitionMemory(MemorySystemHandle handle, int target_node_id, int* out_timestamp);
+    AmbientCoreFramework_API bool FindTransitionMemory(
+        MemorySystemHandle handle,
+        int32_t target_node_id,
+        int64_t* out_timestamp
+    );
 
     /**
      * @brief Finds action memory and returns its timestamp
@@ -123,9 +157,14 @@ extern "C" {
      * @param action_id Action to search for
      * @param target_entity_id Entity to search for
      * @param[out] out_timestamp Pointer to receive the timestamp (if found)
-     * @return 1 if found, 0 if not found
+     * @return true on success, false on failure
      */
-    AmbientCoreFramework_API int FindActionMemory(MemorySystemHandle handle, int action_id, int target_entity_id, int* out_timestamp);
+    AmbientCoreFramework_API bool FindActionMemory(
+        MemorySystemHandle handle,
+        int32_t action_id,
+        int32_t target_entity_id,
+        int64_t* out_timestamp
+    );
 
     /**
      * @brief Finds interruption memory and returns its data
@@ -135,9 +174,16 @@ extern "C" {
      * @param node_id Node to search for
      * @param[out] out_entity_id Pointer to receive entity ID (if found)
      * @param[out] out_timestamp Pointer to receive timestamp (if found)
-     * @return 1 if found, 0 if not found
+     * @return true on success, false on failure
      */
-    AmbientCoreFramework_API int FindInterruptionMemory(MemorySystemHandle handle, int action_id, int sequence_id, int node_id, int* out_entity_id, int* out_timestamp);
+    AmbientCoreFramework_API bool FindInterruptionMemory(
+        MemorySystemHandle handle,
+        int32_t action_id,
+        int32_t sequence_id,
+        int32_t node_id,
+        int32_t* out_entity_id,
+        int64_t* out_timestamp
+    );
 
     // =============================================================================
     // MEMORY CLEANUP
@@ -154,7 +200,10 @@ extern "C" {
      * @param handle Handle to the MemorySystem instance
      * @param sequence_id Sequence whose memories should be cleared
      */
-    AmbientCoreFramework_API void ClearSequenceInterruptionMemories(MemorySystemHandle handle, int sequence_id);
+    AmbientCoreFramework_API void ClearSequenceInterruptionMemories(
+        MemorySystemHandle handle,
+        int32_t sequence_id
+    );
 
     // =============================================================================
     // DIAGNOSTIC
@@ -165,21 +214,21 @@ extern "C" {
      * @param handle Handle to the MemorySystem instance
      * @return Count of transition memories
      */
-    AmbientCoreFramework_API int GetTransitionMemoryCount(MemorySystemHandle handle);
+    AmbientCoreFramework_API int32_t GetTransitionMemoryCount(MemorySystemHandle handle);
 
     /**
      * @brief Gets current number of stored action memories
      * @param handle Handle to the MemorySystem instance
      * @return Count of action memories
      */
-    AmbientCoreFramework_API int GetActionMemoryCount(MemorySystemHandle handle);
+    AmbientCoreFramework_API int32_t GetActionMemoryCount(MemorySystemHandle handle);
 
     /**
      * @brief Gets current number of stored interruption memories
      * @param handle Handle to the MemorySystem instance
      * @return Count of interruption memories
      */
-    AmbientCoreFramework_API int GetInterruptionMemoryCount(MemorySystemHandle handle);
+    AmbientCoreFramework_API int32_t GetInterruptionMemoryCount(MemorySystemHandle handle);
 
 #ifdef __cplusplus
 }

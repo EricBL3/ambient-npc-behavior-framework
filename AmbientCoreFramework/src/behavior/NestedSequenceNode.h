@@ -19,7 +19,7 @@ private:
     /**
      * @brief The identifier of the sequence that will be executed as a subsequence.
      */
-    int target_sequence_id;
+    int32_t target_sequence_id;
 
 public:
     /**
@@ -27,13 +27,14 @@ public:
      * @param node_id The identifier of the nested sequence node that will be created
      * @param sequence_id The identifier of the target sequence.
      */
-    NestedSequenceNode(const int node_id, int sequence_id) : SequenceNode(node_id), target_sequence_id(sequence_id) {}
+    NestedSequenceNode(const int32_t node_id, int32_t sequence_id) :
+        SequenceNode(node_id), target_sequence_id(sequence_id) {}
 
     //TODO: Missing implementation which requires a content manager class.
     [[nodiscard]]
     Sequence& GetTargetSequence() const;
 
-    int GetTargetSequenceId() const { return target_sequence_id; }
+    int32_t GetTargetSequenceId() const { return target_sequence_id; }
 
     /**
      *

@@ -17,6 +17,7 @@
 #pragma once
 #include <stdexcept>
 #include <string>
+#include <cstdint>
 
 namespace AmbientCharacterBehavior {
 /**
@@ -47,7 +48,7 @@ protected:
      * @brief Simulation timestamp when this memory was last updated
      * @invariant last_used_time >= 0
      */
-    int last_used_time;
+    int64_t last_used_time;
 public:
     // =============================================================================
     // CONSTRUCTION & DESTRUCTION
@@ -60,7 +61,7 @@ public:
      *
      * @throws std::invalid_argument if time < 0
      */
-    explicit BaseMemory(const int time) : last_used_time(time) {
+    explicit BaseMemory(const int64_t time) : last_used_time(time) {
         if(time < 0)
         {
             throw std::invalid_argument("BaseMemory: time cannot be negative, got " + std::to_string(time));
@@ -96,7 +97,7 @@ public:
     // TIME-BASED OPERATIONS
     // =============================================================================
 
-    int GetLastUsedTime() const { return last_used_time; }
+    int64_t GetLastUsedTime() const { return last_used_time; }
 
     /**
      * @brief Compares recency with another memory least recently used selection

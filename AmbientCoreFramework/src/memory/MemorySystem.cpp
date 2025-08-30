@@ -23,7 +23,7 @@ using namespace AmbientCharacterBehavior;
  * @param max_interruptions Maximum interruption memories (default is 5)
  *
  */
-MemorySystem::MemorySystem(int max_transitions, int max_actions, int max_interruptions)
+MemorySystem::MemorySystem(int32_t max_transitions, int32_t max_actions, int32_t max_interruptions)
 {
     SetMaxTransitionMemories(max_transitions);
     SetMaxActionMemories(max_actions);
@@ -32,17 +32,17 @@ MemorySystem::MemorySystem(int max_transitions, int max_actions, int max_interru
     ClearAllMemories();
 }
 
-int MemorySystem::GetMaxTransitionMemories() const
+int32_t MemorySystem::GetMaxTransitionMemories() const
 {
     return max_transition_memories;
 }
 
-int MemorySystem::GetMaxActionMemories() const
+int32_t MemorySystem::GetMaxActionMemories() const
 {
     return max_action_memories;
 }
 
-int MemorySystem::GetMaxInterruptionMemories() const
+int32_t MemorySystem::GetMaxInterruptionMemories() const
 {
     return max_interruption_memories;
 }
@@ -54,7 +54,7 @@ int MemorySystem::GetMaxInterruptionMemories() const
  * @param max_transitions New maximum capacity (must be > 0)
  *
  */
-void MemorySystem::SetMaxTransitionMemories(int max_transitions)
+void MemorySystem::SetMaxTransitionMemories(int32_t max_transitions)
 {
     if (max_transitions <= 0 || max_transitions == max_transition_memories)
     {
@@ -75,7 +75,7 @@ void MemorySystem::SetMaxTransitionMemories(int max_transitions)
  * @param max_actions New maximum capacity (must be > 0)
  *
  */
-void MemorySystem::SetMaxActionMemories(int max_actions)
+void MemorySystem::SetMaxActionMemories(int32_t max_actions)
 {
     if (max_actions <= 0 || max_actions == max_action_memories)
     {
@@ -97,7 +97,7 @@ void MemorySystem::SetMaxActionMemories(int max_actions)
  * @param max_interruptions New maximum capacity (must be > 0)
  *
  */
-void MemorySystem::SetMaxInterruptionMemories(int max_interruptions)
+void MemorySystem::SetMaxInterruptionMemories(int32_t max_interruptions)
 {
     if (max_interruptions <= 0 || max_interruptions == max_interruption_memories)
     {
@@ -123,7 +123,7 @@ void MemorySystem::SetMaxInterruptionMemories(int max_interruptions)
  * @return true if update succeeded, false if validation or creation failed
  *
  */
-bool MemorySystem::UpdateTransitionMemory(int target_node_id, int current_time)
+bool MemorySystem::UpdateTransitionMemory(int32_t target_node_id, int64_t current_time)
 {
     try
     {
@@ -154,7 +154,7 @@ bool MemorySystem::UpdateTransitionMemory(int target_node_id, int current_time)
  * @return true if update succeeded, false if validation or creation failed
  *
  */
-bool MemorySystem::UpdateActionMemory(int action_id, int target_entity_id, int current_time)
+bool MemorySystem::UpdateActionMemory(int32_t action_id, int32_t target_entity_id, int64_t current_time)
 {
     try
     {
@@ -187,8 +187,13 @@ bool MemorySystem::UpdateActionMemory(int action_id, int target_entity_id, int c
  * @return true if update succeeded, false if validation or creation failed
  *
  */
-bool MemorySystem::UpdateInterruptionMemory(int action_id, int sequence_id, int node_id, int entity_id,
-    int current_time)
+bool MemorySystem::UpdateInterruptionMemory(
+    int32_t action_id,
+    int32_t sequence_id,
+    int32_t node_id,
+    int32_t entity_id,
+    int64_t current_time
+)
 {
     try
     {
@@ -222,7 +227,7 @@ bool MemorySystem::UpdateInterruptionMemory(int action_id, int sequence_id, int 
  * @return Pointer to matching memory or nullptr if not found
  *
  */
-const TransitionMemory * MemorySystem::FindTransitionMemory(int target_node_id) const
+const TransitionMemory * MemorySystem::FindTransitionMemory(int32_t target_node_id) const
 {
     // find_if performs a linear search over the memories
     auto iterator = std::find_if(transition_memories.begin(), transition_memories.end(),
@@ -242,7 +247,7 @@ const TransitionMemory * MemorySystem::FindTransitionMemory(int target_node_id) 
  * @return Pointer to matching memory or nullptr if not found
  *
  */
-const ActionMemory * MemorySystem::FindActionMemory(int action_id, int target_entity_id) const
+const ActionMemory * MemorySystem::FindActionMemory(int32_t action_id, int32_t target_entity_id) const
 {
     // find_if performs a linear search over the memories
     auto iterator = std::find_if(action_memories.begin(), action_memories.end(),
@@ -263,7 +268,7 @@ const ActionMemory * MemorySystem::FindActionMemory(int action_id, int target_en
  * @return Pointer to matching memory or nullptr if not found
  *
  */
-const InterruptionMemory * MemorySystem::FindInterruptionMemory(int action_id, int sequence_id, int node_id) const
+const InterruptionMemory * MemorySystem::FindInterruptionMemory(int32_t action_id, int32_t sequence_id, int32_t node_id) const
 {
     // find_if performs a linear search over the memories
     auto iterator = std::find_if(interruption_memories.begin(), interruption_memories.end(),
@@ -287,7 +292,7 @@ const InterruptionMemory * MemorySystem::FindInterruptionMemory(int action_id, i
  * @return Node ID that should be selected for behavioral variety, or -1 on error
  *
  */
-int MemorySystem::GetLeastRecentlyVisitedNode(const std::vector<int> &node_ids) const
+int32_t MemorySystem::GetLeastRecentlyVisitedNode(const std::vector<int32_t> &node_ids) const
 {
     if (node_ids.empty())
     {
@@ -296,7 +301,7 @@ int MemorySystem::GetLeastRecentlyVisitedNode(const std::vector<int> &node_ids) 
     }
 
     // Try to get an unused node first
-    std::vector<int> unused {FindUnusedTransitionNodes(node_ids)};
+    std::vector<int32_t> unused {FindUnusedTransitionNodes(node_ids)};
     if (!unused.empty())
     {
         // Random selection among unused nodes prevents deterministic patterns
@@ -314,7 +319,7 @@ int MemorySystem::GetLeastRecentlyVisitedNode(const std::vector<int> &node_ids) 
  * @return Entity ID that should be selected for variety, or -1 on error
  *
  */
-int MemorySystem::GetLeastRecentlyUsedEntityForAction(int action_id, const std::vector<int> &entity_ids) const
+int32_t MemorySystem::GetLeastRecentlyUsedEntityForAction(int32_t action_id, const std::vector<int32_t> &entity_ids) const
 {
     if (entity_ids.empty())
     {
@@ -323,7 +328,7 @@ int MemorySystem::GetLeastRecentlyUsedEntityForAction(int action_id, const std::
     }
 
     // Try to get an unused entity first
-    std::vector<int> unused {FindUnusedActionEntities(action_id, entity_ids)};
+    std::vector<int32_t> unused {FindUnusedActionEntities(action_id, entity_ids)};
     if (!unused.empty())
     {
         // Random selection among unused entities prevents deterministic patterns
@@ -343,7 +348,7 @@ int MemorySystem::GetLeastRecentlyUsedEntityForAction(int action_id, const std::
  * @param sequence_id Unique identifier of the sequence whose memories should be cleared
  *
  */
-void MemorySystem::ClearSequenceInterruptionMemories(int sequence_id)
+void MemorySystem::ClearSequenceInterruptionMemories(int32_t sequence_id)
 {
     // Iterate backwards through the vector to remove the elements safely.
     for (auto i = static_cast<int>(interruption_memories.size()) - 1; i >= 0; i--)
@@ -363,7 +368,7 @@ void MemorySystem::ClearSequenceInterruptionMemories(int sequence_id)
  * @return true if memory was found and removed, false if not found
  *
  */
-bool MemorySystem::RemoveInterruptionMemory(int action_id, int sequence_id, int node_id)
+bool MemorySystem::RemoveInterruptionMemory(int32_t action_id, int32_t sequence_id, int32_t node_id)
 {
     // Search for existing memory with same action_id AND sequence_id AND node_id
     auto iterator = std::find_if(interruption_memories.begin(), interruption_memories.end(),
@@ -413,7 +418,7 @@ void MemorySystem::LogError(const std::string &message) const
  *
  * @algorithm Modulo-based random selection using rand()
  */
-int MemorySystem::SelectRandomFromVector(const std::vector<int> &options) const
+int32_t MemorySystem::SelectRandomFromVector(const std::vector<int32_t> &options) const
 {
     if (options.empty())
     {
@@ -421,6 +426,7 @@ int MemorySystem::SelectRandomFromVector(const std::vector<int> &options) const
         return -1;
     }
 
+    //TODO: Modify to use c++11 random
     return options[rand() % options.size()];
 }
 
@@ -436,7 +442,7 @@ int MemorySystem::SelectRandomFromVector(const std::vector<int> &options) const
 void MemorySystem::EnforceMaxTransitionMemories()
 {
     auto excess_memories_count = transition_memories.size() > max_transition_memories ?
-        static_cast<int>(transition_memories.size() - max_transition_memories) :
+        static_cast<int32_t>(transition_memories.size() - max_transition_memories) :
         0;
 
     if ( excess_memories_count > 0)
@@ -452,7 +458,7 @@ void MemorySystem::EnforceMaxTransitionMemories()
 void MemorySystem::EnforceMaxActionMemories()
 {
     auto excess_memories_count = action_memories.size() > max_action_memories ?
-        static_cast<int>(action_memories.size() - max_action_memories) :
+        static_cast<int32_t>(action_memories.size() - max_action_memories) :
         0;
 
     if ( excess_memories_count > 0)
@@ -468,7 +474,7 @@ void MemorySystem::EnforceMaxActionMemories()
 void MemorySystem::EnforceMaxInterruptionMemories()
 {
     auto excess_memories_count = interruption_memories.size() > max_interruption_memories ?
-        static_cast<int>(interruption_memories.size() - max_interruption_memories) :
+        static_cast<int32_t>(interruption_memories.size() - max_interruption_memories) :
         0;
 
     if ( excess_memories_count > 0)
@@ -486,7 +492,7 @@ void MemorySystem::EnforceMaxInterruptionMemories()
  * @param target_node_id Node identifier of the memory to remove
  *
  */
-void MemorySystem::RemoveExistingTransitionMemory(int target_node_id)
+void MemorySystem::RemoveExistingTransitionMemory(int32_t target_node_id)
 {
     // Search for existing memory with same target_node_id
     auto iterator = std::find_if(transition_memories.begin(), transition_memories.end(),
@@ -507,7 +513,7 @@ void MemorySystem::RemoveExistingTransitionMemory(int target_node_id)
  * @param target_entity_id Entity identifier of the memory to remove
  *
  */
-void MemorySystem::RemoveExistingActionMemory(int action_id, int target_entity_id)
+void MemorySystem::RemoveExistingActionMemory(int32_t action_id, int32_t target_entity_id)
 {
     // Search for existing memory with same target_node_id
     auto iterator = std::find_if(action_memories.begin(), action_memories.end(),
@@ -532,7 +538,7 @@ void MemorySystem::RemoveExistingActionMemory(int action_id, int target_entity_i
  * @return Node ID with the oldest timestamp, or -1 on error
  *
  */
-int MemorySystem::FindOldestTransitionNode(const std::vector<int> &node_ids) const
+int32_t MemorySystem::FindOldestTransitionNode(const std::vector<int32_t> &node_ids) const
 {
     if (node_ids.empty())
     {
@@ -540,9 +546,9 @@ int MemorySystem::FindOldestTransitionNode(const std::vector<int> &node_ids) con
         return -1;
     }
 
-    std::vector<int> oldest_nodes;
+    std::vector<int32_t> oldest_nodes;
     oldest_nodes.reserve(node_ids.size());
-    int oldest_time = INT_MAX;
+    int64_t oldest_time = INT_MAX;
 
     // Search for memories and track oldest timestamp(s)
     for (auto node_id : node_ids)
@@ -554,7 +560,7 @@ int MemorySystem::FindOldestTransitionNode(const std::vector<int> &node_ids) con
             continue;
         }
 
-        int current_time {memory->GetLastUsedTime()};
+        int64_t current_time {memory->GetLastUsedTime()};
 
         // If there's a new oldest_time, we restart the oldest_nodes vector.
         if (current_time < oldest_time)
@@ -586,7 +592,7 @@ int MemorySystem::FindOldestTransitionNode(const std::vector<int> &node_ids) con
  * @return Entity ID with the oldest timestamp for this action, or -1 on error
  *
  */
-int MemorySystem::FindOldestActionEntity(int action_id, const std::vector<int> &entity_ids) const
+int32_t MemorySystem::FindOldestActionEntity(int32_t action_id, const std::vector<int32_t> &entity_ids) const
 {
     if (entity_ids.empty())
     {
@@ -594,9 +600,9 @@ int MemorySystem::FindOldestActionEntity(int action_id, const std::vector<int> &
         return -1;
     }
 
-    std::vector<int> oldest_nodes;
+    std::vector<int32_t> oldest_nodes;
     oldest_nodes.reserve(entity_ids.size());
-    int oldest_time = INT_MAX;
+    int64_t oldest_time = INT_MAX;
 
     // Search for action-specific memories and track oldest timestamp(s)
     for (int entity_id : entity_ids)
@@ -610,7 +616,7 @@ int MemorySystem::FindOldestActionEntity(int action_id, const std::vector<int> &
             continue;
         }
 
-        int current_time = memory->GetLastUsedTime();
+        int64_t current_time = memory->GetLastUsedTime();
 
         // If there's a new oldest_time, we restart the oldest_nodes vector.
         if (current_time < oldest_time)
@@ -641,10 +647,10 @@ int MemorySystem::FindOldestActionEntity(int action_id, const std::vector<int> &
  * @return Vector of node IDs that have no corresponding transition memory
  *
  */
-std::vector<int> MemorySystem::FindUnusedTransitionNodes(const std::vector<int> &node_ids) const
+std::vector<int32_t> MemorySystem::FindUnusedTransitionNodes(const std::vector<int32_t> &node_ids) const
 {
-    std::vector<int> unused_nodes;
-    for (int node_id : node_ids)
+    std::vector<int32_t> unused_nodes;
+    for (int32_t node_id : node_ids)
     {
         const TransitionMemory* memory = FindTransitionMemory(node_id);
         if (memory == nullptr)
@@ -663,10 +669,10 @@ std::vector<int> MemorySystem::FindUnusedTransitionNodes(const std::vector<int> 
  * @return Vector of entity IDs that have no corresponding action memory for this action
  *
  */
-std::vector<int> MemorySystem::FindUnusedActionEntities(int action_id, const std::vector<int> &entity_ids) const
+std::vector<int32_t> MemorySystem::FindUnusedActionEntities(int32_t action_id, const std::vector<int32_t> &entity_ids) const
 {
-    std::vector<int> unused_entities;
-    for (int entity_id : entity_ids)
+    std::vector<int32_t> unused_entities;
+    for (int32_t entity_id : entity_ids)
     {
         const ActionMemory* memory = FindActionMemory(action_id, entity_id);
         if (memory == nullptr)

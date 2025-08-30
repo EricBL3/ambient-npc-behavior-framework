@@ -26,36 +26,36 @@ private:
      * @brief Unique identifier of the action that was interrupted
      * @invariant interrupted_action_id >= 0
      */
-    int interrupted_action_id;
+    int32_t interrupted_action_id;
 
     /**
      * @brief Unique identifier of the sequence that was executing
      * @invariant interrupted_sequence_id >= 0
      */
-    int interrupted_sequence_id;
+    int32_t interrupted_sequence_id;
 
     /**
      * @brief Unique identifier of the sequence node that was interrupted
      * @invariant interrupted_sequence_node_id >= 0
      */
-    int interrupted_sequence_node_id;
+    int32_t interrupted_sequence_node_id;
 
     /**
      * @brief Unique identifier of the entity involved in the interrupted action
      * @invariant interrupted_target_entity_id >= -1 (allows -1 for no entity)
      */
-    int interrupted_target_entity_id;
+    int32_t interrupted_target_entity_id;
 public:
     // =============================================================================
     // CONSTRUCTION
     // =============================================================================
 
     explicit InterruptionMemory(
-        int interrupted_action_id,
-        int interrupted_sequence_id,
-        int interrupted_sequence_node_id,
-        int interrupted_target_entity_id,
-        int time
+        int32_t interrupted_action_id,
+        int32_t interrupted_sequence_id,
+        int32_t interrupted_sequence_node_id,
+        int32_t interrupted_target_entity_id,
+        int64_t time
     );
 
     // =============================================================================
@@ -66,16 +66,16 @@ public:
     bool MatchesMemory(const BaseMemory& other) const override;
 
     [[nodiscard]]
-    bool MatchesMemory(int other_action_id, int other_sequence_id, int other_sequence_node_id) const;
+    bool MatchesMemory(int32_t other_action_id, int32_t other_sequence_id, int32_t other_sequence_node_id) const;
 
     // =============================================================================
     // CONTEXT DATA ACCESS
     // =============================================================================
 
-    int GetInterruptedActionId() const;
-    int GetInterruptedSequenceId() const;
-    int GetInterruptedSequenceNodeId() const;
-    int GetInterruptedTargetEntityId() const;
+    int32_t GetInterruptedActionId() const;
+    int32_t GetInterruptedSequenceId() const;
+    int32_t GetInterruptedSequenceNodeId() const;
+    int32_t GetInterruptedTargetEntityId() const;
 };
 
 }

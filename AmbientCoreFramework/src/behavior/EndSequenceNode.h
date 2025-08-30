@@ -16,7 +16,7 @@ namespace AmbientCharacterBehavior {
  */
 class EndSequenceNode : public SequenceNode {
 public:
-    explicit EndSequenceNode(int node_id) : SequenceNode(node_id) {}
+    explicit EndSequenceNode(int32_t node_id) : SequenceNode(node_id) {}
 
     /**
      *

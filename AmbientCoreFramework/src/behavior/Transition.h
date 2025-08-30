@@ -7,6 +7,7 @@
 */
 
 #pragma once
+#include <cstdint>
 #include <vector>
 
 #include "SequenceNode.h"
@@ -24,12 +25,12 @@ private:
     /**
      * @brief The unique identifier of the transition
      */
-    int transition_id;
+    int32_t transition_id;
 
     /**
      * @brief The identifier of the destination node of this transition
      */
-    int to_node_index;
+    int32_t to_node_index;
 
     /**
      * @brief The preconditions that must be satisfied for the transition to be valid
@@ -46,7 +47,7 @@ public:
      *
      * @throw std::invalid_argument if transition_id or to_node_index < 0
      */
-    explicit Transition(int transition_id, int to_node_index, size_t initial_preconditions_count = 0);
+    explicit Transition(int32_t transition_id, int32_t to_node_index, size_t initial_preconditions_count = 0);
 
     /**
      * @brief Adds a new precondition to the transition.
@@ -55,11 +56,11 @@ public:
      */
     void AddPrecondition(const StateOperation& precondition);
 
-    int GetToNodeIndex() const { return to_node_index; }
+    int32_t GetToNodeIndex() const { return to_node_index; }
 
     const std::vector<StateOperation>& GetPreconditions() const { return preconditions; }
 
-    int GetTransitionId() const { return transition_id; }
+    int32_t GetTransitionId() const { return transition_id; }
 
 };
 

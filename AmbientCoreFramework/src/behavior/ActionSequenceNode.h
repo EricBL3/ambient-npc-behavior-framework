@@ -22,7 +22,7 @@ private:
      * @brief The identifier of the action that will be executed by this node.
      *
      */
-    int target_action_id;
+    int32_t target_action_id;
 
 public:
     /**
@@ -30,13 +30,13 @@ public:
      * @param node_id The identifier of the action sequence node that will be created
      * @param action_id The identifier of the target action
      */
-    ActionSequenceNode(int node_id, int action_id) : SequenceNode(node_id), target_action_id(action_id) {}
+    ActionSequenceNode(int32_t node_id, int32_t action_id) : SequenceNode(node_id), target_action_id(action_id) {}
 
     //TODO: Missing implementation which requires a content manager class.
     [[nodiscard]]
     Action& GetTargetAction() const;
 
-    int GetTargetActionId() const { return target_action_id; }
+    int32_t GetTargetActionId() const { return target_action_id; }
 
     /**
      *

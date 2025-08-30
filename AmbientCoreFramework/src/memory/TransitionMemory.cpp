@@ -21,7 +21,7 @@ using namespace AmbientCharacterBehavior;
  * @throws std::invalid_argument if node_id < 0 or time < 0
  *
  */
-TransitionMemory::TransitionMemory(int node_id, int time) : BaseMemory(time), target_node_id(node_id)
+TransitionMemory::TransitionMemory(int32_t node_id, int64_t time) : BaseMemory(time), target_node_id(node_id)
 {
     if(node_id < 0)
     {
@@ -71,7 +71,7 @@ bool TransitionMemory::MatchesMemory(const BaseMemory& other) const
 // DATA ACCESS
 // =============================================================================
 
-int TransitionMemory::GetTargetNodeId() const
+int32_t TransitionMemory::GetTargetNodeId() const
 {
     return target_node_id;
 }

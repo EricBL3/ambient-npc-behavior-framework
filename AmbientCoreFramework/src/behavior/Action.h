@@ -8,6 +8,7 @@
 */
 
 #pragma once
+#include <cstdint>
 #include <vector>
 
 #include "integration/StateOperation.h"
@@ -24,7 +25,7 @@ private:
     /**
      * @brief The unique identifier of the action
      */
-    int action_id;
+    int32_t action_id;
 
     /**
      * @brief The preconditions that must be satisfied for the action to be able to execute.
@@ -44,7 +45,7 @@ private:
     /**
      * @brief The maximum amount of time the framework will wait before it automatically completes the action.
      */
-    int max_duration;
+    int64_t max_duration;
 
     /**
      * @brief The resumption capability of the action.
@@ -63,9 +64,14 @@ public:
      *
      * @throw std::invalid_argument if action_id or max_duration < 0.
      */
-    explicit Action(int action_id, int max_duration, InterruptionBehaviorType interruption_behavior,
-                    size_t initial_preconditions_count = 0, size_t initial_immediate_effects_count = 0,
-                    size_t initial_completion_effects_count = 0);
+    explicit Action(
+        int32_t action_id,
+        int64_t max_duration,
+        InterruptionBehaviorType interruption_behavior,
+        size_t initial_preconditions_count = 0,
+        size_t initial_immediate_effects_count = 0,
+        size_t initial_completion_effects_count = 0
+    );
 
     /**
      * @brief Adds a new precondition to the transition.
@@ -85,9 +91,9 @@ public:
      */
     void AddCompletionEffect(const StateOperation& effect);
 
-    int GetActionId() const { return action_id; }
+    int32_t GetActionId() const { return action_id; }
 
-    int GetMaxDuration() const { return max_duration; }
+    int64_t GetMaxDuration() const { return max_duration; }
 
     InterruptionBehaviorType GetInterruptionBehavior() const { return interruption_behavior; }
 

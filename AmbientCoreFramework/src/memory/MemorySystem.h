@@ -34,19 +34,19 @@ private:
      * @brief Maximum number of transition memories to maintain
      * @invariant max_transition_memories > 0
      */
-    int max_transition_memories;
+    int32_t max_transition_memories;
 
     /**
      * @brief Maximum number of action memories to maintain
      * @invariant max_action_memories > 0
      */
-    int max_action_memories;
+    int32_t max_action_memories;
 
     /**
      * @brief Maximum number of interruption memories to maintain
      * @invariant max_interruption_memories > 0
      */
-    int max_interruption_memories;
+    int32_t max_interruption_memories;
 
     /**
      * @brief Collection of transition decision records
@@ -83,59 +83,59 @@ public:
     // CONSTRUCTION & CONFIGURATION
     // =============================================================================
 
-    explicit MemorySystem(int max_transitions = 10, int max_actions = 20, int max_interruptions = 5);
+    explicit MemorySystem(int32_t max_transitions = 10, int32_t max_actions = 20, int32_t max_interruptions = 5);
 
-    int GetMaxTransitionMemories() const;
-    int GetMaxActionMemories() const;
-    int GetMaxInterruptionMemories() const;
+    int32_t GetMaxTransitionMemories() const;
+    int32_t GetMaxActionMemories() const;
+    int32_t GetMaxInterruptionMemories() const;
 
-    void SetMaxTransitionMemories(int max_transitions);
-    void SetMaxActionMemories(int max_actions);
-    void SetMaxInterruptionMemories(int max_interruptions);
+    void SetMaxTransitionMemories(int32_t max_transitions);
+    void SetMaxActionMemories(int32_t max_actions);
+    void SetMaxInterruptionMemories(int32_t max_interruptions);
 
     // =============================================================================
     // MEMORY UPDATE OPERATIONS
     // =============================================================================
 
     [[nodiscard]]
-    bool UpdateTransitionMemory(int target_node_id, int current_time);
+    bool UpdateTransitionMemory(int32_t target_node_id, int64_t current_time);
 
     [[nodiscard]]
-    bool UpdateActionMemory(int action_id, int target_entity_id, int current_time);
+    bool UpdateActionMemory(int32_t action_id, int32_t target_entity_id, int64_t current_time);
 
     [[nodiscard]]
-    bool UpdateInterruptionMemory(int action_id, int sequence_id, int node_id, int entity_id, int current_time);
+    bool UpdateInterruptionMemory(int32_t action_id, int32_t sequence_id, int32_t node_id, int32_t entity_id, int64_t current_time);
 
     // =============================================================================
     // MEMORY SEARCH OPERATIONS
     // =============================================================================
 
     [[nodiscard]]
-    const TransitionMemory* FindTransitionMemory(int target_node_id) const;
+    const TransitionMemory* FindTransitionMemory(int32_t target_node_id) const;
 
     [[nodiscard]]
-    const ActionMemory* FindActionMemory(int action_id, int target_entity_id) const;
+    const ActionMemory* FindActionMemory(int32_t action_id, int32_t target_entity_id) const;
 
     [[nodiscard]]
-    const InterruptionMemory* FindInterruptionMemory(int action_id, int sequence_id, int node_id) const;
+    const InterruptionMemory* FindInterruptionMemory(int32_t action_id, int32_t sequence_id, int32_t node_id) const;
 
     // =============================================================================
     // BEHAVIORAL SELECTION
     // =============================================================================
 
     [[nodiscard]]
-    int GetLeastRecentlyVisitedNode(const std::vector<int>& node_ids) const;
+    int32_t GetLeastRecentlyVisitedNode(const std::vector<int32_t>& node_ids) const;
 
     [[nodiscard]]
-    int GetLeastRecentlyUsedEntityForAction(int action_id, const std::vector<int>& entity_ids) const;
+    int32_t GetLeastRecentlyUsedEntityForAction(int32_t action_id, const std::vector<int32_t>& entity_ids) const;
 
     // =============================================================================
     // MEMORY CLEANUP OPERATIONS
     // =============================================================================
 
-    void ClearSequenceInterruptionMemories(int sequence_id);
+    void ClearSequenceInterruptionMemories(int32_t sequence_id);
 
-    bool RemoveInterruptionMemory(int action_id, int sequence_id, int node_id);
+    bool RemoveInterruptionMemory(int32_t action_id, int32_t sequence_id, int32_t node_id);
 
     void ClearAllMemories();
 
@@ -157,7 +157,7 @@ private:
     void LogError(const std::string& message) const;
 
     [[nodiscard]]
-    int SelectRandomFromVector(const std::vector<int>& options) const;
+    int32_t SelectRandomFromVector(const std::vector<int32_t>& options) const;
 
     // =============================================================================
     // CAPACITY MANAGEMENT
@@ -171,24 +171,24 @@ private:
     // MEMORY REMOVAL HELPERS
     // =============================================================================
 
-    void RemoveExistingTransitionMemory(int target_node_id);
-    void RemoveExistingActionMemory(int action_id, int target_entity_id);
+    void RemoveExistingTransitionMemory(int32_t target_node_id);
+    void RemoveExistingActionMemory(int32_t action_id, int32_t target_entity_id);
 
     // =============================================================================
     // RECENCY SELECTION HELPERS
     // =============================================================================
 
     [[nodiscard]]
-    int FindOldestTransitionNode(const std::vector<int>& node_ids) const;
+    int32_t FindOldestTransitionNode(const std::vector<int32_t>& node_ids) const;
 
     [[nodiscard]]
-    int FindOldestActionEntity(int action_id, const std::vector<int>& entity_ids) const;
+    int32_t FindOldestActionEntity(int32_t action_id, const std::vector<int32_t>& entity_ids) const;
 
     [[nodiscard]]
-    std::vector<int> FindUnusedTransitionNodes(const std::vector<int>& node_ids) const;
+    std::vector<int32_t> FindUnusedTransitionNodes(const std::vector<int32_t>& node_ids) const;
 
     [[nodiscard]]
-    std::vector<int> FindUnusedActionEntities(int action_id, const std::vector<int>& entity_ids) const;
+    std::vector<int32_t> FindUnusedActionEntities(int32_t action_id, const std::vector<int32_t>& entity_ids) const;
 };
 
 }
