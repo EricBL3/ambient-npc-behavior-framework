@@ -11,8 +11,7 @@
 #include <stack>
 #include <unordered_map>
 
-#include "Entity.h"
-#include "StatefulEntity.h"
+#include "FrameworkEntity.h"
 #include "behavior/Sequence.h"
 #include "memory/MemorySystem.h"
 
@@ -21,7 +20,7 @@ namespace AmbientCharacterBehavior {
 /**
  * @brief Entities that have decision-making capabilities and behavioral systems (Characters)
  */
-class BehavioralEntity : public StatefulEntity {
+class BehavioralEntity : public FrameworkEntity {
 private:
     MemorySystem memory;
 
@@ -40,14 +39,14 @@ private:
 public:
     /**
      *
+     * @param entity_handle The handle of the entity.
      * @param entity_id The identifier being used as the handle of the entity.
-     * @param current_location_id The identifier (also used as handle) of the current location
      * @param name The name of the entity
      *
      * @throw std::invalid_argument if entity_id or current_location_id < 0.
      */
-    explicit BehavioralEntity(int32_t entity_id, int32_t current_location_id, std::string name = "") :
-        StatefulEntity(entity_id, current_location_id, std::move(name)),
+    explicit BehavioralEntity(void* entity_handle, int32_t entity_id, std::string name = "") :
+        FrameworkEntity(entity_handle, entity_id, std::move(name)),
         main_sequence(nullptr), current_action_target_index(-1), is_processing(false) {}
 
 };
