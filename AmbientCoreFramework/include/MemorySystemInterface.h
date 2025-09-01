@@ -12,7 +12,7 @@
     #ifdef AmbientCoreFramework_EXPORTS
         #define AmbientCoreFramework_API __declspec(dllexport)
     #else
-        #define AmbientCoreFramework_API __declspec(import)
+        #define AmbientCoreFramework_API __declspec(dllimport)
     #endif
 
 #else
