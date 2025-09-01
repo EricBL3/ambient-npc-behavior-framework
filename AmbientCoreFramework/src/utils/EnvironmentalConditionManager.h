@@ -9,9 +9,12 @@
 
 #pragma once
 #include <cstdint>
+#include <optional>
 #include <unordered_map>
+#include <nlohmann/json.hpp>
 
 #include "EnvironmentalCondition.h"
+#include "json_dtos/EnvironmentalConditionDto.h"
 
 namespace AmbientCharacterBehavior {
 /**
@@ -40,5 +43,18 @@ public:
      * @throw std::out_of_range if condition_key doesn't exist in the cache.
      */
     static int32_t const GetEnvironmentalConditionValue(int32_t condition_key);
+
+private:
+    static std::optional<nlohmann::json> LoadConfigFile(const std::string& config_file_path);
+
+    static std::vector<EnvironmentalConditionDto> ParseEnvironmentalConditions(const nlohmann::json& config_json);
+
+    static std::optional<EnvironmentalConditionDto> ParseSingleCondition(const nlohmann::json& condition_json);
+
+    static void CreateEnvironmentalConditions(const std::vector<EnvironmentalConditionDto>& condition_dtos);
+
+    static bool IsValidForCreation(const EnvironmentalConditionDto& dto);
+
+    static void CreateSingleEnvironmentalCondition(const EnvironmentalConditionDto& dto);
 };
 } // AmbientCharacterBehavior
