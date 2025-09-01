@@ -49,7 +49,7 @@ public:
 
     int32_t GetEntityId() const { return entity_id; }
 
-    std::string GetName() const { return name; }
+    std::string_view GetName() const { return name; }
 
     const std::unordered_set<int32_t>& GetSupportedActionsIds() const { return supported_actions_ids; }
 
