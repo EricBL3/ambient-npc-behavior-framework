@@ -45,7 +45,6 @@ public:
     static int32_t const GetEnvironmentalConditionValue(int32_t condition_key);
 
 private:
-    static std::optional<nlohmann::json> LoadConfigFile(const std::string& config_file_path);
 
     static std::vector<EnvironmentalConditionDto> ParseEnvironmentalConditions(const nlohmann::json& config_json);
 
