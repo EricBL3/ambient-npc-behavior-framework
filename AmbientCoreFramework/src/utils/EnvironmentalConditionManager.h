@@ -1,20 +1,11 @@
-/**
- * @file EnvironmentalConditionManager.h
- * @brief 
- * @author Eric Buitrón López
- * @date 9/1/2025
- *
- *
-*/
-
 #pragma once
+#include "EnvironmentalCondition.h"
+#include "json_dtos/EnvironmentalConditionDto.h"
+
 #include <cstdint>
-#include <optional>
 #include <unordered_map>
 #include <nlohmann/json.hpp>
 
-#include "EnvironmentalCondition.h"
-#include "json_dtos/EnvironmentalConditionDto.h"
 
 namespace AmbientCharacterBehavior {
 /**
@@ -46,14 +37,10 @@ public:
 
 private:
 
-    static std::vector<EnvironmentalConditionDto> ParseEnvironmentalConditions(const nlohmann::json& config_json);
-
-    static std::optional<EnvironmentalConditionDto> ParseSingleCondition(const nlohmann::json& condition_json);
-
     static void CreateEnvironmentalConditions(const std::vector<EnvironmentalConditionDto>& condition_dtos);
 
     static bool IsValidForCreation(const EnvironmentalConditionDto& dto);
 
     static void CreateSingleEnvironmentalCondition(const EnvironmentalConditionDto& dto);
 };
-} // AmbientCharacterBehavior
+}

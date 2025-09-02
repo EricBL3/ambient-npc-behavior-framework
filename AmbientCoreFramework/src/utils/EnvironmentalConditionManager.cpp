@@ -1,39 +1,19 @@
-/**
- * @file EnvironmentalConditionManager.cpp
- * @brief 
- * @author Eric Buitrón López
- * @date 9/1/2025
- *
- *
-*/
-
 #include "EnvironmentalConditionManager.h"
 
-#include <fstream>
 #include "FrameworkLogger.h"
 #include "JsonLoader.h"
 #include "TimeManager.h"
 #include "../include/EnvironmentalConditionInterface.h"
 
-using json = nlohmann::json;
-
 namespace AmbientCharacterBehavior {
 
 std::unordered_map<int32_t, EnvironmentalCondition> EnvironmentalConditionManager::environmental_conditions_cache;
-
-NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(EnvironmentalConditionDto, condition_key, name, update_frequency_ms);
 
 void EnvironmentalConditionManager::RegisterEnvironmentalConditions(const std::string& config_file_path)
 {
     try
     {
-        auto config_json = JsonLoader::LoadConfigFile(config_file_path);
-        if (!config_json.has_value())
-        {
-            return;
-        }
-
-        auto condition_dtos = ParseEnvironmentalConditions(config_json.value());
+        auto condition_dtos = JsonLoader::ProcessEnvironmentalConditionsConfigFile(config_file_path);
         if (condition_dtos.empty())
         {
             FrameworkLogger::LogWarning("No valid environmental conditions found in config",
@@ -88,45 +68,6 @@ int32_t const EnvironmentalConditionManager::GetEnvironmentalConditionValue(int3
     return condition.GetValue();
 }
 
-std::vector<EnvironmentalConditionDto> EnvironmentalConditionManager::ParseEnvironmentalConditions(
-    const nlohmann::json &config_json)
-{
-    std::vector<EnvironmentalConditionDto> condition_dtos;
-
-    if (!config_json.contains("environmental_conditions") || config_json["environmental_conditions"].is_array())
-    {
-        FrameworkLogger::LogError("Config file missing 'environmental_conditions' array",
-            "EnvironmentalConditionManager");
-        return condition_dtos;
-    }
-
-    for (const auto& condition_json : config_json["environmental_conditions"])
-    {
-        auto dto = ParseSingleCondition(condition_json);
-        if (dto.has_value())
-        {
-            condition_dtos.push_back(dto.value());
-        }
-    }
-
-    return condition_dtos;
-}
-
-std::optional<EnvironmentalConditionDto> EnvironmentalConditionManager::ParseSingleCondition(
-    const nlohmann::json &condition_json)
-{
-    try
-    {
-        return condition_json.get<EnvironmentalConditionDto>();
-    }
-    catch (const json::exception& e) {
-        FrameworkLogger::LogError("Failed to parse environmental condition from JSON: " +
-            std::string(e.what()),"EnvironmentalConditionManager");
-
-        return std::nullopt;
-    }
-}
-
 void EnvironmentalConditionManager::CreateEnvironmentalConditions(
     const std::vector<EnvironmentalConditionDto> &condition_dtos)
 {
@@ -167,4 +108,4 @@ void EnvironmentalConditionManager::CreateSingleEnvironmentalCondition(const Env
             "EnvironmentalConditionManager");
     }
 }
-} // AmbientCharacterBehavior
+}

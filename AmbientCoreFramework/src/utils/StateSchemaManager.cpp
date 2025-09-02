@@ -2,6 +2,8 @@
 #include "FrameworkLogger.h"
 #include "JsonLoader.h"
 
+using json = nlohmann::json;
+
 namespace AmbientCharacterBehavior {
 
 std::unordered_map<std::string, int32_t> StateSchemaManager::state_name_to_key;
@@ -16,9 +18,9 @@ void StateSchemaManager::LoadStateSchema(const std::string &config_file_path)
         return;
     }
 
-    if (config_json.contains("entity_states") && config_json["entity_states"].is_array())
+    if (config_json.value().contains("entity_states") && config_json.value()["entity_states"].is_array())
     {
-        for (const auto& state_json : config_json["entity_states"])
+        for (const auto& state_json : config_json.value()["entity_states"])
         {
             try
             {
@@ -30,8 +32,8 @@ void StateSchemaManager::LoadStateSchema(const std::string &config_file_path)
                     state_name_to_key[name] = key;
                     state_key_to_name[key] = name;
 
-                    FrameworkLogger::LogInfo("Registered state in schema. Name: " + name + " Key: " + key,
-                        "StateSchemaManager");
+                    FrameworkLogger::LogInfo("Registered state in schema. Name: " + name +
+                        " Key: " + std::to_string(key), "StateSchemaManager");
 
                 }
 
