@@ -20,6 +20,8 @@ namespace AmbientCharacterBehavior {
 
 std::unordered_map<int32_t, EnvironmentalCondition> EnvironmentalConditionManager::environmental_conditions_cache;
 
+NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(EnvironmentalConditionDto, condition_key, name, update_frequency_ms);
+
 void EnvironmentalConditionManager::RegisterEnvironmentalConditions(const std::string& config_file_path)
 {
     try
@@ -61,8 +63,13 @@ void EnvironmentalConditionManager::UpdateEnvironmentalCondition(int32_t conditi
 
         condition.SetValue(new_value);
         condition.SetLastUpdateMs(TimeManager::GetCurrentTime());
+
+        if (!condition.GetIsInitialized())
+        {
+            condition.SetIsInitialized(true);
+        }
     }
-    catch (std::exception& e)
+    catch (const std::exception& e)
     {
         FrameworkLogger::LogError(e.what(),"EnvironmentalConditionManager" );
     }
@@ -110,7 +117,7 @@ std::vector<EnvironmentalConditionDto> EnvironmentalConditionManager::ParseEnvir
 {
     std::vector<EnvironmentalConditionDto> condition_dtos;
 
-    if (!config_json.contains("environmental_conditions") && config_json["environmental_conditions"].is_array())
+    if (!config_json.contains("environmental_conditions") || config_json["environmental_conditions"].is_array())
     {
         FrameworkLogger::LogError("Config file missing 'environmental_conditions' array",
             "EnvironmentalConditionManager");
@@ -134,12 +141,7 @@ std::optional<EnvironmentalConditionDto> EnvironmentalConditionManager::ParseSin
 {
     try
     {
-        EnvironmentalConditionDto dto;
-        dto.condition_key = condition_json.at("condition_key").get<int32_t>();
-        dto.name = condition_json.at("name").get<std::string>();
-        dto.update_frequency_ms = condition_json.at("update_frequency_ms").get<int64_t>();
-
-        return dto;
+        return condition_json.get<EnvironmentalConditionDto>();
     }
     catch (const json::exception& e) {
         FrameworkLogger::LogError("Failed to parse environmental condition from JSON: " +

@@ -50,7 +50,7 @@ public:
 
     void SetLastUpdateMs(int64_t val) { last_update_ms = val; }
 
-    bool IsInitialized() const { return is_initialized; }
+    bool GetIsInitialized() const { return is_initialized; }
 
     void SetIsInitialized(bool val) { is_initialized = val; }
 
