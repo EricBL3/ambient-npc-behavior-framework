@@ -1,5 +1,4 @@
 #include "JsonLoader.h"
-#include "FrameworkLogger.h"
 
 #include <fstream>
 
@@ -8,6 +7,10 @@ using json = nlohmann::json;
 namespace AmbientCharacterBehavior {
 
 NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(EnvironmentalConditionDto, condition_key, name, update_frequency_ms);
+NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(StateOperationDto, target_id_name, state_key_name, operation_name, values);
+NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(ActionDto, action_id, action_name, preconditions, immediate_effects,
+    completion_effects, max_duration_ms, interruption_behavior_name);
+
 
 std::optional<nlohmann::json> JsonLoader::LoadConfigFile(const std::string &config_file_path)
 {
@@ -36,44 +39,12 @@ std::optional<nlohmann::json> JsonLoader::LoadConfigFile(const std::string &conf
 
 std::vector<EnvironmentalConditionDto> JsonLoader::ProcessEnvironmentalConditionsConfigFile(const std::string& config_file_path)
 {
-    std::vector<EnvironmentalConditionDto> condition_dtos;
-
-    try
-    {
-        auto config_json = LoadConfigFile(config_file_path);
-        if (!config_json.has_value())
-        {
-            return condition_dtos;
-        }
-
-        if (!config_json.value().contains("environmental_conditions") ||
-            config_json.value()["environmental_conditions"].is_array())
-        {
-            FrameworkLogger::LogError("Config file missing 'environmental_conditions' array",
-                "JsonLoader");
-            return condition_dtos;
-        }
-
-        for (const auto& condition_json : config_json.value()["environmental_conditions"])
-        {
-            try
-            {
-                auto dto = condition_json.get<EnvironmentalConditionDto>();
-                condition_dtos.push_back(dto);
-            }
-            catch (const json::exception& e) {
-                FrameworkLogger::LogError("Failed to parse environmental condition from JSON: " +
-                    std::string(e.what()),"JsonLoader");
-            }
-        }
-
-    }
-    catch (const std::exception& e)
-    {
-        FrameworkLogger::LogError("Unexpected error loading environmental conditions: " + std::string(e.what()),
-            "JsonLoader");
-    }
-
-    return condition_dtos;
+    return ProcessConfigFile<EnvironmentalConditionDto>(config_file_path, "environmental_conditions");
 }
+
+std::vector<ActionDto> JsonLoader::ProcessActionsConfigFile(const std::string &config_file_path)
+{
+    return ProcessConfigFile<ActionDto>(config_file_path, "actions");
+}
+
 }
