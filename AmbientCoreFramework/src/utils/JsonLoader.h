@@ -18,7 +18,7 @@ namespace AmbientCharacterBehavior {
 class JsonLoader {
 
 public:
-    static std::optional<nlohmann::json> LoadConfigFile(const std::string& config_file_path);
+
 
     static std::vector<EnvironmentalConditionDto> ProcessEnvironmentalConditionsConfigFile(const std::string& config_file_path);
 
@@ -29,52 +29,38 @@ public:
     static EntityDtoResult ProcessEntityConfigFile(const std::string& config_file_path);
 
 private:
+    static std::optional<nlohmann::json> LoadConfigFile(const std::string& config_file_path);
+
+    static std::optional<nlohmann::json> LoadValidJsonConfigArray(const std::string& config_file_path, const std::string& array_key);
+
     template <typename T>
     static std::vector<T> ProcessConfigFile(const std::string& config_file_path, const std::string& array_key)
     {
+        auto config_array_json = LoadValidJsonConfigArray(config_file_path, array_key);
+        if (!config_array_json.has_value())
+        {
+            return {};
+        }
+
+        return ProcessJsonArray<T>(config_array_json.value());
+    }
+
+    template <typename T>
+    static std::vector<T> ProcessJsonArray(const nlohmann::json& config_array_json)
+    {
         std::vector<T> result;
 
-        try
+        for (const auto& element_json : config_array_json)
         {
-            auto config_json = LoadConfigFile(config_file_path);
-            if (!config_json.has_value())
+            try
             {
-                return result;
+                result.push_back(element_json.get<T>());
             }
-
-            if (!config_json.value().contains(array_key) ||
-                !config_json.value()[array_key].is_array())
+            catch (const nlohmann::json::exception& e)
             {
-                FrameworkLogger::LogError(
-                    "Config file missing '" + array_key + "' array",
-                    "JsonLoader"
-                );
-                return result;
+                FrameworkLogger::LogError( "Failed to parse element from JSON: " +
+                    std::string(e.what()),"JsonLoader");
             }
-
-            for (const auto& element_json : config_json.value()[array_key])
-            {
-                try
-                {
-                    auto dto = element_json.get<T>();
-                    result.push_back(dto);
-                }
-                catch (const nlohmann::json::exception& e)
-                {
-                    FrameworkLogger::LogError(
-                        "Failed to parse " + array_key + " from JSON: " +
-                        std::string(e.what()),
-                        "JsonLoader"
-                    );
-                }
-            }
-        }
-        catch (const std::exception& e)
-        {
-            FrameworkLogger::LogError(
-                "Unexpected error loading " + array_key + "s: " + std::string(e.what()),
-                "JsonLoader"
-            );
         }
 
         return result;
