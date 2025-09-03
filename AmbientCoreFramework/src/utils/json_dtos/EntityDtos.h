@@ -7,17 +7,12 @@
 
 namespace AmbientCharacterBehavior {
 
-struct BaseEntityDto {
+struct FrameworkEntityDto {
+    std::string entity_type;
     int32_t entity_id;
     std::string entity_name;
     std::vector<int32_t> accepted_actions_ids;
     std::unordered_map<std::string, int32_t> initial_state;
-};
-
-/// Requires custom parsing
-struct FrameworkEntityDto {
-    std::string entity_type;
-    BaseEntityDto base_properties;
 };
 
 struct MemoryLimitsDto {
@@ -26,11 +21,8 @@ struct MemoryLimitsDto {
     int32_t max_interruption_memories;
 };
 
-/// Requires custom parsing
 struct BehavioralEntityDto {
-    std::string entity_type;
-    BaseEntityDto base_properties;
-
+    FrameworkEntityDto base_properties;
     int32_t main_sequence_id;
     std::vector<int32_t> fallback_sequences;
     std::unordered_map<int32_t, int32_t> interruption_handlers;
