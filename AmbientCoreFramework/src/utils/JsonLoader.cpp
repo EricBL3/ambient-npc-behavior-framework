@@ -7,11 +7,17 @@ using json = nlohmann::json;
 namespace AmbientCharacterBehavior {
 
 NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(EnvironmentalConditionDto, condition_key, name, update_frequency_ms);
+
 NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(StateOperationDto, target_id_name, state_key_name, operation_name, values);
 NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(TransitionDto, transition_id, from_node_id, to_node_id, preconditions);
 NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(SequenceDto, sequence_id, sequence_name, entry_point_node_id, transitions);
 NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(ActionDto, action_id, action_name, preconditions, immediate_effects,
     completion_effects, max_duration_ms, interruption_behavior_name);
+
+NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(FrameworkEntityDto, entity_id, entity_name, accepted_actions_ids, initial_state);
+NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(MemoryLimitsDto, max_transition_memories, max_action_memories, max_interruption_memories);
+NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(BehavioralEntityDto, base_properties, main_sequence_id, fallback_sequences,
+    interruption_handlers, memory_limits);
 
 std::vector<EnvironmentalConditionDto> JsonLoader::ProcessEnvironmentalConditionsConfigFile(const std::string& config_file_path)
 {
@@ -26,7 +32,7 @@ std::vector<ActionDto> JsonLoader::ProcessActionsConfigFile(const std::string &c
 std::vector<SequenceDto> JsonLoader::ProcessSequencesConfigFile(const std::string &config_file_path)
 {
 
-    auto config_array_json = LoadValidJsonConfigArray(config_file_path, "sequences");
+    auto config_array_json = LoadValidConfigJsonArray(config_file_path, "sequences");
 
     if (!config_array_json.has_value())
     {
@@ -70,7 +76,52 @@ std::vector<SequenceDto> JsonLoader::ProcessSequencesConfigFile(const std::strin
     return result;
 }
 
-std::optional<nlohmann::json> JsonLoader::LoadConfigFile(const std::string &config_file_path)
+std::optional<EntityDtoResult> JsonLoader::ProcessSingleEntityConfigFile(const std::string &config_file_path)
+{
+    auto config_array_json = LoadValidConfigJsonArray(config_file_path, "entities");
+
+    if (!config_array_json.has_value()|| config_array_json->empty())
+    {
+        return std::nullopt;
+    }
+
+    try
+    {
+        const auto& entity_json = config_array_json->front();
+
+        EntityDtoResult result;
+        result.entity_type = entity_json.at("entity_type");
+
+        if (entity_json.at("entity_type") == "FRAMEWORK")
+        {
+            auto entity_dto = entity_json.at("entity").get<FrameworkEntityDto>();
+            result.framework_entity = entity_dto;
+            result.behavioral_entity = std::nullopt;
+        }
+        else if (entity_json.at("entity_type") == "BEHAVIORAL")
+        {
+            auto entity_dto = entity_json.at("entity").get<BehavioralEntityDto>();
+            result.framework_entity = std::nullopt;
+            result.behavioral_entity = entity_dto;
+        }
+        else
+        {
+            FrameworkLogger::LogError("Unknown entity type: " + std::string(result.entity_type),
+                "JsonLoader");
+        }
+
+        return result;
+    }
+    catch (const nlohmann::json::exception& e)
+    {
+        FrameworkLogger::LogError( "Failed to parse element from JSON: " +
+            std::string(e.what()),"JsonLoader");
+
+        return std::nullopt;
+    }
+}
+
+std::optional<nlohmann::json> JsonLoader::LoadConfigFileJson(const std::string &config_file_path)
 {
     try
     {
@@ -95,11 +146,11 @@ std::optional<nlohmann::json> JsonLoader::LoadConfigFile(const std::string &conf
     }
 }
 
-std::optional<nlohmann::json> JsonLoader::LoadValidJsonConfigArray(const std::string &config_file_path, const std::string &array_key)
+std::optional<nlohmann::json> JsonLoader::LoadValidConfigJsonArray(const std::string &config_file_path, const std::string &array_key)
 {
     try
     {
-        auto config_json = LoadConfigFile(config_file_path);
+        auto config_json = LoadConfigFileJson(config_file_path);
         if (!config_json.has_value())
         {
             return std::nullopt;

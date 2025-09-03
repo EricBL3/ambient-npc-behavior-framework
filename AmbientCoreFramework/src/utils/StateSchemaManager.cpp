@@ -11,7 +11,7 @@ std::unordered_map<int32_t, std::string> StateSchemaManager::state_key_to_name;
 
 void StateSchemaManager::LoadStateSchema(const std::string &config_file_path)
 {
-    auto config_json = JsonLoader::LoadConfigFile(config_file_path);
+    auto config_json = JsonLoader::LoadConfigFileJson(config_file_path);
 
     if (!config_json.has_value())
     {

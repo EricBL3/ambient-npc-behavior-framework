@@ -8,7 +8,6 @@
 namespace AmbientCharacterBehavior {
 
 struct FrameworkEntityDto {
-    std::string entity_type;
     int32_t entity_id;
     std::string entity_name;
     std::vector<int32_t> accepted_actions_ids;
