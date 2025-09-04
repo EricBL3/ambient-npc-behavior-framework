@@ -6,11 +6,6 @@
 #include "../../mocks/MockLogger.h"
 #include "services/configuration/JsonLoader.h"
 
-namespace AmbientCharacterBehavior {
-class MockLogger;
-class JsonLoader;
-}
-
 using namespace AmbientCharacterBehavior;
 
 class JsonLoaderTest : public testing::Test {
@@ -213,9 +208,17 @@ private:
     }
 
     void RemoveTestFiles() {
+        std::filesystem::remove(valid_environmental_conditions_file);
         std::filesystem::remove(valid_actions_file);
+        std::filesystem::remove(valid_sequences_file);
+        std::filesystem::remove(valid_framework_entity_file);
+        std::filesystem::remove(valid_behavioral_entity_file);
         std::filesystem::remove(invalid_json_file);
+        std::filesystem::remove(missing_fields_environmental_conditions_file);
         std::filesystem::remove(missing_fields_actions_file);
+        std::filesystem::remove(missing_fields_sequences_file);
+        std::filesystem::remove(missing_fields_framework_entity_file);
+        std::filesystem::remove(missing_fields_behavioral_entity_file);
     }
 };
 
