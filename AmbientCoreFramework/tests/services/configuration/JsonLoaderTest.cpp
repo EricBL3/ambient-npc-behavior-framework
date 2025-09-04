@@ -343,7 +343,57 @@ TEST_F(JsonLoaderTest, ProcessActionsConfigFile_MissingFields_LogsErrorAndReturn
 // PROCESS SEQUENCES CONFIG FILE TESTS
 // =============================================================================
 
+TEST_F(JsonLoaderTest, ProcessSequencesConfigFile_ValidFile_ReturnsSequences) {
+    JsonLoader loader(*mock_logger);
 
+    // Should not log any errors for valid file
+    EXPECT_CALL(*mock_logger, LogError(testing::_, testing::_))
+        .Times(0);
+
+    auto result = loader.ProcessSequencesConfigFile(valid_sequences_file);
+
+    EXPECT_EQ(result.size(), 1);
+    EXPECT_EQ(result[0].sequence_id, 0);
+    EXPECT_EQ(result[0].sequence_name, "test_sequence");
+    EXPECT_EQ(result[0].entry_point_node_id, 0);
+}
+
+TEST_F(JsonLoaderTest, ProcessSequencesConfigFile_NonexistentFile_LogsErrorAndReturnsEmpty) {
+    JsonLoader loader(*mock_logger);
+
+    EXPECT_CALL(*mock_logger, LogError(
+        testing::HasSubstr("Failed to open config file"),
+        testing::Eq("JsonLoader")))
+        .Times(1);
+
+    auto result = loader.ProcessSequencesConfigFile(nonexistent_file);
+    EXPECT_TRUE(result.empty());
+}
+
+TEST_F(JsonLoaderTest, ProcessSequencesConfigFile_InvalidJson_LogsErrorAndReturnsEmpty) {
+    JsonLoader loader(*mock_logger);
+
+    EXPECT_CALL(*mock_logger, LogError(
+        testing::HasSubstr("JSON parsing error"),
+        testing::Eq("JsonLoader")))
+        .Times(1);
+
+    auto result = loader.ProcessSequencesConfigFile(invalid_json_file);
+    EXPECT_TRUE(result.empty());
+}
+
+TEST_F(JsonLoaderTest, ProcessSequencesConfigFile_MissingFields_LogsErrorAndReturnsPartial) {
+    JsonLoader loader(*mock_logger);
+
+    EXPECT_CALL(*mock_logger, LogError(
+        testing::HasSubstr("Failed to parse element"),
+        testing::Eq("JsonLoader")))
+        .Times(testing::AtLeast(1));
+
+    auto result = loader.ProcessSequencesConfigFile(missing_fields_sequences_file);
+    // Should return empty since it failed to parse
+    EXPECT_TRUE(result.empty());
+}
 
 // =============================================================================
 // PROCESS ENTITY CONFIG FILE TESTS
