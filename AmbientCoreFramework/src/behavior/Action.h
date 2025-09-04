@@ -11,7 +11,7 @@
 #include <cstdint>
 #include <vector>
 
-#include "integration/StateOperation.h"
+#include "StateOperation.h"
 #include "utils/InterruptionBehaviorType.h"
 
 namespace AmbientCharacterBehavior {

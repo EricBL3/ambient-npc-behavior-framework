@@ -11,7 +11,7 @@
 #include <vector>
 
 #include "SequenceNode.h"
-#include "integration/StateOperation.h"
+#include "StateOperation.h"
 
 namespace AmbientCharacterBehavior {
 
