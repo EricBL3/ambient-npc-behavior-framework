@@ -16,8 +16,7 @@ NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(ActionDto, action_id, action_name, preconditi
 
 NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(FrameworkEntityDto, entity_id, entity_name, accepted_actions_ids, initial_state);
 NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(MemoryLimitsDto, max_transition_memories, max_action_memories, max_interruption_memories);
-NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(BehavioralEntityDto, base_properties, main_sequence_id, fallback_sequences,
-    interruption_handlers, memory_limits);
+NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(BehavioralEntityDto, main_sequence_id, fallback_sequences, interruption_handlers, memory_limits);
 
 std::optional<nlohmann::json> JsonLoader::LoadConfigFileJson(const std::string &config_file_path)
 {
@@ -117,17 +116,20 @@ std::optional<EntityDtoResult> JsonLoader::ProcessSingleEntityConfigFile(const s
         EntityDtoResult result;
         result.entity_type = entity_json.at("entity_type");
 
+        auto framework_entity_dto = entity_json.at("entity").get<FrameworkEntityDto>();
+
         if (entity_json.at("entity_type") == "FRAMEWORK")
         {
-            auto entity_dto = entity_json.at("entity").get<FrameworkEntityDto>();
-            result.framework_entity = entity_dto;
+            result.framework_entity = framework_entity_dto;
             result.behavioral_entity = std::nullopt;
         }
         else if (entity_json.at("entity_type") == "BEHAVIORAL")
         {
-            auto entity_dto = entity_json.at("entity").get<BehavioralEntityDto>();
+            auto behavioral_entity_dto = entity_json.at("entity").get<BehavioralEntityDto>();
+            behavioral_entity_dto.base_properties = framework_entity_dto;
+
             result.framework_entity = std::nullopt;
-            result.behavioral_entity = entity_dto;
+            result.behavioral_entity = behavioral_entity_dto;
         }
         else
         {

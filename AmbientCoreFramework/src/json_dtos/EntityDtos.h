@@ -24,7 +24,7 @@ struct BehavioralEntityDto {
     FrameworkEntityDto base_properties;
     int32_t main_sequence_id;
     std::vector<int32_t> fallback_sequences;
-    std::unordered_map<int32_t, int32_t> interruption_handlers;
+    std::unordered_map<std::string, int32_t> interruption_handlers;
     MemoryLimitsDto memory_limits;
 };
 

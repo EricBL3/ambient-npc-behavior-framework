@@ -115,7 +115,7 @@ private:
                         "entity_id": 0,
                         "entity_name": "test_entity",
                         "accepted_actions_ids": [],
-                        "initial_state": {},
+                        "initial_state": {}
                     }
                 }
             ]
@@ -199,7 +199,7 @@ private:
                         "entity_name": "name",
                         "accepted_actions_ids": [],
                         "initial_state": {
-                            "STATE_NAME": 0,
+                            "STATE_NAME": 0
                         }
                     }
                 }
@@ -270,7 +270,7 @@ TEST_F(JsonLoaderTest, ProcessEnvironmentalConditionsConfigFile_InvalidJson_Logs
     EXPECT_TRUE(result.empty());
 }
 
-TEST_F(JsonLoaderTest, ProcessEnvironmentalConditionsConfigFile_MissingFields_LogsErrorAndReturnsPartial) {
+TEST_F(JsonLoaderTest, ProcessEnvironmentalConditionsConfigFile_MissingFields_LogsErrorAndReturnsEmpty) {
     JsonLoader loader(*mock_logger);
 
     EXPECT_CALL(*mock_logger, LogError(
@@ -326,7 +326,7 @@ TEST_F(JsonLoaderTest, ProcessActionsConfigFile_InvalidJson_LogsErrorAndReturnsE
     EXPECT_TRUE(result.empty());
 }
 
-TEST_F(JsonLoaderTest, ProcessActionsConfigFile_MissingFields_LogsErrorAndReturnsPartial) {
+TEST_F(JsonLoaderTest, ProcessActionsConfigFile_MissingFields_LogsErrorAndReturnsEmpty) {
     JsonLoader loader(*mock_logger);
 
     EXPECT_CALL(*mock_logger, LogError(
@@ -382,7 +382,7 @@ TEST_F(JsonLoaderTest, ProcessSequencesConfigFile_InvalidJson_LogsErrorAndReturn
     EXPECT_TRUE(result.empty());
 }
 
-TEST_F(JsonLoaderTest, ProcessSequencesConfigFile_MissingFields_LogsErrorAndReturnsPartial) {
+TEST_F(JsonLoaderTest, ProcessSequencesConfigFile_MissingFields_LogsErrorAndReturnsEmpty) {
     JsonLoader loader(*mock_logger);
 
     EXPECT_CALL(*mock_logger, LogError(
@@ -398,3 +398,85 @@ TEST_F(JsonLoaderTest, ProcessSequencesConfigFile_MissingFields_LogsErrorAndRetu
 // =============================================================================
 // PROCESS ENTITY CONFIG FILE TESTS
 // =============================================================================
+
+TEST_F(JsonLoaderTest, ProcessSingleEntityConfigFile_ValidFrameworkFile_ReturnsEntity) {
+    JsonLoader loader(*mock_logger);
+
+    // Should not log any errors for valid file
+    EXPECT_CALL(*mock_logger, LogError(testing::_, testing::_))
+        .Times(0);
+
+    auto result = loader.ProcessSingleEntityConfigFile(valid_framework_entity_file);
+
+    EXPECT_TRUE(result);
+    EXPECT_EQ(result->entity_type, "FRAMEWORK");
+    EXPECT_TRUE(result->framework_entity);
+    EXPECT_EQ(std::nullopt, result->behavioral_entity);
+    EXPECT_EQ(result->framework_entity->entity_id, 0);
+    EXPECT_EQ(result->framework_entity->entity_name, "test_entity");
+}
+
+TEST_F(JsonLoaderTest, ProcessSingleEntityConfigFile_ValidBehavioralFile_ReturnsEntity) {
+    JsonLoader loader(*mock_logger);
+
+    // Should not log any errors for valid file
+    EXPECT_CALL(*mock_logger, LogError(testing::_, testing::_))
+        .Times(0);
+
+    auto result = loader.ProcessSingleEntityConfigFile(valid_behavioral_entity_file);
+
+    EXPECT_TRUE(result);
+    EXPECT_EQ(result->entity_type, "BEHAVIORAL");
+    EXPECT_TRUE(result->behavioral_entity.has_value());
+    EXPECT_EQ(std::nullopt, result->framework_entity);
+    EXPECT_EQ(result->behavioral_entity->base_properties.entity_id, 0);
+    EXPECT_EQ(result->behavioral_entity->base_properties.entity_name, "test_entity");
+}
+
+TEST_F(JsonLoaderTest, ProcessSingleEntityConfigFile_MissingFrameworkFields_LogsErrorAndReturnsEmpty) {
+    JsonLoader loader(*mock_logger);
+
+    EXPECT_CALL(*mock_logger, LogError(
+        testing::HasSubstr("Failed to parse element"),
+        testing::Eq("JsonLoader")))
+        .Times(testing::AtLeast(1));
+
+    auto result = loader.ProcessSingleEntityConfigFile(missing_fields_framework_entity_file);
+    EXPECT_EQ(std::nullopt, result);
+}
+
+TEST_F(JsonLoaderTest, ProcessSingleEntityConfigFile_MissingBehavioralFields_LogsErrorAndReturnsEmpty) {
+    JsonLoader loader(*mock_logger);
+
+    EXPECT_CALL(*mock_logger, LogError(
+        testing::HasSubstr("Failed to parse element"),
+        testing::Eq("JsonLoader")))
+        .Times(testing::AtLeast(1));
+
+    auto result = loader.ProcessSingleEntityConfigFile(missing_fields_behavioral_entity_file);
+    EXPECT_EQ(std::nullopt, result);
+}
+
+TEST_F(JsonLoaderTest, ProcessSingleEntityConfigFile_NonexistentFile_LogsErrorAndReturnsEmpty) {
+    JsonLoader loader(*mock_logger);
+
+    EXPECT_CALL(*mock_logger, LogError(
+        testing::HasSubstr("Failed to open config file"),
+        testing::Eq("JsonLoader")))
+        .Times(1);
+
+    auto result = loader.ProcessSingleEntityConfigFile(nonexistent_file);
+    EXPECT_EQ(std::nullopt, result);
+}
+
+TEST_F(JsonLoaderTest, ProcessSingleEntityConfigFile_InvalidJson_LogsErrorAndReturnsEmpty) {
+    JsonLoader loader(*mock_logger);
+
+    EXPECT_CALL(*mock_logger, LogError(
+        testing::HasSubstr("JSON parsing error"),
+        testing::Eq("JsonLoader")))
+        .Times(1);
+
+    auto result = loader.ProcessSingleEntityConfigFile(invalid_json_file);
+    EXPECT_EQ(std::nullopt, result);
+}
