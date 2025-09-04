@@ -11,8 +11,6 @@
 
 #include <stdexcept>
 
-#include "TimeManager.h"
-
 namespace AmbientCharacterBehavior {
 EnvironmentalCondition::EnvironmentalCondition(int32_t condition_key, std::string name, int64_t update_frequency_ms) :
     condition_key(condition_key),
@@ -37,7 +35,7 @@ EnvironmentalCondition::EnvironmentalCondition(int32_t condition_key, std::strin
 
 bool EnvironmentalCondition::NeedsToBeUpdated() const
 {
-    return !is_initialized || TimeManager::GetCurrentTime() - last_update_ms >= update_frequency_ms;
+    return !is_initialized; //|| TimeManager::GetCurrentTime() - last_update_ms >= update_frequency_ms;
 }
 
 }

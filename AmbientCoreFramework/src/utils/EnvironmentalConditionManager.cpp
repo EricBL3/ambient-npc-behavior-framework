@@ -1,7 +1,6 @@
 #include "EnvironmentalConditionManager.h"
 
 #include "JsonLoader.h"
-#include "TimeManager.h"
 #include "../include/EnvironmentalConditionInterface.h"
 
 namespace AmbientCharacterBehavior {
@@ -42,7 +41,7 @@ void EnvironmentalConditionManager::UpdateEnvironmentalCondition(int32_t conditi
         auto new_value = QueryEnvironmentalCondition(condition_key);
 
         condition.SetValue(new_value);
-        condition.SetLastUpdateMs(TimeManager::GetCurrentTime());
+        //condition.SetLastUpdateMs(TimeManager::GetCurrentTime());
 
         if (!condition.GetIsInitialized())
         {

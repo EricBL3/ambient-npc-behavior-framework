@@ -56,7 +56,7 @@ add_executable(AmbientCoreTests ${TEST_SOURCES})
 target_link_libraries(AmbientCoreTests
     PRIVATE
     AmbientCoreFramework_Static
-    GTest::gtest_main
+    GTest::gmock_main
 )
 
 target_include_directories(AmbientCoreTests PRIVATE
