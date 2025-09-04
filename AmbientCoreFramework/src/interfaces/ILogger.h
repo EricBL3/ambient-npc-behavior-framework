@@ -1,13 +1,21 @@
+#pragma once
+#include <string>
+
+#include "utils/FrameworkLogLevel.h"
+
+namespace AmbientCharacterBehavior {
+
 /**
- * @file ILogger
- * @brief 
- * @author Eric Buitrón López
- * @date 9/4/2025
- *
- *
-*/
+ * @brief Allows components to log any information.
+ */
+class ILogger {
+public:
+    virtual ~ILogger() = default;
+    virtual void LogError(const std::string& message, const std::string& component_name) = 0;
+    virtual void LogWarning(const std::string& message, const std::string& component_name) = 0;
+    virtual void LogInfo(const std::string& message, const std::string& component_name) = 0;
+    virtual void SetLogLevel(FrameworkLogLevel level) = 0;
+    virtual void SetLoggingEnabled(bool enabled) = 0;
+};
 
-#ifndef AMBIENTCOREFRAMEWORK_ILOGGER_H
-#define AMBIENTCOREFRAMEWORK_ILOGGER_H
-
-#endif //AMBIENTCOREFRAMEWORK_ILOGGER_H
+}

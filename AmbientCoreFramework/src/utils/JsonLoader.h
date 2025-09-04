@@ -8,7 +8,6 @@
 #include <string>
 #include <vector>
 
-#include "FrameworkLogger.h"
 
 
 namespace AmbientCharacterBehavior {
@@ -68,8 +67,8 @@ private:
             }
             catch (const nlohmann::json::exception& e)
             {
-                FrameworkLogger::LogError( "Failed to parse element from JSON: " +
-                    std::string(e.what()),"JsonLoader");
+                // FrameworkLogger::LogError( "Failed to parse element from JSON: " +
+                //     std::string(e.what()),"JsonLoader");
             }
         }
 

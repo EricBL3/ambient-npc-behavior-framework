@@ -1,6 +1,15 @@
 #pragma once
+#include "interfaces/ILogger.h"
+#include <gmock/gmock.h>
 
-#ifndef AMBIENTCOREFRAMEWORK_MOCKLOGGER_H
-#define AMBIENTCOREFRAMEWORK_MOCKLOGGER_H
 
-#endif //AMBIENTCOREFRAMEWORK_MOCKLOGGER_H
+namespace AmbientCharacterBehavior {
+class MockLogger : public ILogger {
+public:
+    MOCK_METHOD(void, LogError, (const std::string& message, const std::string& component_name), (override));
+    MOCK_METHOD(void, LogWarning, (const std::string& message, const std::string& component_name), (override));
+    MOCK_METHOD(void, LogInfo, (const std::string& message, const std::string& component_name), (override));
+    MOCK_METHOD(void, SetLogLevel, (FrameworkLogLevel level), (override));
+    MOCK_METHOD(void, SetLoggingEnabled, (bool enabled), (override));
+};
+}

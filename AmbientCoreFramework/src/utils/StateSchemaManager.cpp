@@ -1,5 +1,4 @@
 #include "StateSchemaManager.h"
-#include "FrameworkLogger.h"
 #include "JsonLoader.h"
 
 using json = nlohmann::json;
@@ -32,26 +31,26 @@ void StateSchemaManager::LoadStateSchema(const std::string &config_file_path)
                     state_name_to_key[name] = key;
                     state_key_to_name[key] = name;
 
-                    FrameworkLogger::LogInfo("Registered state in schema. Name: " + name +
-                        " Key: " + std::to_string(key), "StateSchemaManager");
+                    // FrameworkLogger::LogInfo("Registered state in schema. Name: " + name +
+                    //     " Key: " + std::to_string(key), "StateSchemaManager");
 
                 }
 
             }
             catch (const json::exception& e) {
-                FrameworkLogger::LogError("Failed to parse state schema from JSON: " +
-                    std::string(e.what()),"StateSchemaManager");
+                // FrameworkLogger::LogError("Failed to parse state schema from JSON: " +
+                //     std::string(e.what()),"StateSchemaManager");
             }
         }
 
-        FrameworkLogger::LogInfo("Registered " + std::to_string(state_name_to_key.size()) + " state schemas",
-            "StateSchemaManager");
+        // FrameworkLogger::LogInfo("Registered " + std::to_string(state_name_to_key.size()) + " state schemas",
+        //     "StateSchemaManager");
 
     }
     else
     {
-        FrameworkLogger::LogError("Config file missing 'entity_states' array",
-            "StateSchemaManager");
+        // FrameworkLogger::LogError("Config file missing 'entity_states' array",
+        //     "StateSchemaManager");
     }
 }
 
@@ -74,12 +73,12 @@ std::string StateSchemaManager::GetStateName(int32_t state_key)
 bool StateSchemaManager::IsValidForCreation(const std::string &state_name, int32_t state_key)
 {
     if (state_name_to_key.find(state_name) != state_name_to_key.end()) {
-        FrameworkLogger::LogWarning("Duplicate state name: " + state_name, "StateSchemaManager");
+        // FrameworkLogger::LogWarning("Duplicate state name: " + state_name, "StateSchemaManager");
         return false;
     }
     if (state_key_to_name.find(state_key) != state_key_to_name.end()) {
-        FrameworkLogger::LogWarning("Duplicate state key: " + std::to_string(state_key) + " for state: " + state_name,
-            "StateSchemaManager");
+        // FrameworkLogger::LogWarning("Duplicate state key: " + std::to_string(state_key) + " for state: " + state_name,
+        //     "StateSchemaManager");
 
         return false;
     }
