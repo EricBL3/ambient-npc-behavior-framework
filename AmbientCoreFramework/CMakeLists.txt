@@ -7,9 +7,10 @@ project(AmbientCoreFramework LANGUAGES CXX)
 file(GLOB_RECURSE INTERNAL_SOURCES "src/*.cpp")
 file(GLOB_RECURSE INTERNAL_HEADERS "src/*.h")
 
-# Remove interface directory from internal sources
-file(GLOB_RECURSE INTERFACE_SOURCES "src/interfaces/*.cpp")
+# Remove external interface directory from internal sources
+file(GLOB_RECURSE INTERFACE_SOURCES "src/integration/external_interfaces/*.cpp")
 list(REMOVE_ITEM INTERNAL_SOURCES ${INTERFACE_SOURCES})
+
 
 file(GLOB_RECURSE INTERFACE_HEADERS "include/*.h")
 
