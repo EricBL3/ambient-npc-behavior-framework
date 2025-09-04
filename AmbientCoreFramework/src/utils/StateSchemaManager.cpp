@@ -1,5 +1,5 @@
 #include "StateSchemaManager.h"
-#include "JsonLoader.h"
+#include "../services/configuration/JsonLoader.h"
 
 using json = nlohmann::json;
 
@@ -10,7 +10,8 @@ std::unordered_map<int32_t, std::string> StateSchemaManager::state_key_to_name;
 
 void StateSchemaManager::LoadStateSchema(const std::string &config_file_path)
 {
-    auto config_json = JsonLoader::LoadConfigFileJson(config_file_path);
+    //TODO: Change with json loader
+    std::optional<json> config_json = std::nullopt; //JsonLoader::LoadConfigFileJson(config_file_path);
 
     if (!config_json.has_value())
     {

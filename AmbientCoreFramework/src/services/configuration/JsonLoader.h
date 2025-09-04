@@ -8,28 +8,30 @@
 #include <string>
 #include <vector>
 
+#include "interfaces/IJsonLoader.h"
+#include "interfaces/ILogger.h"
 
 
 namespace AmbientCharacterBehavior {
 /**
  * @brief Handles reading and processing JSON configuration files
  */
-class JsonLoader {
+class JsonLoader : public IJsonLoader {
 
 public:
-    static std::optional<nlohmann::json> LoadConfigFileJson(const std::string& config_file_path);
+    explicit JsonLoader(ILogger& logger) : logger(logger) {}
 
-    static std::vector<EnvironmentalConditionDto> ProcessEnvironmentalConditionsConfigFile(const std::string& config_file_path);
-
-    static std::vector<ActionDto> ProcessActionsConfigFile(const std::string& config_file_path);
-
-    static std::vector<SequenceDto> ProcessSequencesConfigFile(const std::string& config_file_path);
-
-    static std::optional<EntityDtoResult> ProcessSingleEntityConfigFile(const std::string& config_file_path);
+    std::optional<nlohmann::json> LoadConfigFileJson(const std::string& config_file_path);
+    std::vector<EnvironmentalConditionDto> ProcessEnvironmentalConditionsConfigFile(const std::string& config_file_path) override;
+    std::vector<ActionDto> ProcessActionsConfigFile(const std::string& config_file_path) override;
+    std::vector<SequenceDto> ProcessSequencesConfigFile(const std::string& config_file_path) override;
+    std::optional<EntityDtoResult> ProcessSingleEntityConfigFile(const std::string& config_file_path) override;
 
 private:
 
-    static std::optional<nlohmann::json> LoadValidConfigJsonArray(const std::string& config_file_path, const std::string& array_key);
+    ILogger& logger;
+
+    std::optional<nlohmann::json> LoadValidConfigJsonArray(const std::string& config_file_path, const std::string& array_key);
 
     /**
      * @tparam T The type of the items in the vector
@@ -38,7 +40,7 @@ private:
      * @return A vector of items of type T.
      */
     template <typename T>
-    static std::vector<T> ProcessConfigFile(const std::string& config_file_path, const std::string& array_key)
+    std::vector<T> ProcessConfigFile(const std::string& config_file_path, const std::string& array_key)
     {
         auto config_array_json = LoadValidConfigJsonArray(config_file_path, array_key);
         if (!config_array_json.has_value())
@@ -55,7 +57,7 @@ private:
      * @return A vector of items of type T.
      */
     template <typename T>
-    static std::vector<T> ProcessJsonArray(const nlohmann::json& config_array_json)
+    std::vector<T> ProcessJsonArray(const nlohmann::json& config_array_json)
     {
         std::vector<T> result;
 
@@ -67,8 +69,8 @@ private:
             }
             catch (const nlohmann::json::exception& e)
             {
-                // FrameworkLogger::LogError( "Failed to parse element from JSON: " +
-                //     std::string(e.what()),"JsonLoader");
+                logger.LogError( "Failed to parse element from JSON: " +
+                     std::string(e.what()),"JsonLoader");
             }
         }
 

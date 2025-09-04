@@ -19,6 +19,31 @@ NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(MemoryLimitsDto, max_transition_memories, max
 NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(BehavioralEntityDto, base_properties, main_sequence_id, fallback_sequences,
     interruption_handlers, memory_limits);
 
+std::optional<nlohmann::json> JsonLoader::LoadConfigFileJson(const std::string &config_file_path)
+{
+    try
+    {
+        std::ifstream config_file(config_file_path);
+        if (!config_file.is_open())
+        {
+            logger.LogError("Failed to open config file: " + config_file_path,
+                "JsonLoader");
+            return std::nullopt;
+        }
+
+        json config_json;
+        config_file >> config_json;
+        return config_json;
+    }
+    catch (const json::exception& e)
+    {
+        logger.LogError("JSON parsing error in config file: " + std::string(e.what()),
+             "JsonLoader");
+
+        return std::nullopt;
+    }
+}
+
 std::vector<EnvironmentalConditionDto> JsonLoader::ProcessEnvironmentalConditionsConfigFile(const std::string& config_file_path)
 {
     return ProcessConfigFile<EnvironmentalConditionDto>(config_file_path, "environmental_conditions");
@@ -68,8 +93,8 @@ std::vector<SequenceDto> JsonLoader::ProcessSequencesConfigFile(const std::strin
         }
         catch (const nlohmann::json::exception& e)
         {
-            // FrameworkLogger::LogError( "Failed to parse element from JSON: " +
-            //     std::string(e.what()),"JsonLoader");
+            logger.LogError( "Failed to parse element from JSON: " +
+                 std::string(e.what()),"JsonLoader");
         }
     }
 
@@ -106,41 +131,16 @@ std::optional<EntityDtoResult> JsonLoader::ProcessSingleEntityConfigFile(const s
         }
         else
         {
-            // FrameworkLogger::LogError("Unknown entity type: " + std::string(result.entity_type),
-            //     "JsonLoader");
+            logger.LogError("Unknown entity type: " + std::string(result.entity_type),
+                 "JsonLoader");
         }
 
         return result;
     }
     catch (const nlohmann::json::exception& e)
     {
-        // FrameworkLogger::LogError( "Failed to parse element from JSON: " +
-        //     std::string(e.what()),"JsonLoader");
-
-        return std::nullopt;
-    }
-}
-
-std::optional<nlohmann::json> JsonLoader::LoadConfigFileJson(const std::string &config_file_path)
-{
-    try
-    {
-        std::ifstream config_file(config_file_path);
-        if (!config_file.is_open())
-        {
-            // FrameworkLogger::LogError("Failed to open config file: " + config_file_path,
-            //     "JsonLoader");
-            return std::nullopt;
-        }
-
-        json config_json;
-        config_file >> config_json;
-        return config_json;
-    }
-    catch (const json::exception& e)
-    {
-        // FrameworkLogger::LogError("JSON parsing error in config file: " + std::string(e.what()),
-        //     "JsonLoader");
+        logger.LogError( "Failed to parse element from JSON: " +
+             std::string(e.what()),"JsonLoader");
 
         return std::nullopt;
     }
@@ -158,7 +158,7 @@ std::optional<nlohmann::json> JsonLoader::LoadValidConfigJsonArray(const std::st
 
         if (!config_json.value().contains(array_key) || !config_json.value()[array_key].is_array())
         {
-            // FrameworkLogger::LogError("Config file missing '" + array_key + "' array","JsonLoader");
+            logger.LogError("Config file missing '" + array_key + "' array","JsonLoader");
             return std::nullopt;
         }
 
@@ -166,8 +166,8 @@ std::optional<nlohmann::json> JsonLoader::LoadValidConfigJsonArray(const std::st
     }
     catch (const std::exception& e)
     {
-        // FrameworkLogger::LogError("Unexpected error loading " + array_key + ": " + std::string(e.what()),
-        //     "JsonLoader");
+        logger.LogError("Unexpected error loading " + array_key + ": " + std::string(e.what()),
+             "JsonLoader");
 
         return std::nullopt;
     }

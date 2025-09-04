@@ -1,6 +1,5 @@
 #include "EnvironmentalConditionManager.h"
 
-#include "JsonLoader.h"
 #include "../include/EnvironmentalConditionInterface.h"
 
 namespace AmbientCharacterBehavior {
@@ -11,7 +10,8 @@ void EnvironmentalConditionManager::RegisterEnvironmentalConditions(const std::s
 {
     try
     {
-        auto condition_dtos = JsonLoader::ProcessEnvironmentalConditionsConfigFile(config_file_path);
+        //TODO: Change with json loader
+        std::vector<EnvironmentalConditionDto> condition_dtos = {}; //JsonLoader::ProcessEnvironmentalConditionsConfigFile(config_file_path);
         if (condition_dtos.empty())
         {
             // FrameworkLogger::LogWarning("No valid environmental conditions found in config",
