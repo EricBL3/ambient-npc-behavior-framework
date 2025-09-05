@@ -1,7 +1,6 @@
 #include "./EnvironmentalConditionManager.h"
 
-namespace AmbientCharacterBehavior {
-
+using namespace AmbientCharacterBehavior;
 
 void EnvironmentalConditionManager::RegisterEnvironmentalConditions(const std::string& config_file_path)
 {
@@ -101,5 +100,4 @@ void EnvironmentalConditionManager::CreateSingleEnvironmentalCondition(const Env
         logger.LogError("Failed to create environmental condition '" + dto.name + "': " + e.what(),
              "EnvironmentalConditionManager");
     }
-}
 }

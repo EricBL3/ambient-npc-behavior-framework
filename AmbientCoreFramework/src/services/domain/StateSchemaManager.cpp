@@ -1,17 +1,12 @@
+#include <nlohmann/json.hpp>
 #include "StateSchemaManager.h"
-#include "../services/configuration/JsonLoader.h"
 
 using json = nlohmann::json;
-
-namespace AmbientCharacterBehavior {
-
-std::unordered_map<std::string, int32_t> StateSchemaManager::state_name_to_key;
-std::unordered_map<int32_t, std::string> StateSchemaManager::state_key_to_name;
+using namespace AmbientCharacterBehavior;
 
 void StateSchemaManager::LoadStateSchema(const std::string &config_file_path)
 {
-    //TODO: Change with json loader
-    std::optional<json> config_json = std::nullopt; //JsonLoader::LoadConfigFileJson(config_file_path);
+    auto config_json = json_loader.LoadConfigFileJson(config_file_path);
 
     if (!config_json.has_value())
     {
@@ -32,26 +27,26 @@ void StateSchemaManager::LoadStateSchema(const std::string &config_file_path)
                     state_name_to_key[name] = key;
                     state_key_to_name[key] = name;
 
-                    // FrameworkLogger::LogInfo("Registered state in schema. Name: " + name +
-                    //     " Key: " + std::to_string(key), "StateSchemaManager");
+                    logger.LogInfo("Registered state in schema. Name: " + name +
+                         " Key: " + std::to_string(key), "StateSchemaManager");
 
                 }
 
             }
             catch (const json::exception& e) {
-                // FrameworkLogger::LogError("Failed to parse state schema from JSON: " +
-                //     std::string(e.what()),"StateSchemaManager");
+                logger.LogError("Failed to parse state schema from JSON: " +
+                     std::string(e.what()),"StateSchemaManager");
             }
         }
 
-        // FrameworkLogger::LogInfo("Registered " + std::to_string(state_name_to_key.size()) + " state schemas",
-        //     "StateSchemaManager");
+        logger.LogInfo("Registered " + std::to_string(state_name_to_key.size()) + " state schemas",
+             "StateSchemaManager");
 
     }
     else
     {
-        // FrameworkLogger::LogError("Config file missing 'entity_states' array",
-        //     "StateSchemaManager");
+        logger.LogError("Config file missing 'entity_states' array",
+            "StateSchemaManager");
     }
 }
 
@@ -73,17 +68,29 @@ std::string StateSchemaManager::GetStateName(int32_t state_key)
 
 bool StateSchemaManager::IsValidForCreation(const std::string &state_name, int32_t state_key)
 {
-    if (state_name_to_key.find(state_name) != state_name_to_key.end()) {
-        // FrameworkLogger::LogWarning("Duplicate state name: " + state_name, "StateSchemaManager");
+    if (state_name.empty()) {
+        logger.LogWarning("State name cannot be empty for key: " + std::to_string(state_key),
+                         "StateSchemaManager");
         return false;
     }
+
+    if (state_key < 0) {
+        logger.LogWarning("State key cannot be negative, got: " + std::to_string(state_key) +
+                         " for state: " + state_name, "StateSchemaManager");
+        return false;
+    }
+
+    if (state_name_to_key.find(state_name) != state_name_to_key.end()) {
+        logger.LogWarning("Duplicate state name: " + state_name, "StateSchemaManager");
+        return false;
+    }
+
     if (state_key_to_name.find(state_key) != state_key_to_name.end()) {
-        // FrameworkLogger::LogWarning("Duplicate state key: " + std::to_string(state_key) + " for state: " + state_name,
-        //     "StateSchemaManager");
+        logger.LogWarning("Duplicate state key: " + std::to_string(state_key) + " for state: " + state_name,
+             "StateSchemaManager");
 
         return false;
     }
 
     return true;
-}
 }

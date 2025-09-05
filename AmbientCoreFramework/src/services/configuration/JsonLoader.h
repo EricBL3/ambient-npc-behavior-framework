@@ -21,7 +21,7 @@ class JsonLoader : public IJsonLoader {
 public:
     explicit JsonLoader(ILogger& logger) : logger(logger) {}
 
-    std::optional<nlohmann::json> LoadConfigFileJson(const std::string& config_file_path);
+    std::optional<nlohmann::json> LoadConfigFileJson(const std::string& config_file_path) override;
     std::vector<EnvironmentalConditionDto> ProcessEnvironmentalConditionsConfigFile(const std::string& config_file_path) override;
     std::vector<ActionDto> ProcessActionsConfigFile(const std::string& config_file_path) override;
     std::vector<SequenceDto> ProcessSequencesConfigFile(const std::string& config_file_path) override;
