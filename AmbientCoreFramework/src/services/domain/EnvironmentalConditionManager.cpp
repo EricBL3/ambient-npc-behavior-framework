@@ -1,33 +1,29 @@
-#include "EnvironmentalConditionManager.h"
-
-#include "../include/EnvironmentalConditionInterface.h"
+#include "./EnvironmentalConditionManager.h"
 
 namespace AmbientCharacterBehavior {
 
-std::unordered_map<int32_t, EnvironmentalCondition> EnvironmentalConditionManager::environmental_conditions_cache;
 
 void EnvironmentalConditionManager::RegisterEnvironmentalConditions(const std::string& config_file_path)
 {
     try
     {
-        //TODO: Change with json loader
-        std::vector<EnvironmentalConditionDto> condition_dtos = {}; //JsonLoader::ProcessEnvironmentalConditionsConfigFile(config_file_path);
+        auto condition_dtos = json_loader.ProcessEnvironmentalConditionsConfigFile(config_file_path);
         if (condition_dtos.empty())
         {
-            // FrameworkLogger::LogWarning("No valid environmental conditions found in config",
-            //     "EnvironmentalConditionManager");
+            logger.LogWarning("No valid environmental conditions found in config",
+                 "EnvironmentalConditionManager");
             return;
         }
 
         CreateEnvironmentalConditions(condition_dtos);
 
-        // FrameworkLogger::LogInfo("Successfully registered " + std::to_string(environmental_conditions_cache.size()) +
-        //     " environmental conditions", "EnvironmentalConditionManager");
+        logger.LogInfo("Successfully registered " + std::to_string(environmental_conditions_cache.size()) +
+             " environmental conditions", "EnvironmentalConditionManager");
     }
     catch (const std::exception& e)
     {
-        // FrameworkLogger::LogError("Unexpected error loading environmental conditions: " + std::string(e.what()),
-        //     "EnvironmentalConditionManager");
+        logger.LogError("Unexpected error loading environmental conditions: " + std::string(e.what()),
+             "EnvironmentalConditionManager");
     }
 }
 
@@ -38,10 +34,10 @@ void EnvironmentalConditionManager::UpdateEnvironmentalCondition(int32_t conditi
 
     try
     {
-        auto new_value = QueryEnvironmentalCondition(condition_key);
+        auto new_value = provider.QueryEnvironmentalCondition(condition_key);
 
         condition.SetValue(new_value);
-        //condition.SetLastUpdateMs(TimeManager::GetCurrentTime());
+        condition.SetLastUpdateMs(time_manager.GetCurrentTime());
 
         if (!condition.GetIsInitialized())
         {
@@ -50,7 +46,7 @@ void EnvironmentalConditionManager::UpdateEnvironmentalCondition(int32_t conditi
     }
     catch (const std::exception& e)
     {
-       // FrameworkLogger::LogError(e.what(),"EnvironmentalConditionManager" );
+       logger.LogError(e.what(),"EnvironmentalConditionManager" );
     }
 }
 
@@ -82,8 +78,8 @@ bool EnvironmentalConditionManager::IsValidForCreation(const EnvironmentalCondit
 {
     // Check for duplicate keys
     if (environmental_conditions_cache.find(dto.condition_key) != environmental_conditions_cache.end()) {
-        // FrameworkLogger::LogError("Duplicate condition_key: " + std::to_string(dto.condition_key) +
-        //     " for condition: " + dto.name, "EnvironmentalConditionManager");
+        logger.LogError("Duplicate condition_key: " + std::to_string(dto.condition_key) +
+             " for condition: " + dto.name, "EnvironmentalConditionManager");
         return false;
     }
 
@@ -97,13 +93,13 @@ void EnvironmentalConditionManager::CreateSingleEnvironmentalCondition(const Env
         environmental_conditions_cache.emplace(dto.condition_key,
             EnvironmentalCondition(dto.condition_key, dto.name, dto.update_frequency_ms));
 
-        // FrameworkLogger::LogInfo("Registered environmental condition: " + dto.name +
-        //     " (key: " + std::to_string(dto.condition_key) + ")", "EnvironmentalConditionManager");
+        logger.LogInfo("Registered environmental condition: " + dto.name +
+             " (key: " + std::to_string(dto.condition_key) + ")", "EnvironmentalConditionManager");
     }
     catch (const std::exception& e)
     {
-        // FrameworkLogger::LogError("Failed to create environmental condition '" + dto.name + "': " + e.what(),
-        //     "EnvironmentalConditionManager");
+        logger.LogError("Failed to create environmental condition '" + dto.name + "': " + e.what(),
+             "EnvironmentalConditionManager");
     }
 }
 }

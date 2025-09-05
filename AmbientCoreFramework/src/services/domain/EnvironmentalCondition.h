@@ -1,11 +1,3 @@
-/**
- * @file EnvironmentalCondition.h
- * @brief 
- * @author Eric Buitrón López
- * @date 9/1/2025
- *
- *
-*/
 #pragma once
 #include <cstdint>
 #include <string>
@@ -29,9 +21,6 @@ class EnvironmentalCondition {
 
 public:
     /**
-     * @param condition_key The key for the environmental condition
-     * @param name The name of the environmental condition
-     * @param update_frequency_ms The update frequency of the environmental condition
      * @throw std::invalid_argument if condition_key or update_frequency_ms < 0
      */
     EnvironmentalCondition(int32_t condition_key, std::string name, int64_t update_frequency_ms);
@@ -61,4 +50,4 @@ public:
     bool NeedsToBeUpdated() const;
 
 };
-} // AmbientCharacterBehavior
+}

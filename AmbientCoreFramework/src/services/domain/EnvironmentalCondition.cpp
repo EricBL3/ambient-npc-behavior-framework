@@ -1,14 +1,5 @@
-/**
- * @file EnvironmentalCondition.cpp
- * @brief 
- * @author Eric Buitrón López
- * @date 9/1/2025
- *
- *
-*/
 
 #include "EnvironmentalCondition.h"
-
 #include <stdexcept>
 
 namespace AmbientCharacterBehavior {
@@ -35,6 +26,7 @@ EnvironmentalCondition::EnvironmentalCondition(int32_t condition_key, std::strin
 
 bool EnvironmentalCondition::NeedsToBeUpdated() const
 {
+    //TODO: Use timer when services is available
     return !is_initialized; //|| TimeManager::GetCurrentTime() - last_update_ms >= update_frequency_ms;
 }
 
