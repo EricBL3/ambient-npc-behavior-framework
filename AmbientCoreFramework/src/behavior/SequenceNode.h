@@ -1,11 +1,3 @@
-/**
- * @file SequenceNode.h
- * @author Eric Buitrón López
- * @date 8/18/2025
- *
- *
-*/
-
 #pragma once
 #include <stdexcept>
 #include <string>
@@ -21,23 +13,17 @@ namespace AmbientCharacterBehavior {
 class SequenceNode {
 protected:
     /**
-     * @brief The identifier of the sequence node.
      * @invariant node_id >= 0
      */
     int32_t node_id;
 
-    /**
-     * @brief Determines if the sequence node has completed execution.
-     */
-    bool has_completed;
+    bool has_completed_execution;
 
 public:
     /**
-     * @brief Constructs a new sequence node with the specified identifier
-     * @param node_id The identifier of the sequence node that will be created
      * @throws std::invalid_argument if node_id < 0
      */
-    explicit SequenceNode(int32_t node_id) : node_id(node_id), has_completed(false)
+    explicit SequenceNode(int32_t node_id) : node_id(node_id), has_completed_execution(false)
     {
         if(node_id < 0)
         {
@@ -51,12 +37,12 @@ public:
 
     void ResetCompletion()
     {
-        has_completed = false;
+        has_completed_execution = false;
     }
 
     void MarkAsCompleted()
     {
-        has_completed = true;
+        has_completed_execution = true;
     }
 
     int32_t GetNodeId() const
@@ -64,9 +50,9 @@ public:
         return node_id;
     }
 
-    bool IsCompleted() const
+    bool HasCompletedExecution() const
     {
-        return has_completed;
+        return has_completed_execution;
     }
 };
 

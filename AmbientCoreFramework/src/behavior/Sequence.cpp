@@ -1,28 +1,20 @@
-/**
- * @file Sequence.cpp
- * @brief 
- * @author Eric Buitrón López
- * @date 8/18/2025
- *
- *
-*/
-
 #include "Sequence.h"
+
+#include <utility>
 #include "ActionSequenceNode.h"
 #include "EndSequenceNode.h"
 #include "NestedSequenceNode.h"
 
 using namespace AmbientCharacterBehavior;
 
-Sequence::Sequence(int32_t sequence_id) :
+Sequence::Sequence(int32_t sequence_id, std::string sequence_name) :
     sequence_id(sequence_id),
+    sequence_name(std::move(sequence_name)),
     entry_point_index(-1),
     has_entry_point(false),
     current_node_index(-1),
     has_current_node(false),
-    sequence_state(SequenceState::NORMAL),
-    next_node_id(0),
-    next_transition_id(0)
+    sequence_state(SequenceState::NORMAL)
 {
     if (sequence_id < 0)
     {
@@ -30,62 +22,48 @@ Sequence::Sequence(int32_t sequence_id) :
     }
 }
 
-
-const std::vector<Transition> & Sequence::GetTransitionsFromNode(int32_t node_id) const
+const std::vector<Transition> & Sequence::FindTransitionsFrom(int32_t node_id) const
 {
-    if (IsValidNodeId(node_id))
+    if (IsNodeIdInRange(node_id))
     {
         return transitions[node_id];
     }
 
-    static const std::vector<Transition> empty_transitions;
-    return empty_transitions;
+    return {};
 }
 
-int32_t Sequence::AddActionSequenceNode(int32_t action_id)
+void Sequence::AddActionSequenceNode(int32_t node_id, int32_t action_id)
 {
-
-    int32_t node_id = next_node_id++;
     nodes.push_back(std::make_unique<ActionSequenceNode>(node_id, action_id));
     transitions.resize(nodes.size());
-
-    return node_id;
 }
 
-int32_t Sequence::AddNestedSequenceNode(int32_t nested_sequence_id)
+void Sequence::AddNestedSequenceNode(int32_t node_id,int32_t nested_sequence_id)
 {
-
-    int32_t node_id = next_node_id++;
     nodes.push_back(std::make_unique<NestedSequenceNode>(node_id, nested_sequence_id));
     transitions.resize(nodes.size());
-
-    return node_id;
 }
 
-int32_t Sequence::AddEndSequenceNode()
+void Sequence::AddEndSequenceNode(int32_t node_id)
 {
-    int32_t node_id = next_node_id++;
     nodes.push_back(std::make_unique<EndSequenceNode>(node_id));
     transitions.resize(nodes.size());
-
-    return node_id;
 }
 
-int32_t Sequence::AddTransition(int32_t from_node_id, int32_t to_node_id)
+bool Sequence::TryAddTransition(int32_t transition_id, int32_t from_node_id, int32_t to_node_id, std::vector<StateOperation> preconditions)
 {
-    if (IsValidNodeId(from_node_id) && IsValidNodeId(to_node_id))
+    if (IsNodeIdInRange(from_node_id) && IsNodeIdInRange(to_node_id))
     {
-        int32_t transition_id = next_transition_id++;
-        transitions[from_node_id].emplace_back(transition_id, to_node_id);
-        return transition_id;
+        transitions[from_node_id].emplace_back(transition_id, to_node_id, std::move(preconditions));
+        return true;
     }
 
-    return -1;
+    return false;
 }
 
-bool Sequence::SetEntryPoint(int32_t node_id)
+bool Sequence::TrySetEntryPoint(int32_t node_id)
 {
-    if (IsValidNodeId(node_id))
+    if (IsNodeIdInRange(node_id))
     {
         entry_point_index = node_id;
         has_entry_point = true;
@@ -95,9 +73,9 @@ bool Sequence::SetEntryPoint(int32_t node_id)
     return false;
 }
 
-bool Sequence::SetCurrentNode(int32_t node_id)
+bool Sequence::TrySetCurrentNode(int32_t node_id)
 {
-    if (IsValidNodeId(node_id))
+    if (IsNodeIdInRange(node_id))
     {
         current_node_index = node_id;
         has_current_node = true;
@@ -107,7 +85,7 @@ bool Sequence::SetCurrentNode(int32_t node_id)
     return false;
 }
 
-void Sequence::ResetToEntry()
+void Sequence::ResetCurrentNodeToEntry()
 {
     if (has_entry_point)
     {
