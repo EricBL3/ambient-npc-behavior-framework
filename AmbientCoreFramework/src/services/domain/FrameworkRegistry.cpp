@@ -31,14 +31,6 @@ void FrameworkRegistry::RegisterSequences(const std::string &config_file_path)
                 continue;
             }
 
-            // Set entry point of sequence
-            if (!new_sequence_iterator->second->TrySetEntryPoint(sequence_dto.entry_point_node_id))
-            {
-                logger.LogWarning("The entry point node id for sequence '" + sequence_dto.sequence_name +
-                    "' was not set. Value: " + std::to_string(sequence_dto.entry_point_node_id),
-                    "FrameworkRegistry");
-            }
-
             // Add nodes
             for (const auto &dto_node : sequence_dto.nodes)
             {
@@ -120,6 +112,14 @@ void FrameworkRegistry::RegisterSequences(const std::string &config_file_path)
                 }
             }
 
+            // Set entry point of sequence
+            if (!new_sequence_iterator->second->TrySetEntryPoint(sequence_dto.entry_point_node_id))
+            {
+                logger.LogWarning("The entry point node id for sequence '" + sequence_dto.sequence_name +
+                    "' was not set. Value: " + std::to_string(sequence_dto.entry_point_node_id),
+                    "FrameworkRegistry");
+            }
+
             logger.LogInfo("Sequence '" + sequence_dto.sequence_name + " ' has been configured.",
                     "FrameworkRegistry");
         }
@@ -141,4 +141,21 @@ void FrameworkRegistry::RegisterEntity(void *entity_handle, const std::string &c
 
 void FrameworkRegistry::UnregisterEntity(void *entity_handle)
 {
+}
+
+bool FrameworkRegistry::HasSequence(int32_t sequence_id) const
+{
+    return sequences.find(sequence_id) != sequences.end();
+}
+
+std::shared_ptr<Sequence> FrameworkRegistry::GetSequenceById(int32_t sequence_id) const
+{
+    if (!HasSequence(sequence_id))
+    {
+        logger.LogWarning("Sequence with id: " + std::to_string(sequence_id) + "is not in the registry",
+            "FrameworkRegistry");
+        return nullptr;
+    }
+
+    return sequences.at(sequence_id);
 }

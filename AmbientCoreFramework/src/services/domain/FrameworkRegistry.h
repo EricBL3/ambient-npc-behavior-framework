@@ -32,11 +32,17 @@ private:
 
 public:
     explicit FrameworkRegistry(ILogger& logger, IJsonLoader& json_loader, IStateSchemaManager& state_schema) :
-    logger(logger), json_loader(json_loader), state_schema(state_schema) {}
+        logger(logger), json_loader(json_loader), state_schema(state_schema) {}
 
     void RegisterSequences(const std::string& config_file_path) override;
     void RegisterActions(const std::string& config_file_path) override;
     void RegisterEntity(void* entity_handle, const std::string& config_file_path) override;
     void UnregisterEntity(void* entity_handle) override;
+
+    bool HasSequence(int32_t sequence_id) const override;
+    std::shared_ptr<Sequence> GetSequenceById(int32_t sequence_id) const override;
+
+    size_t GetSequencesCount() const
+    { return sequences.size(); }
 };
 }

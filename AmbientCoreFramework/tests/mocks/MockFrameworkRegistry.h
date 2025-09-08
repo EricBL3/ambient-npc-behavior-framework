@@ -9,5 +9,9 @@ public:
     MOCK_METHOD(void, RegisterActions, (const std::string& config_file_path), (override));
     MOCK_METHOD(void, RegisterEntity, (void* entity_handle,const std::string& config_file_path), (override));
     MOCK_METHOD(void, UnregisterEntity, (void* entity_handle), (override));
+
+    MOCK_METHOD(bool, HasSequence, (int32_t sequence_id), (const, override));
+    MOCK_METHOD(std::shared_ptr<Sequence>, GetSequenceById, (int32_t sequence_id), (const, override));
+
 };
 }
