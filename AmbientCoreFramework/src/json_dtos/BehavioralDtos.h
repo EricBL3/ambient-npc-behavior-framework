@@ -19,7 +19,7 @@ struct StateOperationDto {
     std::string target_id_name;
     std::string state_key_name;
     std::string operation_name;
-    std::vector<int32_t> values;
+    std::vector<int32_t> parameters;
 };
 
 struct TransitionDto {

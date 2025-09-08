@@ -8,7 +8,7 @@ namespace AmbientCharacterBehavior {
 
 NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(EnvironmentalConditionDto, condition_key, name, update_frequency_ms);
 
-NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(StateOperationDto, target_id_name, state_key_name, operation_name, values);
+NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(StateOperationDto, target_id_name, state_key_name, operation_name, parameters);
 NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(TransitionDto, transition_id, from_node_id, to_node_id, preconditions);
 NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(SequenceDto, sequence_id, sequence_name, entry_point_node_id, transitions);
 NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(ActionDto, action_id, action_name, preconditions, immediate_effects,
