@@ -1,12 +1,3 @@
-/**
- * @file TransitionTest.cpp
- * @brief Unit tests for the Transition clas
- * @author Eric Buitrón López
- * @date 8/19/2025
- *
- *
-*/
-
 #include <gtest/gtest.h>
 #include "behavior/Transition.h"
 
@@ -22,7 +13,7 @@ TEST(TransitionTest, SimpleConstructorInitializesCorrectly)
     EXPECT_EQ(0, transition.GetTransitionId());
     EXPECT_EQ(5, transition.GetPreconditions().capacity());
     EXPECT_EQ(0, transition.GetPreconditions().size());
-    EXPECT_EQ(1, transition.GetToNodeIndex());
+    EXPECT_EQ(1, transition.GetDestinationNodeIndex());
 }
 
 TEST(TransitionTest, ConstructorWithToNodeInitializesCorrectly)
@@ -31,7 +22,7 @@ TEST(TransitionTest, ConstructorWithToNodeInitializesCorrectly)
 
     EXPECT_EQ(0, transition.GetTransitionId());
     EXPECT_EQ(5, transition.GetPreconditions().capacity());
-    EXPECT_EQ(0, transition.GetToNodeIndex());
+    EXPECT_EQ(0, transition.GetDestinationNodeIndex());
 }
 
 TEST(TransitionTest, ConstructorRejectsNegativeTransitionId)

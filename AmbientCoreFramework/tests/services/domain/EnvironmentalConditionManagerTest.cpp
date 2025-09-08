@@ -155,7 +155,7 @@ TEST_F(EnvironmentalConditionManagerTest, GetEnvironmentalConditionValue_Conditi
     manager->RegisterEnvironmentalConditions("config.json");
 
     // Mock that condition needs update (you'll need to ensure EnvironmentalCondition.NeedsToBeUpdated() returns true)
-    // This might require setting up time manager to return appropriate values
+    // This might require setting up time manager to return appropriate parameters
 
     EXPECT_CALL(*mock_provider, QueryEnvironmentalCondition(1))
         .WillOnce(testing::Return(75));

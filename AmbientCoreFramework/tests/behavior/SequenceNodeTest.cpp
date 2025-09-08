@@ -1,11 +1,3 @@
-/**
- * @file SequenceNodeTest.cpp
- * @brief Unit tests for all implementations of SequenceNode
- * @author Eric Buitrón López
- * @date 8/18/2025
- *
- *
-*/
 
 #include <gtest/gtest.h>
 
@@ -24,7 +16,7 @@ TEST(SequenceNodeTest, ActionSequenceNodeConstructorInitializesCorrectly)
     ActionSequenceNode action_node(0, 0);
 
     EXPECT_EQ(0, action_node.GetNodeId());
-    EXPECT_FALSE(action_node.IsCompleted());
+    EXPECT_FALSE(action_node.HasCompletedExecution());
     EXPECT_EQ(0, action_node.GetTargetActionId());
     EXPECT_EQ(SequenceNodeType::ACTION_NODE, action_node.GetNodeType());
 }
@@ -34,7 +26,7 @@ TEST(SequenceNodeTest, NestedSequenceNodeConstructorInitializesCorrectly)
     NestedSequenceNode sequence_node(1, 0);
 
     EXPECT_EQ(1, sequence_node.GetNodeId());
-    EXPECT_FALSE(sequence_node.IsCompleted());
+    EXPECT_FALSE(sequence_node.HasCompletedExecution());
     EXPECT_EQ(0, sequence_node.GetTargetSequenceId());
     EXPECT_EQ(SequenceNodeType::NESTED_SEQUENCE_NODE, sequence_node.GetNodeType());
 }
@@ -44,7 +36,7 @@ TEST(SequenceNodeTest, EndSequenceNodeConstructorInitializesCorrectly)
     EndSequenceNode end_node(2);
 
     EXPECT_EQ(2, end_node.GetNodeId());
-    EXPECT_FALSE(end_node.IsCompleted());
+    EXPECT_FALSE(end_node.HasCompletedExecution());
     EXPECT_EQ(SequenceNodeType::END_SEQUENCE_NODE, end_node.GetNodeType());
 }
 
@@ -66,9 +58,9 @@ TEST(SequenceNodeTest, CanModifyHasCompleted)
 
     end_node.MarkAsCompleted();
 
-    EXPECT_TRUE(end_node.IsCompleted());
+    EXPECT_TRUE(end_node.HasCompletedExecution());
 
     end_node.ResetCompletion();
 
-    EXPECT_FALSE(end_node.IsCompleted());
+    EXPECT_FALSE(end_node.HasCompletedExecution());
 }

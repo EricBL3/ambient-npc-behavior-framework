@@ -29,7 +29,8 @@ const std::vector<Transition> & Sequence::FindTransitionsFrom(int32_t node_id) c
         return transitions[node_id];
     }
 
-    return {};
+    static const std::vector<Transition> empty_transitions;
+    return empty_transitions;
 }
 
 void Sequence::AddActionSequenceNode(int32_t node_id, int32_t action_id)
