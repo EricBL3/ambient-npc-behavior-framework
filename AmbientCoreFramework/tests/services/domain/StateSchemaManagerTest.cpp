@@ -69,7 +69,6 @@ protected:
 
 
 // LOAD STATE SCHEMA TESTS
-
 TEST_F(StateSchemaManagerTest, LoadStateSchema_ValidSchema_LoadsAllStates) {
     auto valid_json = CreateValidStateSchemaJson();
 
