@@ -44,5 +44,13 @@ public:
 
     size_t GetSequencesCount() const
     { return sequences.size(); }
+
+private:
+    void GenerateSequenceFromDto(const SequenceDto &sequence_dto);
+    void ConfigureSequenceWithDto(const std::shared_ptr<Sequence> &new_sequence, const SequenceDto &sequence_dto) const;
+    void GenerateSequenceNodeFromDto(const std::shared_ptr<Sequence> &new_sequence, const SequenceNodeDto & dto_node) const;
+    void GenerateTransitionFromDto(const std::shared_ptr<Sequence> &new_sequence, const TransitionDto &dto_transition) const;
+    std::vector<StateOperation> GenerateStateOperationVectorFromDto(const std::vector<StateOperationDto> &dto_state_operations) const;
+    StateOperation GenerateStateOperationFromDto(const StateOperationDto &dto_state_operation) const;
 };
 }
