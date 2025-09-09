@@ -66,6 +66,32 @@ protected:
 
         return sequence_dto;
     }
+
+    ActionDto CreateBasicActionDto(int32_t action_id)
+    {
+        ActionDto action_dto;
+        action_dto.action_id = action_id;
+        action_dto.action_name = "test_action";
+        action_dto.max_duration_ms = 1000;
+        action_dto.interruption_behavior_name = "RESUMABLE";
+
+        return action_dto;
+    }
+
+    ActionDto CreateActionDtoWithEntityPrecondition(int32_t action_id)
+    {
+        auto action_dto = CreateBasicActionDto(action_id);
+
+        StateOperationDto precondition;
+        precondition.target_id_name = "ENTITY";
+        precondition.state_key_name = "AVAILABLE_SEATS";
+        precondition.operation_name = "GREATER_THAN";
+        precondition.parameters = {0};
+
+        action_dto.preconditions.push_back(precondition);
+
+        return action_dto;
+    }
 };
 
 // Constructor test
@@ -159,4 +185,89 @@ TEST_F(FrameworkRegistryTest, RegisterSequences_StateReference_CallsStateSchema)
     EXPECT_EQ(42, preconditions[0].GetStateKey());  // From StateSchema
     EXPECT_EQ(0, preconditions[0].GetOperation());
     EXPECT_EQ(100, preconditions[0].GetParameters().front());
+}
+
+// REGISTER ACTIONS TESTS
+TEST_F(FrameworkRegistryTest, RegisterActions_AddsActionToRegistry)
+{
+    auto action_id = 0;
+    auto action_dto = CreateBasicActionDto(action_id);
+    EXPECT_CALL(*mock_json_loader, ProcessActionsConfigFile("test.json"))
+        .WillOnce(testing::Return(std::vector{action_dto}));
+
+    EXPECT_CALL(*mock_logger, LogWarning(testing::_, testing::_))
+        .Times(0);
+
+    EXPECT_CALL(*mock_logger, LogError(testing::_, testing::_))
+        .Times(0);
+
+    registry->RegisterActions("test.json");
+
+    auto action = registry->GetActionById(action_id);
+
+    EXPECT_EQ(1, registry->GetActionsCount());
+    EXPECT_EQ(action_id, action->GetActionId());
+    EXPECT_EQ("test_action", action->GetActionName());
+    EXPECT_EQ(1000, action->GetMaxDuration());
+    EXPECT_EQ(InterruptionBehaviorType::RESUMABLE, action->GetInterruptionBehavior());
+}
+
+TEST_F(FrameworkRegistryTest, RegisterActions_EmptyConfigFile_LogsWarningAndReturns) {
+    EXPECT_CALL(*mock_json_loader, ProcessActionsConfigFile("empty.json"))
+        .WillOnce(testing::Return(std::vector<ActionDto>{}));
+
+    EXPECT_CALL(*mock_logger, LogWarning(
+        testing::HasSubstr("did not contain any valid actions"),
+        "FrameworkRegistry"))
+        .Times(1);
+
+    registry->RegisterActions("empty.json");
+
+    EXPECT_EQ(0, registry->GetActionsCount());
+}
+
+TEST_F(FrameworkRegistryTest, RegisterActions_DuplicateActionId_LogsWarningAndSkipsSecond) {
+    auto dto1 = CreateBasicActionDto(1);
+    auto dto2 = CreateBasicActionDto(1); // Same ID
+    dto2.action_name = "duplicate_action";
+
+    EXPECT_CALL(*mock_json_loader, ProcessActionsConfigFile("test.json"))
+        .WillOnce(testing::Return(std::vector{dto1, dto2}));
+
+    EXPECT_CALL(*mock_logger, LogWarning(
+        testing::HasSubstr("was not added to the registry"),
+        "FrameworkRegistry"))
+        .Times(1);
+
+    registry->RegisterActions("test.json");
+
+    EXPECT_EQ(1, registry->GetActionsCount());
+    // Should keep the first one
+    EXPECT_EQ("test_sequence", registry->GetActionById(1)->GetActionName());
+}
+
+TEST_F(FrameworkRegistryTest, RegisterActions_StateReference_CallsStateSchema) {
+    auto sequence_dto = CreateActionDtoWithEntityPrecondition(1);
+
+    EXPECT_CALL(*mock_json_loader, ProcessActionsConfigFile("test.json"))
+        .WillOnce(testing::Return(std::vector{sequence_dto}));
+
+    EXPECT_CALL(*mock_state_schema, GetStateKey("AVAILABLE_SEATS"))
+         .WillOnce(testing::Return(3));
+
+    EXPECT_CALL(*mock_logger, LogWarning(testing::_, testing::_))
+        .Times(0);
+
+    EXPECT_CALL(*mock_logger, LogError(testing::_, testing::_))
+        .Times(0);
+
+    registry->RegisterActions("test.json");
+
+    auto action = registry->GetActionById(1);
+    auto preconditions = action->GetPreconditions();
+    EXPECT_EQ(1, preconditions.size());
+    EXPECT_EQ(0, preconditions[0].GetTargetId()); // ENTITY -> 0
+    EXPECT_EQ(3, preconditions[0].GetStateKey());  // From StateSchema
+    EXPECT_EQ(1, preconditions[0].GetOperation()); // GREATER_THAN
+    EXPECT_EQ(0, preconditions[0].GetParameters().front());
 }
