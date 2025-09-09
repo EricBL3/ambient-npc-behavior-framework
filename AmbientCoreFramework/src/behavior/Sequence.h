@@ -1,5 +1,7 @@
 #pragma once
 #include <memory>
+#include <optional>
+#include <unordered_map>
 #include <vector>
 
 #include "SequenceNode.h"
@@ -18,22 +20,18 @@ private:
     int32_t sequence_id;
     std::string sequence_name;
 
-    int32_t entry_point_index;
-    bool has_entry_point;
-
-    int32_t current_node_index;
-    bool has_current_node;
+    std::optional<int32_t> entry_point_node_id;
+    std::optional<int32_t> current_node_id;
 
     /**
-     * @brief the collection of sequence nodes that make up the sequence.
      * @note We store a collection of unique_ptr of SequenceNodes because the Sequence is the owner of its nodes.
      */
-    std::vector<std::unique_ptr<SequenceNode>> nodes;
+    std::unordered_map<int32_t, std::unique_ptr<SequenceNode>> nodes;
 
     /**
      * @brief The adjacency list representation of the transitions between the nodes of the sequence.
      */
-    std::vector<std::vector<Transition>> transitions;
+    std::unordered_map<int32_t, std::vector<Transition>> transitions;
 
     SequenceState sequence_state;
 
@@ -45,27 +43,9 @@ public:
     explicit Sequence(int32_t sequence_id, std::string sequence_name);
 
     int32_t GetSequenceId() const { return sequence_id; }
-
     std::string GetSequenceName() const { return sequence_name; }
-
-    const std::vector<std::unique_ptr<SequenceNode>>& GetNodes() const { return nodes; }
-
-    int32_t GetEntryPointIndex() const { return entry_point_index; }
-
-    bool HasEntryPoint() const { return has_entry_point; }
-
-    int32_t GetCurrentNodeIndex() const { return current_node_index; }
-
-    bool HasCurrentNode() const { return has_current_node; }
-
-    const std::vector<std::vector<Transition>>& GetTransitions() const { return transitions; }
-
-    void SetSequenceState(SequenceState state) { sequence_state = state; }
-
     SequenceState GetSequenceState() const { return sequence_state; }
-
-    [[nodiscard]]
-    const std::vector<Transition>& FindTransitionsFrom(int32_t node_id) const;
+    void SetSequenceState(SequenceState state) { sequence_state = state; }
 
     /**
      * @throws std::invalid_argument if node_id < 0
@@ -83,33 +63,50 @@ public:
     void AddEndSequenceNode(int32_t node_id);
 
     [[nodiscard]]
+    bool HasNode(int32_t node_id) const;
+
+    [[nodiscard]]
+    const SequenceNode* FindNodeById(int32_t node_id) const;
+
+    size_t GetNodeCount() const { return nodes.size(); }
+
+    [[nodiscard]]
     bool TryAddTransition(int32_t transition_id, int32_t from_node_id, int32_t to_node_id, std::vector<StateOperation> preconditions);
 
     [[nodiscard]]
-    const SequenceNode* FindTransitionDestination(const Transition& transition) const { return FindNodeById(transition.GetDestinationNodeIndex()); }
+    std::vector<Transition> FindTransitionsFrom(int32_t node_id) const;
+
+    std::vector<int32_t> GetDestinationNodeIds(int32_t from_node_id) const;
+
+    [[nodiscard]]
+    bool IsValidTransition(int32_t from_node_id, int32_t to_node_id) const;
 
     [[nodiscard]]
     bool TrySetEntryPoint(int32_t node_id);
 
+    bool HasEntryPoint() const { return entry_point_node_id.has_value(); }
+
+    int32_t GetEntryPointNodeId() const { return entry_point_node_id.value_or(-1); }
 
     [[nodiscard]]
-    const SequenceNode* FindEntryPoint() const { return has_entry_point ? FindNodeById(entry_point_index) : nullptr; }
+    const SequenceNode* FindEntryPointNode() const;
 
     [[nodiscard]]
     bool TrySetCurrentNode(int32_t node_id);
 
-    [[nodiscard]]
-    const SequenceNode* FindCurrentNode() const { return has_current_node ? FindNodeById(current_node_index) : nullptr; }
+    bool HasCurrentNode() const { return current_node_id.has_value(); }
+
+    int32_t GetCurrentNodeId() const { return current_node_id.value_or(-1); }
 
     [[nodiscard]]
-    const SequenceNode* FindNodeById(int32_t node_id) const { return IsNodeIdInRange(node_id) ? nodes[node_id].get() : nullptr; }
+    const SequenceNode* FindCurrentNode() const;
 
     void ResetCurrentNodeToEntry();
 
-private:
+    std::vector<Transition> GetValidTransitionsFromCurrentNode() const;
 
     [[nodiscard]]
-    bool IsNodeIdInRange(int32_t node_id) const { return node_id >= 0 && node_id < static_cast<int>(nodes.size()); }
+    const SequenceNode* FindTransitionDestination(const Transition& transition) const { return FindNodeById(transition.GetDestinationNodeId()); }
 
 };
 

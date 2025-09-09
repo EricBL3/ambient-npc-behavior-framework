@@ -13,7 +13,7 @@ TEST(TransitionTest, SimpleConstructorInitializesCorrectly)
     EXPECT_EQ(0, transition.GetTransitionId());
     EXPECT_EQ(5, transition.GetPreconditions().capacity());
     EXPECT_EQ(0, transition.GetPreconditions().size());
-    EXPECT_EQ(1, transition.GetDestinationNodeIndex());
+    EXPECT_EQ(1, transition.GetDestinationNodeId());
 }
 
 TEST(TransitionTest, ConstructorWithToNodeInitializesCorrectly)
@@ -22,7 +22,7 @@ TEST(TransitionTest, ConstructorWithToNodeInitializesCorrectly)
 
     EXPECT_EQ(0, transition.GetTransitionId());
     EXPECT_EQ(5, transition.GetPreconditions().capacity());
-    EXPECT_EQ(0, transition.GetDestinationNodeIndex());
+    EXPECT_EQ(0, transition.GetDestinationNodeId());
 }
 
 TEST(TransitionTest, ConstructorRejectsNegativeTransitionId)

@@ -43,16 +43,16 @@ protected:
         auto sequence_dto = CreateBasicSequenceDto(sequence_id);
 
         SequenceNodeDto action_node;
-        action_node.node_id = 1;
+        action_node.node_id = 10;
         action_node.node_type = "ACTION";
         action_node.target_action_id = 1;
         sequence_dto.nodes.push_back(action_node);
-        sequence_dto.entry_point_node_id = 1;
+        sequence_dto.entry_point_node_id = 10;
 
         // Add transition with SELF state reference
         TransitionDto transition;
         transition.transition_id = 0;
-        transition.from_node_id = 1;
+        transition.from_node_id = 10;
         transition.to_node_id = 0; // END node
 
         StateOperationDto precondition;
@@ -94,8 +94,8 @@ TEST_F(FrameworkRegistryTest, RegisterSequences_AddsSequenceToRegistry)
     EXPECT_EQ(1, registry->GetSequencesCount());
     EXPECT_EQ(sequence_id, sequence->GetSequenceId());
     EXPECT_EQ("test_sequence", sequence->GetSequenceName());
-    EXPECT_EQ(0, sequence->GetEntryPointIndex());
-    EXPECT_EQ(1, sequence->GetNodes().size());
+    EXPECT_EQ(0, sequence->GetEntryPointNodeId());
+    EXPECT_EQ(1, sequence->GetNodeCount());
 }
 
 TEST_F(FrameworkRegistryTest, RegisterSequences_EmptyConfigFile_LogsWarningAndReturns) {
@@ -150,7 +150,7 @@ TEST_F(FrameworkRegistryTest, RegisterSequences_StateReference_CallsStateSchema)
     registry->RegisterSequences("test.json");
 
     auto sequence = registry->GetSequenceById(1);
-    auto transitions = sequence->FindTransitionsFrom(1);
+    auto transitions = sequence->FindTransitionsFrom(10);
     EXPECT_EQ(1, transitions.size());
 
     auto preconditions = transitions[0].GetPreconditions();

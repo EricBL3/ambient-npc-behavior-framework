@@ -16,7 +16,7 @@ class Transition {
 private:
 
     int32_t transition_id;
-    int32_t destination_node_index;
+    int32_t destination_node_id;
     std::vector<StateOperation> preconditions;
 
 public:
@@ -33,7 +33,7 @@ public:
 
     void AddPrecondition(const StateOperation& precondition);
 
-    int32_t GetDestinationNodeIndex() const { return destination_node_index; }
+    int32_t GetDestinationNodeId() const { return destination_node_id; }
 
     const std::vector<StateOperation>& GetPreconditions() const { return preconditions; }
 
