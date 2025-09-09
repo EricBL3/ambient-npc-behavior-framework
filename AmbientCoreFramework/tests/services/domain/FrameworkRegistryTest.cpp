@@ -271,3 +271,134 @@ TEST_F(FrameworkRegistryTest, RegisterActions_StateReference_CallsStateSchema) {
     EXPECT_EQ(1, preconditions[0].GetOperation()); // GREATER_THAN
     EXPECT_EQ(0, preconditions[0].GetParameters().front());
 }
+
+// REGISTER ENTITY TESTS
+TEST_F(FrameworkRegistryTest, RegisterEntity_AddsFrameworkEntityToRegistry)
+{
+    // Test registry contains framework entity with appropriate handle, id and name
+    GTEST_SKIP() << "Test not yet implemented";
+}
+
+TEST_F(FrameworkRegistryTest, RegisterEntity_CreatesFrameworkEntityMapping)
+{
+    // Test registry has appropriate handle to id (and viceversa) mappings
+    GTEST_SKIP() << "Test not yet implemented";
+}
+
+TEST_F(FrameworkRegistryTest, RegisterEntity_AddsBehavioralEntityToRegistry)
+{
+    // Test registry contains framework entity with appropriate handle, id, name and configured memory system
+    GTEST_SKIP() << "Test not yet implemented";
+}
+
+TEST_F(FrameworkRegistryTest, RegisterEntity_CreatesBehavioralEntityMapping)
+{
+    // Test registry has appropriate handle to id (and viceversa) mappings
+    GTEST_SKIP() << "Test not yet implemented";
+}
+
+TEST_F(FrameworkRegistryTest, RegisterEntity_InvalidEntityType_LogsWarningAndReturns)
+{
+    // Test registry is empty
+    GTEST_SKIP() << "Test not yet implemented";
+}
+
+TEST_F(FrameworkRegistryTest, RegisterEntity_EmptyConfigFile_LogsWarningAndReturns)
+{
+    // Test registry is empty
+    GTEST_SKIP() << "Test not yet implemented";
+}
+
+TEST_F(FrameworkRegistryTest, RegisterEntity_DuplicateEntityId_LogsWarningAndSkipsSecond)
+{
+    // Test registry only contains first entity. Even if handles are different, entity shouldn't register.
+    GTEST_SKIP() << "Test not yet implemented";
+}
+
+TEST_F(FrameworkRegistryTest, RegisterEntity_DuplicateEntityHandle_LogsWarningAndSkipsSecond)
+{
+    // Test registry only contains first entity. Even if ids are different, entity shouldn't register.
+    GTEST_SKIP() << "Test not yet implemented";
+}
+
+// REGISTER COMPLEX FRAMEWORK ENTITY TESTS
+
+TEST_F(FrameworkRegistryTest, RegisterEntity_ComplexFrameworkEntity_RegistersValidActionIds)
+{
+    // Test supported_actions_ids matches the ones in the dto
+    GTEST_SKIP() << "Test not yet implemented";
+}
+
+TEST_F(FrameworkRegistryTest, RegisterEntity_ComplexFrameworkEntity_LogsWarningAndSkipsInvalidActionIds)
+{
+    // Test that supported_actions_ids does not include additional ids not in registry
+    GTEST_SKIP() << "Test not yet implemented";
+}
+
+TEST_F(FrameworkRegistryTest, RegisterEntity_ComplexFrameworkEntity_GeneratesStateMap)
+{
+    // Test that state matches the mapping in the dto
+    GTEST_SKIP() << "Test not yet implemented";
+}
+
+// REGISTER COMPLEX BEHAVIORAL ENTITY TESTS
+
+TEST_F(FrameworkRegistryTest, RegisterEntity_ComplexBehavioralEntity_RegistersValidActionIds)
+{
+    // Test supported_actions_ids matches the ones in the dto
+    GTEST_SKIP() << "Test not yet implemented";
+}
+
+TEST_F(FrameworkRegistryTest, RegisterEntity_ComplexBehavioralEntity_LogsWarningAndSkipsInvalidActionIds)
+{
+    // Test that supported_actions_ids does not include additional ids not in registry
+    GTEST_SKIP() << "Test not yet implemented";
+}
+
+TEST_F(FrameworkRegistryTest, RegisterEntity_ComplexBehavioralEntity_GeneratesStateMap)
+{
+    // Test that state matches the mapping in the dto
+    GTEST_SKIP() << "Test not yet implemented";
+}
+
+TEST_F(FrameworkRegistryTest, RegisterEntity_ComplexBehavioralEntity_SetsValidMainSequence)
+{
+    // Test main sequence is set and matches the one in registry
+    GTEST_SKIP() << "Test not yet implemented";
+}
+
+TEST_F(FrameworkRegistryTest, RegisterEntity_ComplexBehavioralEntity_LogsWarningAndSkipsInvalidMainSequence)
+{
+    // Test main sequence is not set
+    GTEST_SKIP() << "Test not yet implemented";
+}
+
+TEST_F(FrameworkRegistryTest, RegisterEntity_ComplexBehavioralEntity_SetsValidFallbackSequences)
+{
+    // Test fallback sequences match the ones from the dto and are registered in the registry
+    GTEST_SKIP() << "Test not yet implemented";
+}
+
+TEST_F(FrameworkRegistryTest, RegisterEntity_ComplexBehavioralEntity_LogsWarningAndSkipsInvalidFallbackSequences)
+{
+    // Test fallback sequences does not contain invalid ones.
+    GTEST_SKIP() << "Test not yet implemented";
+}
+
+TEST_F(FrameworkRegistryTest, RegisterEntity_ComplexBehavioralEntity_GeneratesValidInterruptionHandlerMapping)
+{
+    // Tests interruption handler mapping is as described in dto and sequence exists
+    GTEST_SKIP() << "Test not yet implemented";
+}
+
+TEST_F(FrameworkRegistryTest, RegisterEntity_ComplexBehavioralEntity_LogsWarningAndSkipsInvalidInterruptionHandlerNameMapping)
+{
+    // Tests interruption handler mapping does not contain invalid names
+    GTEST_SKIP() << "Test not yet implemented";
+}
+
+TEST_F(FrameworkRegistryTest, RegisterEntity_ComplexBehavioralEntity_LogsWarningAndSkipsInvalidInterruptionHandlerSequenceMapping)
+{
+    // Tests interruption handler mapping does not contain invalid sequences
+    GTEST_SKIP() << "Test not yet implemented";
+}
