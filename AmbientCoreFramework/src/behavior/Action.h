@@ -1,14 +1,6 @@
-/**
- * @file Action.h
- * @brief 
- * @author Eric Buitrón López
- * @date 8/18/2025
- *
- *
-*/
-
 #pragma once
 #include <cstdint>
+#include <string>
 #include <vector>
 
 #include "StateOperation.h"
@@ -22,78 +14,30 @@ namespace AmbientCharacterBehavior {
 class Action {
 private:
 
-    /**
-     * @brief The unique identifier of the action
-     */
+
     int32_t action_id;
-
-    /**
-     * @brief The preconditions that must be satisfied for the action to be able to execute.
-     */
+    std::string action_name;
     std::vector<StateOperation> preconditions;
-
-    /**
-     * @brief The state changes that will be applied when the action begins.
-     */
     std::vector<StateOperation> immediate_effects;
-
-    /**
-     * @brief The state changes that will be applied when the action completes.
-     */
     std::vector<StateOperation> completion_effects;
-
-    /**
-     * @brief The maximum amount of time the framework will wait before it automatically completes the action.
-     */
-    int64_t max_duration;
-
-    /**
-     * @brief The resumption capability of the action.
-     */
+    int64_t max_duration_ms;
     InterruptionBehaviorType interruption_behavior;
 
 public:
     /**
-     *
-     * @param action_id The unique identifier of the action
-     * @param max_duration The maximum amount of time the framework will wait before it automatically completes the action.
-     * @param interruption_behavior The resumption capability of the action.
-     * @param initial_preconditions_count The initial number of preconditions for this action (default is 0).
-     * @param initial_immediate_effects_count The initial number of immediate effects for this action (default is 0).
-     * @param initial_completion_effects_count The initial number of completion effects for this action (default is 0).
-     *
-     * @throw std::invalid_argument if action_id or max_duration < 0.
+     * @throws std::invalid_argument if action_id or max_duration < 0.
      */
-    explicit Action(
-        int32_t action_id,
-        int64_t max_duration,
-        InterruptionBehaviorType interruption_behavior,
-        size_t initial_preconditions_count = 0,
-        size_t initial_immediate_effects_count = 0,
-        size_t initial_completion_effects_count = 0
-    );
-
-    /**
-     * @brief Adds a new precondition to the transition.
-     * @param precondition The StateOperation that will be used as a precondition for the transition
-     */
+    explicit Action(int32_t action_id, std::string action_name, int64_t max_duration, InterruptionBehaviorType interruption_behavior);
+    
     void AddPrecondition(const StateOperation& precondition);
-
-    /**
-     * @brief Adds a new immediate effect
-     * @param effect The StateOperation that represents the effect to be applied.
-     */
     void AddImmediateEffect(const StateOperation& effect);
-
-    /**
-     * Adds a new completion effect
-     * @param effect The StateOperation that represents the effect to be applied.
-     */
     void AddCompletionEffect(const StateOperation& effect);
 
     int32_t GetActionId() const { return action_id; }
 
-    int64_t GetMaxDuration() const { return max_duration; }
+    std::string GetActionName() const { return action_name; }
+
+    int64_t GetMaxDuration() const { return max_duration_ms; }
 
     InterruptionBehaviorType GetInterruptionBehavior() const { return interruption_behavior; }
 

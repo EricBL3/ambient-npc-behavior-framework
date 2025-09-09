@@ -41,9 +41,16 @@ public:
 
     bool HasSequence(int32_t sequence_id) const override;
     std::shared_ptr<Sequence> GetSequenceById(int32_t sequence_id) const override;
+    bool HasAction(int32_t action_id) const override;
+    std::shared_ptr<Action> GetActionById(int32_t action_id) const override;
 
     size_t GetSequencesCount() const
     { return sequences.size(); }
+
+    size_t GetActionsCount() const
+    {
+        return actions.size();
+    }
 
 private:
     void GenerateSequenceFromDto(const SequenceDto &sequence_dto);
@@ -52,5 +59,9 @@ private:
     void GenerateTransitionFromDto(const std::shared_ptr<Sequence> &new_sequence, const TransitionDto &dto_transition) const;
     std::vector<StateOperation> GenerateStateOperationVectorFromDto(const std::vector<StateOperationDto> &dto_state_operations) const;
     StateOperation GenerateStateOperationFromDto(const StateOperationDto &dto_state_operation) const;
+
+    void GenerateActionFromDto(const ActionDto &action_dto);
+    InterruptionBehaviorType ParseInterruptionBehavior(const std::string& behavior_name) const;
+    void ConfigureActionWithDto(const std::shared_ptr<Action> &new_action, const ActionDto &action_dto) const;
 };
 }

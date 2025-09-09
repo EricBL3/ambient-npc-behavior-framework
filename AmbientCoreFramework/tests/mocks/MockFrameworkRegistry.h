@@ -12,6 +12,8 @@ public:
 
     MOCK_METHOD(bool, HasSequence, (int32_t sequence_id), (const, override));
     MOCK_METHOD(std::shared_ptr<Sequence>, GetSequenceById, (int32_t sequence_id), (const, override));
+    MOCK_METHOD(bool, HasAction, (int32_t action_id), (const, override));
+    MOCK_METHOD(std::shared_ptr<Action>, GetActionById, (int32_t action_id), (const, override));
 
 };
 }

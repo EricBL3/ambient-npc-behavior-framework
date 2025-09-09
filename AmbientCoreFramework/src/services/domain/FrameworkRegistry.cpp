@@ -172,6 +172,77 @@ StateOperation FrameworkRegistry::GenerateStateOperationFromDto(const StateOpera
 
 void FrameworkRegistry::RegisterActions(const std::string &config_file_path)
 {
+    auto action_dtos = json_loader.ProcessActionsConfigFile(config_file_path);
+    if (action_dtos.empty())
+    {
+        logger.LogWarning("The configuration file did not contain any valid actions.",
+            "FrameworkRegistry");
+
+        return;
+    }
+
+    for (const auto &action_dto : action_dtos)
+    {
+        GenerateActionFromDto(action_dto);
+    }
+}
+
+void FrameworkRegistry::GenerateActionFromDto(const ActionDto &action_dto)
+{
+    try
+    {
+        auto interruption_behavior = ParseInterruptionBehavior(action_dto.interruption_behavior_name);
+
+        auto [new_action_iterator, inserted] = actions.emplace(action_dto.action_id, std::make_shared<Action>(
+            Action(action_dto.action_id, action_dto.action_name, action_dto.max_duration_ms, interruption_behavior)));
+
+        if (!inserted)
+        {
+            logger.LogWarning("Action '" + action_dto.action_name + " ' was not added to the registry.",
+                "FrameworkRegistry");
+
+            return;
+        }
+
+        ConfigureActionWithDto(new_action_iterator->second, action_dto);
+    }
+    catch (const std::exception &e)
+    {
+        logger.LogError("Error while generating the action '" + action_dto.action_name + "', " +
+            e.what(), "FrameworkRegistry");
+    }
+}
+
+InterruptionBehaviorType FrameworkRegistry::ParseInterruptionBehavior(const std::string& behavior_name) const {
+    if (behavior_name == "RESUMABLE") {
+        return InterruptionBehaviorType::RESUMABLE;
+    }
+    if (behavior_name == "NON_RESUMABLE") {
+        return InterruptionBehaviorType::NON_RESUMABLE;
+    }
+    throw std::invalid_argument("Unknown interruption behavior: " + behavior_name);
+}
+
+void FrameworkRegistry::ConfigureActionWithDto(const std::shared_ptr<Action> &new_action,
+    const ActionDto &action_dto) const
+{
+    for (const auto& precondition_dto : action_dto.preconditions)
+    {
+        new_action->AddPrecondition(GenerateStateOperationFromDto(precondition_dto));
+    }
+
+    for (const auto& immediate_effect_dto : action_dto.immediate_effects)
+    {
+        new_action->AddImmediateEffect(GenerateStateOperationFromDto(immediate_effect_dto));
+    }
+
+    for (const auto& completion_effect_dto : action_dto.completion_effects)
+    {
+        new_action->AddCompletionEffect(GenerateStateOperationFromDto(completion_effect_dto));
+    }
+
+    logger.LogInfo("Action '" + action_dto.action_name + " ' has been configured.",
+            "FrameworkRegistry");
 }
 
 void FrameworkRegistry::RegisterEntity(void *entity_handle, const std::string &config_file_path)
@@ -197,4 +268,22 @@ std::shared_ptr<Sequence> FrameworkRegistry::GetSequenceById(int32_t sequence_id
     }
 
     return sequences.at(sequence_id);
+}
+
+bool FrameworkRegistry::HasAction(int32_t action_id) const
+{
+    return actions.find(action_id) != actions.end();
+}
+
+std::shared_ptr<Action> FrameworkRegistry::GetActionById(int32_t action_id) const
+{
+    if (!HasAction(action_id))
+    {
+        logger.LogWarning("Action with id: " + std::to_string(action_id) + " is not in the registry",
+            "FrameworkRegistry");
+
+        return nullptr;
+    }
+
+    return actions.at(action_id);
 }

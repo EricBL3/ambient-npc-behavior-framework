@@ -2,6 +2,7 @@
 #include <memory>
 #include <string>
 
+#include "behavior/Action.h"
 #include "behavior/Sequence.h"
 
 namespace AmbientCharacterBehavior {
@@ -15,5 +16,7 @@ public:
 
     virtual bool HasSequence(int32_t sequence_id) const = 0;
     virtual std::shared_ptr<Sequence> GetSequenceById(int32_t sequence_id) const = 0;
+    virtual bool HasAction(int32_t action_id) const = 0;
+    virtual std::shared_ptr<Action> GetActionById(int32_t action_id) const = 0;
 };
 }

@@ -243,7 +243,7 @@ TEST_F(FrameworkRegistryTest, RegisterActions_DuplicateActionId_LogsWarningAndSk
 
     EXPECT_EQ(1, registry->GetActionsCount());
     // Should keep the first one
-    EXPECT_EQ("test_sequence", registry->GetActionById(1)->GetActionName());
+    EXPECT_EQ("test_action", registry->GetActionById(1)->GetActionName());
 }
 
 TEST_F(FrameworkRegistryTest, RegisterActions_StateReference_CallsStateSchema) {

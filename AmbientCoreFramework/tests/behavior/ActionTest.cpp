@@ -16,8 +16,7 @@ using namespace AmbientCharacterBehavior;
 class ActionTest : public testing::Test {
 protected:
     void SetUp() override {
-        action = std::make_unique<Action>(0, 10, InterruptionBehaviorType::NON_RESUMABLE,
-            3, 3, 3);
+        action = std::make_unique<Action>(0, "test_action", 10, InterruptionBehaviorType::NON_RESUMABLE);
     }
 
     std::unique_ptr<Action> action;
@@ -31,17 +30,15 @@ TEST_F(ActionTest, ConstructorWorksCorrectly)
 {
 
     EXPECT_EQ(0, action->GetActionId());
+    EXPECT_EQ("test_action", action->GetActionName());
     EXPECT_EQ(10, action->GetMaxDuration());
     EXPECT_EQ(InterruptionBehaviorType::NON_RESUMABLE, action->GetInterruptionBehavior());
-    EXPECT_EQ(3, action->GetPreconditions().capacity());
-    EXPECT_EQ(3, action->GetImmediateEffects().capacity());
-    EXPECT_EQ(3, action->GetCompletionEffects().capacity());
 }
 
 TEST_F(ActionTest, ConstructorRejectsNegativeValues)
 {
-    EXPECT_THROW(Action(-1, 0, InterruptionBehaviorType::NON_RESUMABLE), std::invalid_argument);
-    EXPECT_THROW(Action(0, -1, InterruptionBehaviorType::RESUMABLE), std::invalid_argument);
+    EXPECT_THROW(Action(-1, "test", 0, InterruptionBehaviorType::NON_RESUMABLE), std::invalid_argument);
+    EXPECT_THROW(Action(0, "test", -1, InterruptionBehaviorType::RESUMABLE), std::invalid_argument);
 }
 
 // =============================================================================
