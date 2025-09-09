@@ -99,6 +99,10 @@ void FrameworkRegistry::RegisterSequences(const std::string &config_file_path)
                     {
                         operation = 2;
                     }
+                    else
+                    {
+                        operation = 3;
+                    }
 
                     preconditions.emplace_back(target_id, state_key, operation, dto_precondition.parameters);
                 }
