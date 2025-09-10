@@ -1,5 +1,3 @@
-#pragma once
-
 #include <gtest/gtest.h>
 #include "../../mocks/MockTimeManager.h"
 #include "services/core/TimeManager.h"

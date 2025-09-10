@@ -1,4 +1,3 @@
-#pragma once
 #include <filesystem>
 #include <fstream>
 #include <gtest/gtest.h>
