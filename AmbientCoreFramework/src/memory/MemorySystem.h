@@ -83,7 +83,7 @@ public:
     // CONSTRUCTION & CONFIGURATION
     // =============================================================================
 
-    explicit MemorySystem(int32_t max_transitions = 10, int32_t max_actions = 20, int32_t max_interruptions = 5);
+    explicit MemorySystem(int32_t max_transitions, int32_t max_actions, int32_t max_interruptions);
 
     int32_t GetMaxTransitionMemories() const;
     int32_t GetMaxActionMemories() const;

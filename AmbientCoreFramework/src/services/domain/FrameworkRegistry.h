@@ -44,12 +44,32 @@ public:
     bool HasAction(int32_t action_id) const override;
     std::shared_ptr<Action> GetActionById(int32_t action_id) const override;
 
+    bool HasFrameworkEntity(int32_t entity_id) const override;
+    FrameworkEntity* GetFrameworkEntityById(int32_t entity_id) const override;
+    void* GetHandleFromFrameworkId(int32_t entity_id) const;
+    int32_t GetFrameworkIdFromHandle(void* entity_handle) const;
+
+    bool HasBehavioralEntity(int32_t entity_id) const override;
+    BehavioralEntity* GetBehavioralEntityById(int32_t entity_id) const override;
+    void* GetHandleFromBehavioralId(int32_t entity_id) const;
+    int32_t GetBehavioralIdFromHandle(void* entity_handle) const;
+
     size_t GetSequencesCount() const
     { return sequences.size(); }
 
     size_t GetActionsCount() const
     {
         return actions.size();
+    }
+
+    size_t GetFrameworkEntitiesCount() const
+    {
+        return framework_entities.size();
+    }
+
+    size_t GetBehavioralEntitiesCount() const
+    {
+        return behavioral_entities.size();
     }
 
 private:
@@ -63,5 +83,13 @@ private:
     void GenerateActionFromDto(const ActionDto &action_dto);
     InterruptionBehaviorType ParseInterruptionBehavior(const std::string& behavior_name) const;
     void ConfigureActionWithDto(const std::shared_ptr<Action> &new_action, const ActionDto &action_dto) const;
+
+    FrameworkEntity* GenerateFrameworkEntityFromDto(void* entity_handle, std::optional<FrameworkEntityDto> entity_dto);
+    void GenerateFrameworkEntityIdAndHandleMapping(const FrameworkEntity* framework_entity);
+    void ConfigureFrameworkEntityWithDto(const std::unique_ptr<FrameworkEntity> &new_entity, const FrameworkEntityDto &entity_dto) const;
+
+    BehavioralEntity* GenerateBehavioralEntityFromDto(void* entity_handle, std::optional<BehavioralEntityDto> entity_dto);
+    void GenerateBehavioralEntityIdAndHandleMapping(const BehavioralEntity* behavioral_entity);
+    void ConfigureBehavioralEntityWithDto(const std::unique_ptr<BehavioralEntity> &new_entity, const BehavioralEntityDto &entity_dto) const;
 };
 }

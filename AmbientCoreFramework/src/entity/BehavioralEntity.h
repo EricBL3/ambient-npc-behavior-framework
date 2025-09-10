@@ -1,11 +1,3 @@
-/**
- * @file BehavioralEntity.h
- * @brief 
- * @author Eric Buitrón López
- * @date 8/19/2025
- *
- * TODO: Missing state management
-*/
 
 #pragma once
 #include <stack>
@@ -38,16 +30,15 @@ private:
 
 public:
     /**
-     *
-     * @param entity_handle The handle of the entity.
-     * @param entity_id The identifier being used as the handle of the entity.
-     * @param name The name of the entity
-     *
      * @throw std::invalid_argument if entity_id or current_location_id < 0.
      */
-    explicit BehavioralEntity(void* entity_handle, int32_t entity_id, std::string name = "") :
+    explicit BehavioralEntity(void* entity_handle, int32_t entity_id, int32_t max_transition_memories,
+        int32_t max_action_memories, int32_t max_interruption_memories, std::string name = "") :
         FrameworkEntity(entity_handle, entity_id, std::move(name)),
+        memory(max_transition_memories, max_action_memories, max_interruption_memories),
         main_sequence(nullptr), current_action_target_index(-1), is_processing(false) {}
 
+    const MemorySystem& GetMemorySystem() const { return memory; }
+
 };
-} // AmbientCharacterBehavior
+}

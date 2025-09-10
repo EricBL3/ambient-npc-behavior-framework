@@ -24,25 +24,25 @@ void FrameworkRegistry::RegisterSequences(const std::string &config_file_path)
 void FrameworkRegistry::GenerateSequenceFromDto(const SequenceDto &sequence_dto)
 {
     try
+    {
+        auto [new_sequence_iterator, inserted] = sequences.emplace(sequence_dto.sequence_id,
+            std::make_shared<Sequence>(Sequence(sequence_dto.sequence_id, sequence_dto.sequence_name)));
+
+        if (!inserted)
         {
-            auto [new_sequence_iterator, inserted] = sequences.emplace(sequence_dto.sequence_id,
-                std::make_shared<Sequence>(Sequence(sequence_dto.sequence_id, sequence_dto.sequence_name)));
+            logger.LogWarning("Sequence '" + sequence_dto.sequence_name + " ' was not added to the registry.",
+                "FrameworkRegistry");
 
-            if (!inserted)
-            {
-                logger.LogWarning("Sequence '" + sequence_dto.sequence_name + " ' was not added to the registry.",
-                    "FrameworkRegistry");
-
-                return;
-            }
-
-            ConfigureSequenceWithDto(new_sequence_iterator->second, sequence_dto);
+            return;
         }
-        catch (const std::exception &e)
-        {
-            logger.LogError("Error while generating the sequence '" + sequence_dto.sequence_name + "', " +
-                e.what(), "FrameworkRegistry");
-        }
+
+        ConfigureSequenceWithDto(new_sequence_iterator->second, sequence_dto);
+    }
+    catch (const std::exception &e)
+    {
+        logger.LogError("Error while generating the sequence '" + sequence_dto.sequence_name + "', " +
+            e.what(), "FrameworkRegistry");
+    }
 }
 
 void FrameworkRegistry::ConfigureSequenceWithDto(const std::shared_ptr<Sequence> &new_sequence,
@@ -247,6 +247,146 @@ void FrameworkRegistry::ConfigureActionWithDto(const std::shared_ptr<Action> &ne
 
 void FrameworkRegistry::RegisterEntity(void *entity_handle, const std::string &config_file_path)
 {
+    auto entity_dto = json_loader.ProcessSingleEntityConfigFile(config_file_path);
+    if (!entity_dto.has_value())
+    {
+        logger.LogWarning("The configuration file did not contain any valid entity.",
+            "FrameworkRegistry");
+
+        return;
+    }
+
+    if (entity_dto->entity_type == "FRAMEWORK")
+    {
+        auto entity = GenerateFrameworkEntityFromDto(entity_handle, entity_dto->framework_entity);
+        GenerateFrameworkEntityIdAndHandleMapping(entity);
+    }
+    else if (entity_dto->entity_type == "BEHAVIORAL")
+    {
+        auto entity = GenerateBehavioralEntityFromDto(entity_handle, entity_dto->behavioral_entity);
+        GenerateBehavioralEntityIdAndHandleMapping(entity);
+    }
+    else
+    {
+        logger.LogWarning("The entity type '" + entity_dto->entity_type + " does not exist. The entity was not registered.",
+            "FrameworkRegistry");
+    }
+}
+
+FrameworkEntity * FrameworkRegistry::GenerateFrameworkEntityFromDto(void *entity_handle,
+    std::optional<FrameworkEntityDto> entity_dto)
+{
+    if (!entity_dto.has_value())
+    {
+        logger.LogWarning("The entity dto is empty. The entity cannot be generated",
+            "FrameworkRegistry");
+
+        return nullptr;
+    }
+
+    try
+    {
+        auto [new_entity_iterator, inserted] = framework_entities.emplace(entity_dto->entity_id,
+            std::make_unique<FrameworkEntity>(FrameworkEntity(entity_handle, entity_dto->entity_id, entity_dto->entity_name)));
+
+        if (!inserted)
+        {
+            logger.LogWarning("Entity '" + entity_dto->entity_name + " ' was not added to the registry.",
+                "FrameworkRegistry");
+
+            return nullptr;
+        }
+
+        ConfigureFrameworkEntityWithDto(new_entity_iterator->second, entity_dto.value());
+
+        return new_entity_iterator->second.get();
+    }
+    catch (const std::exception &e)
+    {
+        logger.LogError("Error while generating the entity '" + entity_dto->entity_name + "', " +
+            e.what(), "FrameworkRegistry");
+
+        return nullptr;
+    }
+}
+
+void FrameworkRegistry::GenerateFrameworkEntityIdAndHandleMapping(const FrameworkEntity *framework_entity)
+{
+    if (!framework_entity)
+    {
+        logger.LogWarning("The framework entity was not generated. The mapping cannot be done.",
+            "FrameworkRegistry");
+
+        return;
+    }
+
+    handle_to_framework_id[framework_entity->GetEntityHandle()] = framework_entity->GetEntityId();
+    framework_id_to_handle[framework_entity->GetEntityId()] = framework_entity->GetEntityHandle();
+}
+
+void FrameworkRegistry::ConfigureFrameworkEntityWithDto(const std::unique_ptr<FrameworkEntity> &new_entity,
+    const FrameworkEntityDto &entity_dto) const
+{
+    //TODO: Implement
+}
+
+BehavioralEntity * FrameworkRegistry::GenerateBehavioralEntityFromDto(void *entity_handle,
+                                                                      std::optional<BehavioralEntityDto> entity_dto)
+{
+    if (!entity_dto.has_value())
+    {
+        logger.LogWarning("The entity dto is empty. The entity cannot be generated",
+            "FrameworkRegistry");
+
+        return nullptr;
+    }
+
+    try
+    {
+        auto [new_entity_iterator, inserted] = behavioral_entities.emplace(entity_dto->base_properties.entity_id,
+            std::make_unique<BehavioralEntity>(BehavioralEntity(entity_handle, entity_dto->base_properties.entity_id,
+                entity_dto->memory_limits.max_transition_memories, entity_dto->memory_limits.max_action_memories,
+                entity_dto->memory_limits.max_interruption_memories, entity_dto->base_properties.entity_name)));
+
+        if (!inserted)
+        {
+            logger.LogWarning("Entity '" + entity_dto->base_properties.entity_name + " ' was not added to the registry.",
+                "FrameworkRegistry");
+
+            return nullptr;
+        }
+
+        ConfigureBehavioralEntityWithDto(new_entity_iterator->second, entity_dto.value());
+
+        return new_entity_iterator->second.get();
+    }
+    catch (const std::exception &e)
+    {
+        logger.LogError("Error while generating the entity '" + entity_dto->base_properties.entity_name + "', " +
+            e.what(), "FrameworkRegistry");
+
+        return nullptr;
+    }
+}
+
+void FrameworkRegistry::GenerateBehavioralEntityIdAndHandleMapping(const BehavioralEntity *framework_entity)
+{
+    if (!framework_entity)
+    {
+        logger.LogWarning("The framework entity was not generated. The mapping cannot be done.",
+            "FrameworkRegistry");
+
+        return;
+    }
+
+    handle_to_behavioral_id[framework_entity->GetEntityHandle()] = framework_entity->GetEntityId();
+    behavioral_id_to_handle[framework_entity->GetEntityId()] = framework_entity->GetEntityHandle();
+}
+
+void FrameworkRegistry::ConfigureBehavioralEntityWithDto(const std::unique_ptr<BehavioralEntity> &new_entity,
+    const BehavioralEntityDto &entity_dto) const
+{
+    //TODO: Implement
 }
 
 void FrameworkRegistry::UnregisterEntity(void *entity_handle)
@@ -286,4 +426,60 @@ std::shared_ptr<Action> FrameworkRegistry::GetActionById(int32_t action_id) cons
     }
 
     return actions.at(action_id);
+}
+
+bool FrameworkRegistry::HasFrameworkEntity(int32_t entity_id) const
+{
+    return framework_entities.find(entity_id) != framework_entities.end();
+}
+
+FrameworkEntity* FrameworkRegistry::GetFrameworkEntityById(int32_t entity_id) const
+{
+    if (!HasFrameworkEntity(entity_id))
+    {
+        logger.LogWarning("Entity with id: " + std::to_string(entity_id) + " is not in the registry",
+            "FrameworkRegistry");
+
+        return nullptr;
+    }
+
+    return framework_entities.at(entity_id).get();
+}
+
+void* FrameworkRegistry::GetHandleFromFrameworkId(int32_t entity_id) const
+{
+    return framework_id_to_handle.at(entity_id);
+}
+
+int32_t FrameworkRegistry::GetFrameworkIdFromHandle(void *entity_handle) const
+{
+    return handle_to_framework_id.at(entity_handle);
+}
+
+bool FrameworkRegistry::HasBehavioralEntity(int32_t entity_id) const
+{
+    return behavioral_entities.find(entity_id) != behavioral_entities.end();
+}
+
+BehavioralEntity * FrameworkRegistry::GetBehavioralEntityById(int32_t entity_id) const
+{
+    if (!HasBehavioralEntity(entity_id))
+    {
+        logger.LogWarning("Entity with id: " + std::to_string(entity_id) + " is not in the registry",
+            "FrameworkRegistry");
+
+        return nullptr;
+    }
+
+    return behavioral_entities.at(entity_id).get();
+}
+
+void * FrameworkRegistry::GetHandleFromBehavioralId(int32_t entity_id) const
+{
+    return behavioral_id_to_handle.at(entity_id);
+}
+
+int32_t FrameworkRegistry::GetBehavioralIdFromHandle(void *entity_handle) const
+{
+    return handle_to_behavioral_id.at(entity_handle);
 }

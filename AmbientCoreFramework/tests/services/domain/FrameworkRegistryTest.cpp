@@ -14,6 +14,8 @@ protected:
     std::unique_ptr<MockStateSchemaManager> mock_state_schema;
 
     std::unique_ptr<FrameworkRegistry> registry;
+    int framework_entity_handle = 100;
+    int behavioral_entity_handle = 200;
 
     void SetUp() override {
         mock_logger = std::make_unique<MockLogger>();
@@ -91,6 +93,44 @@ protected:
         action_dto.preconditions.push_back(precondition);
 
         return action_dto;
+    }
+
+    void * FrameworkEntityHandle() { return &framework_entity_handle; }
+    void * BehavioralEntityHandle() { return &behavioral_entity_handle; }
+
+    EntityDtoResult CreateBasicFrameworkEntityDto(int32_t entity_id)
+    {
+        EntityDtoResult entity_dto;
+        entity_dto.entity_type = "FRAMEWORK";
+
+        FrameworkEntityDto framework_entity_dto;
+        framework_entity_dto.entity_id = entity_id;
+        framework_entity_dto.entity_name = "test_entity";
+
+        entity_dto.framework_entity = framework_entity_dto;
+
+        return entity_dto;
+    }
+
+    EntityDtoResult CreateBasicBehavioralEntityDto(int32_t entity_id)
+    {
+        EntityDtoResult entity_dto;
+        entity_dto.entity_type = "BEHAVIORAL";
+
+        auto base_entity = CreateBasicFrameworkEntityDto(entity_id);
+
+        MemoryLimitsDto memory_limits;
+        memory_limits.max_action_memories = 15;
+        memory_limits.max_transition_memories = 10;
+        memory_limits.max_interruption_memories = 5;
+
+        BehavioralEntityDto behavioral_entity_dto;
+        behavioral_entity_dto.base_properties = base_entity.framework_entity.value();
+        behavioral_entity_dto.memory_limits = memory_limits;
+
+        entity_dto.behavioral_entity = behavioral_entity_dto;
+
+        return entity_dto;
     }
 };
 
@@ -275,26 +315,95 @@ TEST_F(FrameworkRegistryTest, RegisterActions_StateReference_CallsStateSchema) {
 // REGISTER ENTITY TESTS
 TEST_F(FrameworkRegistryTest, RegisterEntity_AddsFrameworkEntityToRegistry)
 {
-    // Test registry contains framework entity with appropriate handle, id and name
-    GTEST_SKIP() << "Test not yet implemented";
+    auto entity_dto = CreateBasicFrameworkEntityDto(0);
+
+    EXPECT_CALL(*mock_json_loader, ProcessSingleEntityConfigFile("test.json"))
+        .WillOnce(testing::Return(std::optional{entity_dto}));
+
+    EXPECT_CALL(*mock_logger, LogWarning(testing::_, testing::_))
+        .Times(0);
+
+    EXPECT_CALL(*mock_logger, LogError(testing::_, testing::_))
+        .Times(0);
+
+    registry->RegisterEntity(FrameworkEntityHandle(), "test.json");
+
+    auto framework_entity = registry->GetFrameworkEntityById(0);
+
+    EXPECT_EQ(1, registry->GetFrameworkEntitiesCount());
+    EXPECT_EQ(0, registry->GetBehavioralEntitiesCount());
+    EXPECT_EQ(0, framework_entity->GetEntityId());
+    EXPECT_EQ(FrameworkEntityHandle(), framework_entity->GetEntityHandle());
+    EXPECT_EQ("test_entity", framework_entity->GetName());
 }
 
 TEST_F(FrameworkRegistryTest, RegisterEntity_CreatesFrameworkEntityMapping)
 {
-    // Test registry has appropriate handle to id (and viceversa) mappings
-    GTEST_SKIP() << "Test not yet implemented";
+    auto entity_dto = CreateBasicFrameworkEntityDto(0);
+
+    EXPECT_CALL(*mock_json_loader, ProcessSingleEntityConfigFile("test.json"))
+        .WillOnce(testing::Return(std::optional{entity_dto}));
+
+    EXPECT_CALL(*mock_logger, LogWarning(testing::_, testing::_))
+        .Times(0);
+
+    EXPECT_CALL(*mock_logger, LogError(testing::_, testing::_))
+        .Times(0);
+
+    registry->RegisterEntity(FrameworkEntityHandle(), "test.json");
+
+    auto framework_entity = registry->GetFrameworkEntityById(0);
+
+    EXPECT_EQ(framework_entity->GetEntityHandle(), registry->GetHandleFromFrameworkId(framework_entity->GetEntityId()));
+    EXPECT_EQ(framework_entity->GetEntityId(), registry->GetFrameworkIdFromHandle(framework_entity->GetEntityHandle()));
 }
 
 TEST_F(FrameworkRegistryTest, RegisterEntity_AddsBehavioralEntityToRegistry)
 {
-    // Test registry contains framework entity with appropriate handle, id, name and configured memory system
-    GTEST_SKIP() << "Test not yet implemented";
+    auto entity_dto = CreateBasicBehavioralEntityDto(0);
+
+    EXPECT_CALL(*mock_json_loader, ProcessSingleEntityConfigFile("test.json"))
+        .WillOnce(testing::Return(std::optional{entity_dto}));
+
+    EXPECT_CALL(*mock_logger, LogWarning(testing::_, testing::_))
+        .Times(0);
+
+    EXPECT_CALL(*mock_logger, LogError(testing::_, testing::_))
+        .Times(0);
+
+    registry->RegisterEntity(BehavioralEntityHandle(), "test.json");
+
+    auto entity = registry->GetBehavioralEntityById(0);
+
+    EXPECT_EQ(0, registry->GetFrameworkEntitiesCount());
+    EXPECT_EQ(1, registry->GetBehavioralEntitiesCount());
+    EXPECT_EQ(0, entity->GetEntityId());
+    EXPECT_EQ(BehavioralEntityHandle(), entity->GetEntityHandle());
+    EXPECT_EQ("test_entity", entity->GetName());
+    EXPECT_EQ(15, entity->GetMemorySystem().GetMaxActionMemories());
+    EXPECT_EQ(10, entity->GetMemorySystem().GetMaxTransitionMemories());
+    EXPECT_EQ(5, entity->GetMemorySystem().GetMaxInterruptionMemories());
 }
 
 TEST_F(FrameworkRegistryTest, RegisterEntity_CreatesBehavioralEntityMapping)
 {
-    // Test registry has appropriate handle to id (and viceversa) mappings
-    GTEST_SKIP() << "Test not yet implemented";
+    auto entity_dto = CreateBasicBehavioralEntityDto(0);
+
+    EXPECT_CALL(*mock_json_loader, ProcessSingleEntityConfigFile("test.json"))
+        .WillOnce(testing::Return(std::optional{entity_dto}));
+
+    EXPECT_CALL(*mock_logger, LogWarning(testing::_, testing::_))
+        .Times(0);
+
+    EXPECT_CALL(*mock_logger, LogError(testing::_, testing::_))
+        .Times(0);
+
+    registry->RegisterEntity(BehavioralEntityHandle(), "test.json");
+
+    auto entity = registry->GetBehavioralEntityById(0);
+
+    EXPECT_EQ(entity->GetEntityHandle(), registry->GetHandleFromBehavioralId(entity->GetEntityId()));
+    EXPECT_EQ(entity->GetEntityId(), registry->GetBehavioralIdFromHandle(entity->GetEntityHandle()));
 }
 
 TEST_F(FrameworkRegistryTest, RegisterEntity_InvalidEntityType_LogsWarningAndReturns)

@@ -4,6 +4,7 @@
 
 #include "behavior/Action.h"
 #include "behavior/Sequence.h"
+#include "entity/FrameworkEntity.h"
 
 namespace AmbientCharacterBehavior {
 class IFrameworkRegistry {
@@ -18,5 +19,11 @@ public:
     virtual std::shared_ptr<Sequence> GetSequenceById(int32_t sequence_id) const = 0;
     virtual bool HasAction(int32_t action_id) const = 0;
     virtual std::shared_ptr<Action> GetActionById(int32_t action_id) const = 0;
+
+    virtual bool HasFrameworkEntity(int32_t entity_id) const = 0;
+    virtual FrameworkEntity* GetFrameworkEntityById(int32_t entity_id) const = 0;
+
+    virtual bool HasBehavioralEntity(int32_t entity_id) const = 0;
+    virtual FrameworkEntity* GetBehavioralEntityById(int32_t entity_id) const = 0;
 };
 }
