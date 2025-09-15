@@ -89,12 +89,47 @@ private:
     void GenerateFrameworkEntityIdAndHandleMapping(const FrameworkEntity* framework_entity);
     void ConfigureFrameworkEntityWithDto(const std::unique_ptr<FrameworkEntity> &new_entity, const FrameworkEntityDto &entity_dto) const;
 
-    void AddAcceptedActionsToEntity(const std::vector<int32_t> &accepted_actions_ids, const std::unique_ptr<FrameworkEntity> &new_entity) const;
-    void AddInitialStateMapToEntity(const std::unordered_map<std::string, int32_t> &initial_state, const std::unique_ptr<FrameworkEntity> &new_entity) const;
+    template<typename T>
+    void AddAcceptedActionsToEntity(const std::vector<int32_t> &accepted_actions_ids, const std::unique_ptr<T> &new_entity) const
+    {
+        {
+            for (const auto& action_id : accepted_actions_ids)
+            {
+                if (HasAction(action_id))
+                {
+                    new_entity->AddSupportedAction(action_id);
+                }
+                else
+                {
+                    logger.LogWarning("Action with id" + std::to_string(action_id) + " does not exist.",
+                        "FrameworkRegistry");
+                }
+            }
+        }
+    }
+
+    template<typename T>
+    void AddInitialStateMapToEntity(const std::unordered_map<std::string, int32_t> &initial_state, const std::unique_ptr<T> &new_entity) const
+    {
+        for (const auto& state_pair : initial_state)
+        {
+            try
+            {
+                auto state_key = state_schema.GetStateKey(state_pair.first);
+                new_entity->SetStateValue(state_key, state_pair.second);
+            }
+            catch (const std::exception &e)
+            {
+                logger.LogWarning("State '" + state_pair.first + "' does not exist.",
+                    "FrameworkRegistry");
+            }
+        }
+    }
 
     BehavioralEntity* GenerateBehavioralEntityFromDto(void* entity_handle, std::optional<BehavioralEntityDto> entity_dto);
     void GenerateBehavioralEntityIdAndHandleMapping(const BehavioralEntity* behavioral_entity);
     void ConfigureBehavioralEntityWithDto(const std::unique_ptr<BehavioralEntity> &new_entity, const BehavioralEntityDto &entity_dto) const;
+
 
 };
 }

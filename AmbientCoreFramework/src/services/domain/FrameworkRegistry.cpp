@@ -346,41 +346,6 @@ void FrameworkRegistry::ConfigureFrameworkEntityWithDto(const std::unique_ptr<Fr
     AddInitialStateMapToEntity(entity_dto.initial_state, new_entity);
 }
 
-void FrameworkRegistry::AddAcceptedActionsToEntity(const std::vector<int32_t> &accepted_actions_ids,
-    const std::unique_ptr<FrameworkEntity> &new_entity) const
-{
-    for (const auto& action_id : accepted_actions_ids)
-    {
-        if (HasAction(action_id))
-        {
-            new_entity->AddSupportedAction(action_id);
-        }
-        else
-        {
-            logger.LogWarning("Action with id" + std::to_string(action_id) + " does not exist.",
-                "FrameworkRegistry");
-        }
-    }
-}
-
-void FrameworkRegistry::AddInitialStateMapToEntity(const std::unordered_map<std::string, int32_t> &initial_state,
-    const std::unique_ptr<FrameworkEntity> &new_entity) const
-{
-    for (const auto& state_pair : initial_state)
-    {
-        try
-        {
-            auto state_key = state_schema.GetStateKey(state_pair.first);
-            new_entity->SetStateValue(state_key, state_pair.second);
-        }
-        catch (const std::exception &e)
-        {
-            logger.LogWarning("State '" + state_pair.first + "' does not exist.",
-                "FrameworkRegistry");
-        }
-    }
-}
-
 BehavioralEntity * FrameworkRegistry::GenerateBehavioralEntityFromDto(void *entity_handle,
                                                                       std::optional<BehavioralEntityDto> entity_dto)
 {
@@ -442,7 +407,14 @@ void FrameworkRegistry::GenerateBehavioralEntityIdAndHandleMapping(const Behavio
 void FrameworkRegistry::ConfigureBehavioralEntityWithDto(const std::unique_ptr<BehavioralEntity> &new_entity,
     const BehavioralEntityDto &entity_dto) const
 {
-    //TODO: Implement
+    AddAcceptedActionsToEntity(entity_dto.base_properties.accepted_actions_ids, new_entity);
+    AddInitialStateMapToEntity(entity_dto.base_properties.initial_state, new_entity);
+
+    new_entity->SetMainSequence(GetSequenceById(entity_dto.main_sequence_id));
+
+    // Add fallback sequences
+
+    // Add interruption handlers
 }
 
 void FrameworkRegistry::UnregisterEntity(void *entity_handle)
@@ -458,7 +430,7 @@ std::shared_ptr<Sequence> FrameworkRegistry::GetSequenceById(int32_t sequence_id
 {
     if (!HasSequence(sequence_id))
     {
-        logger.LogWarning("Sequence with id: " + std::to_string(sequence_id) + "is not in the registry",
+        logger.LogWarning("Sequence with id: " + std::to_string(sequence_id) + " is not in the registry",
             "FrameworkRegistry");
         return nullptr;
     }

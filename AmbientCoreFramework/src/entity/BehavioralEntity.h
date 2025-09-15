@@ -40,5 +40,9 @@ public:
 
     const MemorySystem& GetMemorySystem() const { return memory; }
 
+    void SetMainSequence(const std::shared_ptr<Sequence> &new_sequence) { main_sequence = new_sequence; }
+
+    const std::shared_ptr<Sequence>& GetMainSequence() const { return main_sequence; }
+
 };
 }

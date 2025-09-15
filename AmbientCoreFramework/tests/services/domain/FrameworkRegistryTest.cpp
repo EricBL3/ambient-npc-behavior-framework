@@ -139,10 +139,28 @@ protected:
         BehavioralEntityDto behavioral_entity_dto;
         behavioral_entity_dto.base_properties = base_entity.framework_entity.value();
         behavioral_entity_dto.memory_limits = memory_limits;
+        behavioral_entity_dto.main_sequence_id = 0;
 
         entity_dto.behavioral_entity = behavioral_entity_dto;
 
         return entity_dto;
+    }
+
+    EntityDtoResult CreateComplexBehavioralEntityDto(int32_t entity_id)
+    {
+        auto base_entity = CreateBasicBehavioralEntityDto(entity_id);
+
+        base_entity.behavioral_entity->base_properties.accepted_actions_ids = {0};
+        base_entity.behavioral_entity->base_properties.initial_state = {
+            {"AVAILABLE_SEATS", 3},
+        };
+
+        base_entity.behavioral_entity->fallback_sequences = {1};
+        base_entity.behavioral_entity->interruption_handlers = {
+            {"RAINING", 2},
+        };
+
+        return base_entity;
     }
 };
 
@@ -372,6 +390,12 @@ TEST_F(FrameworkRegistryTest, RegisterEntity_CreatesFrameworkEntityMapping)
 
 TEST_F(FrameworkRegistryTest, RegisterEntity_AddsBehavioralEntityToRegistry)
 {
+    auto sequence_dto_0 = CreateBasicSequenceDto(0);
+    EXPECT_CALL(*mock_json_loader, ProcessSequencesConfigFile("test.json"))
+        .WillOnce(testing::Return(std::vector{sequence_dto_0}));
+
+    registry->RegisterSequences("test.json");
+
     auto entity_dto = CreateBasicBehavioralEntityDto(0);
 
     EXPECT_CALL(*mock_json_loader, ProcessSingleEntityConfigFile("test.json"))
@@ -399,6 +423,12 @@ TEST_F(FrameworkRegistryTest, RegisterEntity_AddsBehavioralEntityToRegistry)
 
 TEST_F(FrameworkRegistryTest, RegisterEntity_CreatesBehavioralEntityMapping)
 {
+    auto sequence_dto_0 = CreateBasicSequenceDto(0);
+    EXPECT_CALL(*mock_json_loader, ProcessSequencesConfigFile("test.json"))
+        .WillOnce(testing::Return(std::vector{sequence_dto_0}));
+
+    registry->RegisterSequences("test.json");
+
     auto entity_dto = CreateBasicBehavioralEntityDto(0);
 
     EXPECT_CALL(*mock_json_loader, ProcessSingleEntityConfigFile("test.json"))
@@ -642,34 +672,116 @@ TEST_F(FrameworkRegistryTest, RegisterEntity_ComplexFrameworkEntity_LogsWarningA
 
 // REGISTER COMPLEX BEHAVIORAL ENTITY TESTS
 
-TEST_F(FrameworkRegistryTest, RegisterEntity_ComplexBehavioralEntity_RegistersValidActionIds)
+TEST_F(FrameworkRegistryTest, RegisterEntity_ComplexBehavioralEntity_ConfiguresCorrectly)
 {
-    // Test supported_actions_ids matches the ones in the dto
-    GTEST_SKIP() << "Test not yet implemented";
+    auto action_dto = CreateBasicActionDto(0);
+    EXPECT_CALL(*mock_json_loader, ProcessActionsConfigFile("test.json"))
+        .WillOnce(testing::Return(std::vector{action_dto}));
+
+    registry->RegisterActions("test.json");
+
+    auto sequence_dto_0 = CreateBasicSequenceDto(0);
+    auto sequence_dto_1 = CreateBasicSequenceDto(1);
+    auto sequence_dto_2 = CreateBasicSequenceDto(2);
+    EXPECT_CALL(*mock_json_loader, ProcessSequencesConfigFile("test.json"))
+        .WillOnce(testing::Return(std::vector{sequence_dto_0, sequence_dto_1, sequence_dto_2}));
+
+    registry->RegisterSequences("test.json");
+
+    auto entity_dto = CreateComplexBehavioralEntityDto(0);
+
+    EXPECT_CALL(*mock_json_loader, ProcessSingleEntityConfigFile("test.json"))
+        .WillOnce(testing::Return(std::optional{entity_dto}));
+
+    EXPECT_CALL(*mock_logger, LogWarning(testing::_, testing::_))
+        .Times(0);
+
+    EXPECT_CALL(*mock_logger, LogError(testing::_, testing::_))
+        .Times(0);
+
+    EXPECT_CALL(*mock_state_schema, GetStateKey("AVAILABLE_SEATS"))
+         .WillOnce(testing::Return(0));
+
+    registry->RegisterEntity(BehavioralEntityHandle(), "test.json");
+
+    auto framework_entity = registry->GetBehavioralEntityById(0);
+
+    EXPECT_EQ(0, registry->GetFrameworkEntitiesCount());
+    EXPECT_EQ(1, registry->GetBehavioralEntitiesCount());
+    EXPECT_EQ(1, framework_entity->GetSupportedActionsIds().size());
+    EXPECT_EQ(3, framework_entity->GetStateValue(0));
+    EXPECT_EQ(registry->GetSequenceById(0), framework_entity->GetMainSequence());
 }
 
 TEST_F(FrameworkRegistryTest, RegisterEntity_ComplexBehavioralEntity_LogsWarningAndSkipsInvalidActionIds)
 {
-    // Test that supported_actions_ids does not include additional ids not in registry
-    GTEST_SKIP() << "Test not yet implemented";
-}
+    auto sequence_dto_0 = CreateBasicSequenceDto(0);
+    EXPECT_CALL(*mock_json_loader, ProcessSequencesConfigFile("test.json"))
+        .WillOnce(testing::Return(std::vector{sequence_dto_0}));
 
-TEST_F(FrameworkRegistryTest, RegisterEntity_ComplexBehavioralEntity_GeneratesStateMap)
-{
-    // Test that state matches the mapping in the dto
-    GTEST_SKIP() << "Test not yet implemented";
-}
+    registry->RegisterSequences("test.json");
 
-TEST_F(FrameworkRegistryTest, RegisterEntity_ComplexBehavioralEntity_SetsValidMainSequence)
-{
-    // Test main sequence is set and matches the one in registry
-    GTEST_SKIP() << "Test not yet implemented";
+    // Test supported_actions_ids matches the ones in the dto
+    auto entity_dto = CreateComplexBehavioralEntityDto(0);
+
+    EXPECT_CALL(*mock_json_loader, ProcessSingleEntityConfigFile("test.json"))
+        .WillOnce(testing::Return(std::optional{entity_dto}));
+
+    EXPECT_CALL(*mock_logger, LogWarning(
+       testing::HasSubstr("does not exist."),
+       "FrameworkRegistry"))
+       .Times(1);
+
+    EXPECT_CALL(*mock_state_schema, GetStateKey("AVAILABLE_SEATS"))
+         .WillOnce(testing::Return(0));
+
+    registry->RegisterEntity(BehavioralEntityHandle(), "test.json");
+
+    auto framework_entity = registry->GetBehavioralEntityById(0);
+
+    EXPECT_EQ(0, registry->GetFrameworkEntitiesCount());
+    EXPECT_EQ(1, registry->GetBehavioralEntitiesCount());
+    EXPECT_EQ(0, framework_entity->GetSupportedActionsIds().size());
+    EXPECT_EQ(3, framework_entity->GetStateValue(0));
 }
 
 TEST_F(FrameworkRegistryTest, RegisterEntity_ComplexBehavioralEntity_LogsWarningAndSkipsInvalidMainSequence)
 {
-    // Test main sequence is not set
-    GTEST_SKIP() << "Test not yet implemented";
+    auto action_dto = CreateBasicActionDto(0);
+    EXPECT_CALL(*mock_json_loader, ProcessActionsConfigFile("test.json"))
+        .WillOnce(testing::Return(std::vector{action_dto}));
+
+    registry->RegisterActions("test.json");
+
+    auto sequence_dto_1 = CreateBasicSequenceDto(1);
+    auto sequence_dto_2 = CreateBasicSequenceDto(2);
+    EXPECT_CALL(*mock_json_loader, ProcessSequencesConfigFile("test.json"))
+        .WillOnce(testing::Return(std::vector{sequence_dto_1, sequence_dto_2}));
+
+    registry->RegisterSequences("test.json");
+
+    auto entity_dto = CreateComplexBehavioralEntityDto(0);
+
+    EXPECT_CALL(*mock_json_loader, ProcessSingleEntityConfigFile("test.json"))
+        .WillOnce(testing::Return(std::optional{entity_dto}));
+
+    EXPECT_CALL(*mock_logger, LogWarning(
+       testing::HasSubstr("is not in the registry"),
+       "FrameworkRegistry"))
+       .Times(1);
+
+    EXPECT_CALL(*mock_state_schema, GetStateKey("AVAILABLE_SEATS"))
+         .WillOnce(testing::Return(0));
+
+    registry->RegisterEntity(BehavioralEntityHandle(), "test.json");
+
+    auto framework_entity = registry->GetBehavioralEntityById(0);
+
+    EXPECT_EQ(0, registry->GetFrameworkEntitiesCount());
+    EXPECT_EQ(1, registry->GetBehavioralEntitiesCount());
+    EXPECT_EQ(1, framework_entity->GetSupportedActionsIds().size());
+    EXPECT_EQ(3, framework_entity->GetStateValue(0));
+    EXPECT_EQ(nullptr, framework_entity->GetMainSequence());
 }
 
 TEST_F(FrameworkRegistryTest, RegisterEntity_ComplexBehavioralEntity_SetsValidFallbackSequences)
