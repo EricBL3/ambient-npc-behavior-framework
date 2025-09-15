@@ -96,6 +96,9 @@ private:
     void AddFallbackSequencesToEntity(const std::vector<int32_t> &fallback_sequences, const std::unique_ptr<BehavioralEntity> &new_entity) const;
     void AddInterruptionHandlersToEntity(const std::unordered_map<std::string, int32_t> &interruption_handlers, const std::unique_ptr<BehavioralEntity> &new_entity) const;
 
+    bool UnregisterFrameworkEntity(void* entity_handle);
+    bool UnregisterBehavioralEntity(void* entity_handle);
+
     template<typename T>
     void AddAcceptedActionsToEntity(const std::vector<int32_t> &accepted_actions_ids, const std::unique_ptr<T> &new_entity) const
     {

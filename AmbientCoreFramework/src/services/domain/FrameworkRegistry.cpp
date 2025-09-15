@@ -446,6 +446,51 @@ void FrameworkRegistry::AddInterruptionHandlersToEntity(const std::unordered_map
 
 void FrameworkRegistry::UnregisterEntity(void *entity_handle)
 {
+    if (!entity_handle)
+    {
+        logger.LogWarning("Cannot unregister entity with null handle", "FrameworkRegistry");
+        return;
+    }
+
+    if (UnregisterFrameworkEntity(entity_handle))
+    {
+        return;
+    }
+
+    if (UnregisterBehavioralEntity(entity_handle))
+    {
+        return;
+    }
+
+    logger.LogWarning("Entity with passed handle does not exist", "FrameworkRegistry");
+}
+
+bool FrameworkRegistry::UnregisterFrameworkEntity(void* entity_handle)
+{
+    auto framework_id = GetFrameworkIdFromHandle(entity_handle);
+    if (framework_id != -1) {
+        handle_to_framework_id.erase(entity_handle);
+        framework_id_to_handle.erase(framework_id);
+        framework_entities.erase(framework_id);
+        logger.LogInfo("Successfully unregistered framework entity with ID: " + std::to_string(framework_id), "FrameworkRegistry");
+        return true;
+    }
+
+    return false;
+}
+
+bool FrameworkRegistry::UnregisterBehavioralEntity(void* entity_handle)
+{
+    auto behavioral_id = GetBehavioralIdFromHandle(entity_handle);
+    if (behavioral_id != -1) {
+        handle_to_behavioral_id.erase(entity_handle);
+        behavioral_id_to_handle.erase(behavioral_id);
+        behavioral_entities.erase(behavioral_id);
+        logger.LogInfo("Successfully unregistered behavioral entity with ID: " + std::to_string(behavioral_id), "FrameworkRegistry");
+        return true;
+    }
+
+    return false;
 }
 
 bool FrameworkRegistry::HasSequence(int32_t sequence_id) const

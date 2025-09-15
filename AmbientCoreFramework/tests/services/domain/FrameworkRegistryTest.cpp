@@ -866,3 +866,163 @@ TEST_F(FrameworkRegistryTest, RegisterEntity_ComplexBehavioralEntity_LogsWarning
     EXPECT_EQ(true, framework_entity->HasFallbackSequence(1));
     EXPECT_EQ(nullptr, framework_entity->FindInterruptionHandler(0));
 }
+
+// UNREGISTER ENTITY TESTS
+
+TEST_F(FrameworkRegistryTest, UnregisterEntity_RemovesFrameworkEntity) {
+    auto entity_dto = CreateBasicFrameworkEntityDto(0);
+
+    EXPECT_CALL(*mock_json_loader, ProcessSingleEntityConfigFile("test.json"))
+        .WillOnce(testing::Return(std::optional{entity_dto}));
+
+    registry->RegisterEntity(FrameworkEntityHandle(), "test.json");
+
+    EXPECT_EQ(1, registry->GetFrameworkEntitiesCount());
+
+    EXPECT_CALL(*mock_logger, LogWarning(testing::_, testing::_))
+    .Times(0);
+
+    EXPECT_CALL(*mock_logger, LogError(testing::_, testing::_))
+        .Times(0);
+
+    registry->UnregisterEntity(FrameworkEntityHandle());
+
+    EXPECT_EQ(0, registry->GetFrameworkEntitiesCount());
+    EXPECT_EQ(-1, registry->GetFrameworkIdFromHandle(FrameworkEntityHandle()));
+    EXPECT_EQ(nullptr, registry->GetHandleFromFrameworkId(0));
+}
+
+TEST_F(FrameworkRegistryTest, UnregisterEntity_RemovesBehavioralEntity) {
+    auto sequence_dto_0 = CreateBasicSequenceDto(0);
+    EXPECT_CALL(*mock_json_loader, ProcessSequencesConfigFile("test.json"))
+        .WillOnce(testing::Return(std::vector{sequence_dto_0}));
+
+    registry->RegisterSequences("test.json");
+
+    auto entity_dto = CreateBasicBehavioralEntityDto(0);
+
+    EXPECT_CALL(*mock_json_loader, ProcessSingleEntityConfigFile("test.json"))
+        .WillOnce(testing::Return(std::optional{entity_dto}));
+
+    registry->RegisterEntity(BehavioralEntityHandle(), "test.json");
+
+    EXPECT_EQ(1, registry->GetBehavioralEntitiesCount());
+
+    EXPECT_CALL(*mock_logger, LogWarning(testing::_, testing::_))
+        .Times(0);
+
+    EXPECT_CALL(*mock_logger, LogError(testing::_, testing::_))
+        .Times(0);
+
+    registry->UnregisterEntity(BehavioralEntityHandle());
+
+    EXPECT_EQ(0, registry->GetBehavioralEntitiesCount());
+    EXPECT_EQ(-1, registry->GetBehavioralIdFromHandle(BehavioralEntityHandle()));
+    EXPECT_EQ(nullptr, registry->GetHandleFromBehavioralId(0));
+}
+
+TEST_F(FrameworkRegistryTest, UnregisterEntity_LogsWarningOnNullHandle) {
+    auto entity_dto = CreateBasicFrameworkEntityDto(0);
+
+    EXPECT_CALL(*mock_json_loader, ProcessSingleEntityConfigFile("test.json"))
+        .WillOnce(testing::Return(std::optional{entity_dto}));
+
+    registry->RegisterEntity(FrameworkEntityHandle(), "test.json");
+
+    EXPECT_EQ(1, registry->GetFrameworkEntitiesCount());
+
+    EXPECT_CALL(*mock_logger, LogWarning(
+       testing::HasSubstr("Cannot unregister entity with null handle"),
+       "FrameworkRegistry"))
+       .Times(1);
+
+    registry->UnregisterEntity(nullptr);
+
+    EXPECT_EQ(1, registry->GetFrameworkEntitiesCount());
+}
+
+TEST_F(FrameworkRegistryTest, UnregisterEntity_LogsWarningOnInexistentHandle) {
+    auto entity_dto = CreateBasicFrameworkEntityDto(0);
+
+    EXPECT_CALL(*mock_json_loader, ProcessSingleEntityConfigFile("test.json"))
+        .WillOnce(testing::Return(std::optional{entity_dto}));
+
+    registry->RegisterEntity(FrameworkEntityHandle(), "test.json");
+
+    EXPECT_EQ(1, registry->GetFrameworkEntitiesCount());
+
+    EXPECT_CALL(*mock_logger, LogWarning(
+       testing::HasSubstr("Entity with passed handle does not exist"),
+       "FrameworkRegistry"))
+       .Times(1);
+
+    registry->UnregisterEntity(BehavioralEntityHandle());
+
+    EXPECT_EQ(1, registry->GetFrameworkEntitiesCount());
+}
+
+TEST_F(FrameworkRegistryTest, UnregisterEntity_CanRegisterFrameworkEntityAgain) {
+    auto entity_dto = CreateBasicFrameworkEntityDto(0);
+
+    EXPECT_CALL(*mock_json_loader, ProcessSingleEntityConfigFile("test.json"))
+        .WillOnce(testing::Return(std::optional{entity_dto}));
+
+    registry->RegisterEntity(FrameworkEntityHandle(), "test.json");
+    EXPECT_EQ(1, registry->GetFrameworkEntitiesCount());
+
+    registry->UnregisterEntity(FrameworkEntityHandle());
+    EXPECT_EQ(0, registry->GetFrameworkEntitiesCount());
+
+    entity_dto.framework_entity->entity_name = "register_framework_entity_again";
+
+    EXPECT_CALL(*mock_json_loader, ProcessSingleEntityConfigFile("test.json"))
+        .WillOnce(testing::Return(std::optional{entity_dto}));
+
+    EXPECT_CALL(*mock_logger, LogWarning(testing::_, testing::_))
+    .Times(0);
+
+    EXPECT_CALL(*mock_logger, LogError(testing::_, testing::_))
+        .Times(0);
+
+    registry->RegisterEntity(FrameworkEntityHandle(), "test.json");
+    auto framework_entity = registry->GetFrameworkEntityById(0);
+
+    EXPECT_EQ(1, registry->GetFrameworkEntitiesCount());
+    EXPECT_EQ("register_framework_entity_again", framework_entity->GetName());
+
+}
+
+TEST_F(FrameworkRegistryTest, UnregisterEntity_CanRegisterBehavioralEntityAgain) {
+    auto sequence_dto_0 = CreateBasicSequenceDto(0);
+    EXPECT_CALL(*mock_json_loader, ProcessSequencesConfigFile("test.json"))
+        .WillOnce(testing::Return(std::vector{sequence_dto_0}));
+
+    registry->RegisterSequences("test.json");
+    auto entity_dto = CreateBasicBehavioralEntityDto(0);
+
+    EXPECT_CALL(*mock_json_loader, ProcessSingleEntityConfigFile("test.json"))
+        .WillOnce(testing::Return(std::optional{entity_dto}));
+
+    registry->RegisterEntity(BehavioralEntityHandle(), "test.json");
+    EXPECT_EQ(1, registry->GetBehavioralEntitiesCount());
+
+    registry->UnregisterEntity(BehavioralEntityHandle());
+    EXPECT_EQ(0, registry->GetBehavioralEntitiesCount());
+
+    entity_dto.behavioral_entity->base_properties.entity_name = "register_behavioral_entity_again";
+
+    EXPECT_CALL(*mock_json_loader, ProcessSingleEntityConfigFile("test.json"))
+        .WillOnce(testing::Return(std::optional{entity_dto}));
+
+    EXPECT_CALL(*mock_logger, LogWarning(testing::_, testing::_))
+        .Times(0);
+
+    EXPECT_CALL(*mock_logger, LogError(testing::_, testing::_))
+        .Times(0);
+
+    registry->RegisterEntity(BehavioralEntityHandle(), "test.json");
+    auto framework_entity = registry->GetBehavioralEntityById(0);
+
+    EXPECT_EQ(1, registry->GetBehavioralEntitiesCount());
+    EXPECT_EQ("register_behavioral_entity_again", framework_entity->GetName());
+}
