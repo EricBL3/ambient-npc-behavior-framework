@@ -7,6 +7,7 @@
 #include "behavior/Sequence.h"
 #include "entity/BehavioralEntity.h"
 #include "entity/FrameworkEntity.h"
+#include "interfaces/IEnvironmentalConditionManager.h"
 #include "interfaces/IFrameworkRegistry.h"
 #include "interfaces/IJsonLoader.h"
 #include "interfaces/ILogger.h"
@@ -29,10 +30,12 @@ private:
     ILogger& logger;
     IJsonLoader& json_loader;
     IStateSchemaManager& state_schema;
+    IEnvironmentalConditionManager& environment_manager;
 
 public:
-    explicit FrameworkRegistry(ILogger& logger, IJsonLoader& json_loader, IStateSchemaManager& state_schema) :
-        logger(logger), json_loader(json_loader), state_schema(state_schema) {}
+    explicit FrameworkRegistry(ILogger& logger, IJsonLoader& json_loader, IStateSchemaManager& state_schema,
+        IEnvironmentalConditionManager& environment_manager) :
+        logger(logger), json_loader(json_loader), state_schema(state_schema), environment_manager(environment_manager) {}
 
     void RegisterSequences(const std::string& config_file_path) override;
     void RegisterActions(const std::string& config_file_path) override;

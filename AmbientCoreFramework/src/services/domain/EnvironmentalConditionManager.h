@@ -18,6 +18,8 @@ namespace AmbientCharacterBehavior {
  */
 class EnvironmentalConditionManager : public IEnvironmentalConditionManager {
     std::unordered_map<int32_t, EnvironmentalCondition> environmental_conditions_cache;
+    std::unordered_map<std::string, int32_t> condition_name_to_key;
+    std::unordered_map<int32_t, std::string> condition_key_to_name;
 
 public:
     explicit EnvironmentalConditionManager(ILogger& logger, ITimeManager& time_manager, IJsonLoader& json_loader,
@@ -25,6 +27,8 @@ public:
         logger(logger), time_manager(time_manager), json_loader(json_loader), provider(provider) {}
 
     void RegisterEnvironmentalConditions(const std::string& config_file_path) override;
+    int32_t GetEnvironmentalConditionKey(const std::string& state_name) override;
+    std::string GetEnvironmentalConditionName(int32_t state_key) override;
 
     /**
      * @brief Updates the value of the condition by querying the engine.
@@ -44,6 +48,9 @@ private:
     ITimeManager& time_manager;
     IJsonLoader& json_loader;
     IEnvironmentalConditionProvider& provider;
+
+    void LoadConditionSchema(const std::vector<EnvironmentalConditionDto> & condition_dtos);
+    bool IsValidForCreation(const std::string &name, int32_t key);
 
     void CreateEnvironmentalConditions(const std::vector<EnvironmentalConditionDto>& condition_dtos);
     bool IsValidForCreation(const EnvironmentalConditionDto& dto);

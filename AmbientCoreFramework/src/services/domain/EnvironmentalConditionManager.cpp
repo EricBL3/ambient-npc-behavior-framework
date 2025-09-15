@@ -15,6 +15,7 @@ void EnvironmentalConditionManager::RegisterEnvironmentalConditions(const std::s
         }
 
         CreateEnvironmentalConditions(condition_dtos);
+        LoadConditionSchema(condition_dtos);
 
         logger.LogInfo("Successfully registered " + std::to_string(environmental_conditions_cache.size()) +
              " environmental conditions", "EnvironmentalConditionManager");
@@ -24,6 +25,71 @@ void EnvironmentalConditionManager::RegisterEnvironmentalConditions(const std::s
         logger.LogError("Unexpected error loading environmental conditions: " + std::string(e.what()),
              "EnvironmentalConditionManager");
     }
+}
+
+void EnvironmentalConditionManager::LoadConditionSchema(const std::vector<EnvironmentalConditionDto> & condition_dtos)
+{
+    if (condition_dtos.empty())
+    {
+        return;
+    }
+
+    for (const auto& dto : condition_dtos)
+    {
+        auto name = dto.name;
+        auto key = dto.condition_key;
+        if (IsValidForCreation(name, key))
+        {
+            condition_name_to_key[name] = key;
+            condition_key_to_name[key] = name;
+        }
+    }
+}
+
+bool EnvironmentalConditionManager::IsValidForCreation(const std::string &name, int32_t key)
+{
+    if (name.empty()) {
+        logger.LogWarning("name cannot be empty for key: " + std::to_string(key),
+                         "EnvironmentalConditionManager");
+        return false;
+    }
+
+    if (key < 0) {
+        logger.LogWarning("key cannot be negative, got: " + std::to_string(key) +
+                         " for state: " + name, "EnvironmentalConditionManager");
+        return false;
+    }
+
+    if (condition_name_to_key.find(name) != condition_name_to_key.end()) {
+        logger.LogWarning("Duplicate name: " + name, "EnvironmentalConditionManager");
+        return false;
+    }
+
+    if (condition_key_to_name.find(key) != condition_key_to_name.end()) {
+        logger.LogWarning("Duplicate key: " + std::to_string(key) + " for state: " + name,
+             "EnvironmentalConditionManager");
+
+        return false;
+    }
+
+    return true;
+}
+
+/**
+ * @throw std::out_of_range if name is not in the schema.
+ */
+int32_t EnvironmentalConditionManager::GetEnvironmentalConditionKey(const std::string &name)
+{
+    return condition_name_to_key.at(name);
+}
+
+
+/**
+ * @throw std::out_of_range if key is not in the schema.
+ */
+std::string EnvironmentalConditionManager::GetEnvironmentalConditionName(int32_t key)
+{
+    return condition_key_to_name.at(key);
 }
 
 void EnvironmentalConditionManager::UpdateEnvironmentalCondition(int32_t condition_key)

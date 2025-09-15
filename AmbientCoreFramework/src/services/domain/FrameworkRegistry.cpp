@@ -132,8 +132,7 @@ StateOperation FrameworkRegistry::GenerateStateOperationFromDto(const StateOpera
     if (dto_state_operation.target_id_name == "ENVIRONMENT")
     {
         target_id = -2;
-        //TODO: get state key from environmental manager or from schema
-        state_key = -1; //environment_manager.GetStateKey(dto_state_operation.state_key_name);
+        state_key = environment_manager.GetEnvironmentalConditionKey(dto_state_operation.state_key_name);
     }
     else if (dto_state_operation.target_id_name == "SELF")
     {

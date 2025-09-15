@@ -1,5 +1,6 @@
 #include <gtest/gtest.h>
 
+#include "../../mocks/MockEnvironmentalConditionManager.h"
 #include "../../mocks/MockJsonLoader.h"
 #include "../../mocks/MockLogger.h"
 #include "../../mocks/MockStateSchemaManager.h"
@@ -12,6 +13,7 @@ protected:
     std::unique_ptr<MockLogger> mock_logger;
     std::unique_ptr<MockJsonLoader> mock_json_loader;
     std::unique_ptr<MockStateSchemaManager> mock_state_schema;
+    std::unique_ptr<MockEnvironmentalConditionManager> mock_environment_manager;
 
     std::unique_ptr<FrameworkRegistry> registry;
     int framework_entity_handle = 100;
@@ -21,8 +23,10 @@ protected:
         mock_logger = std::make_unique<MockLogger>();
         mock_json_loader = std::make_unique<MockJsonLoader>();
         mock_state_schema = std::make_unique<MockStateSchemaManager>();
+        mock_environment_manager = std::make_unique<MockEnvironmentalConditionManager>();
 
-        registry = std::make_unique<FrameworkRegistry>(*mock_logger, *mock_json_loader, *mock_state_schema);
+        registry = std::make_unique<FrameworkRegistry>(*mock_logger, *mock_json_loader, *mock_state_schema,
+            *mock_environment_manager);
     }
 
     SequenceDto CreateBasicSequenceDto(int32_t sequence_id)
@@ -88,6 +92,21 @@ protected:
         precondition.target_id_name = "ENTITY";
         precondition.state_key_name = "AVAILABLE_SEATS";
         precondition.operation_name = "GREATER_THAN";
+        precondition.parameters = {0};
+
+        action_dto.preconditions.push_back(precondition);
+
+        return action_dto;
+    }
+
+    ActionDto CreateActionDtoWithEnvironmentPrecondition(int32_t action_id)
+    {
+        auto action_dto = CreateBasicActionDto(action_id);
+
+        StateOperationDto precondition;
+        precondition.target_id_name = "ENVIRONMENT";
+        precondition.state_key_name = "WEATHER";
+        precondition.operation_name = "EQUALS";
         precondition.parameters = {0};
 
         action_dto.preconditions.push_back(precondition);
@@ -166,7 +185,8 @@ protected:
 
 // Constructor test
 TEST_F(FrameworkRegistryTest, Constructor_ValidServices_CreatesFrameworkRegistry) {
-    EXPECT_NO_THROW(FrameworkRegistry framework_registry(*mock_logger, *mock_json_loader, *mock_state_schema));
+    EXPECT_NO_THROW(FrameworkRegistry framework_registry(*mock_logger, *mock_json_loader, *mock_state_schema,
+        *mock_environment_manager));
 }
 
 // REGISTER SEQUENCES TESTS
@@ -339,6 +359,32 @@ TEST_F(FrameworkRegistryTest, RegisterActions_StateReference_CallsStateSchema) {
     EXPECT_EQ(0, preconditions[0].GetTargetId()); // ENTITY -> 0
     EXPECT_EQ(3, preconditions[0].GetStateKey());  // From StateSchema
     EXPECT_EQ(1, preconditions[0].GetOperation()); // GREATER_THAN
+    EXPECT_EQ(0, preconditions[0].GetParameters().front());
+}
+
+TEST_F(FrameworkRegistryTest, RegisterActions_EnvironmentReference_CallsEnvironmentSchema) {
+    auto sequence_dto = CreateActionDtoWithEnvironmentPrecondition(1);
+
+    EXPECT_CALL(*mock_json_loader, ProcessActionsConfigFile("test.json"))
+        .WillOnce(testing::Return(std::vector{sequence_dto}));
+
+    EXPECT_CALL(*mock_environment_manager, GetEnvironmentalConditionKey("WEATHER"))
+         .WillOnce(testing::Return(3));
+
+    EXPECT_CALL(*mock_logger, LogWarning(testing::_, testing::_))
+        .Times(0);
+
+    EXPECT_CALL(*mock_logger, LogError(testing::_, testing::_))
+        .Times(0);
+
+    registry->RegisterActions("test.json");
+
+    auto action = registry->GetActionById(1);
+    auto preconditions = action->GetPreconditions();
+    EXPECT_EQ(1, preconditions.size());
+    EXPECT_EQ(-2, preconditions[0].GetTargetId()); // ENVIRONMENT -> 0
+    EXPECT_EQ(3, preconditions[0].GetStateKey());  // From StateSchema
+    EXPECT_EQ(0, preconditions[0].GetOperation()); // GREATER_THAN
     EXPECT_EQ(0, preconditions[0].GetParameters().front());
 }
 
