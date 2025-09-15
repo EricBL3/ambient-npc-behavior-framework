@@ -616,8 +616,28 @@ TEST_F(FrameworkRegistryTest, RegisterEntity_ComplexFrameworkEntity_RegistersVal
 
 TEST_F(FrameworkRegistryTest, RegisterEntity_ComplexFrameworkEntity_LogsWarningAndSkipsInvalidActionIds)
 {
-    // Test that supported_actions_ids does not include additional ids not in registry
-    GTEST_SKIP() << "Test not yet implemented";
+    // Test supported_actions_ids matches the ones in the dto
+    auto entity_dto = CreateComplexFrameworkEntityDto(0);
+
+    EXPECT_CALL(*mock_json_loader, ProcessSingleEntityConfigFile("test.json"))
+        .WillOnce(testing::Return(std::optional{entity_dto}));
+
+    EXPECT_CALL(*mock_logger, LogWarning(
+       testing::HasSubstr("does not exist."),
+       "FrameworkRegistry"))
+       .Times(1);
+
+    EXPECT_CALL(*mock_state_schema, GetStateKey("AVAILABLE_SEATS"))
+         .WillOnce(testing::Return(0));
+
+    registry->RegisterEntity(FrameworkEntityHandle(), "test.json");
+
+    auto framework_entity = registry->GetFrameworkEntityById(0);
+
+    EXPECT_EQ(1, registry->GetFrameworkEntitiesCount());
+    EXPECT_EQ(0, registry->GetBehavioralEntitiesCount());
+    EXPECT_EQ(0, framework_entity->GetSupportedActionsIds().size());
+    EXPECT_EQ(3, framework_entity->GetStateValue(0));
 }
 
 // REGISTER COMPLEX BEHAVIORAL ENTITY TESTS
