@@ -413,8 +413,13 @@ void FrameworkRegistry::ConfigureBehavioralEntityWithDto(const std::unique_ptr<B
     new_entity->SetMainSequence(GetSequenceById(entity_dto.main_sequence_id));
 
     // Add fallback sequences
+    for (const auto& fallback_sequence_id : entity_dto.fallback_sequences)
+    {
+        new_entity->AddFallbackSequence(GetSequenceById(fallback_sequence_id));
+    }
 
     // Add interruption handlers
+
 }
 
 void FrameworkRegistry::UnregisterEntity(void *entity_handle)
