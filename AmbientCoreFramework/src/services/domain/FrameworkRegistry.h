@@ -89,8 +89,12 @@ private:
     void GenerateFrameworkEntityIdAndHandleMapping(const FrameworkEntity* framework_entity);
     void ConfigureFrameworkEntityWithDto(const std::unique_ptr<FrameworkEntity> &new_entity, const FrameworkEntityDto &entity_dto) const;
 
+    void AddAcceptedActionsToEntity(const std::vector<int32_t> &accepted_actions_ids, const std::unique_ptr<FrameworkEntity> &new_entity) const;
+    void AddInitialStateMapToEntity(const std::unordered_map<std::string, int32_t> &initial_state, const std::unique_ptr<FrameworkEntity> &new_entity) const;
+
     BehavioralEntity* GenerateBehavioralEntityFromDto(void* entity_handle, std::optional<BehavioralEntityDto> entity_dto);
     void GenerateBehavioralEntityIdAndHandleMapping(const BehavioralEntity* behavioral_entity);
     void ConfigureBehavioralEntityWithDto(const std::unique_ptr<BehavioralEntity> &new_entity, const BehavioralEntityDto &entity_dto) const;
+
 };
 }
