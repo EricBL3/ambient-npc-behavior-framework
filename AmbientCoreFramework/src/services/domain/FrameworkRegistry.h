@@ -89,6 +89,13 @@ private:
     void GenerateFrameworkEntityIdAndHandleMapping(const FrameworkEntity* framework_entity);
     void ConfigureFrameworkEntityWithDto(const std::unique_ptr<FrameworkEntity> &new_entity, const FrameworkEntityDto &entity_dto) const;
 
+    BehavioralEntity* GenerateBehavioralEntityFromDto(void* entity_handle, std::optional<BehavioralEntityDto> entity_dto);
+    void GenerateBehavioralEntityIdAndHandleMapping(const BehavioralEntity* behavioral_entity);
+    void ConfigureBehavioralEntityWithDto(const std::unique_ptr<BehavioralEntity> &new_entity, const BehavioralEntityDto &entity_dto) const;
+
+    void AddFallbackSequencesToEntity(const std::vector<int32_t> &fallback_sequences, const std::unique_ptr<BehavioralEntity> &new_entity) const;
+    void AddInterruptionHandlersToEntity(const std::unordered_map<std::string, int32_t> &interruption_handlers, const std::unique_ptr<BehavioralEntity> &new_entity) const;
+
     template<typename T>
     void AddAcceptedActionsToEntity(const std::vector<int32_t> &accepted_actions_ids, const std::unique_ptr<T> &new_entity) const
     {
@@ -125,11 +132,5 @@ private:
             }
         }
     }
-
-    BehavioralEntity* GenerateBehavioralEntityFromDto(void* entity_handle, std::optional<BehavioralEntityDto> entity_dto);
-    void GenerateBehavioralEntityIdAndHandleMapping(const BehavioralEntity* behavioral_entity);
-    void ConfigureBehavioralEntityWithDto(const std::unique_ptr<BehavioralEntity> &new_entity, const BehavioralEntityDto &entity_dto) const;
-
-
 };
 }

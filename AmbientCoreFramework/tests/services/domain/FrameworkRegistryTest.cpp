@@ -712,6 +712,7 @@ TEST_F(FrameworkRegistryTest, RegisterEntity_ComplexBehavioralEntity_ConfiguresC
     EXPECT_EQ(3, framework_entity->GetStateValue(0));
     EXPECT_EQ(registry->GetSequenceById(0), framework_entity->GetMainSequence());
     EXPECT_EQ(true, framework_entity->HasFallbackSequence(1));
+    EXPECT_EQ(2, framework_entity->FindInterruptionHandler(0)->GetSequenceId());
 }
 
 TEST_F(FrameworkRegistryTest, RegisterEntity_ComplexBehavioralEntity_LogsWarningAndSkipsInvalidActionIds)
@@ -826,15 +827,42 @@ TEST_F(FrameworkRegistryTest, RegisterEntity_ComplexBehavioralEntity_LogsWarning
     EXPECT_EQ(false, framework_entity->HasFallbackSequence(1));
 }
 
-
-TEST_F(FrameworkRegistryTest, RegisterEntity_ComplexBehavioralEntity_LogsWarningAndSkipsInvalidInterruptionHandlerNameMapping)
-{
-    // Tests interruption handler mapping does not contain invalid names
-    GTEST_SKIP() << "Test not yet implemented";
-}
-
 TEST_F(FrameworkRegistryTest, RegisterEntity_ComplexBehavioralEntity_LogsWarningAndSkipsInvalidInterruptionHandlerSequenceMapping)
 {
-    // Tests interruption handler mapping does not contain invalid sequences
-    GTEST_SKIP() << "Test not yet implemented";
+    auto action_dto = CreateBasicActionDto(0);
+    EXPECT_CALL(*mock_json_loader, ProcessActionsConfigFile("test.json"))
+        .WillOnce(testing::Return(std::vector{action_dto}));
+
+    registry->RegisterActions("test.json");
+
+    auto sequence_dto_0 = CreateBasicSequenceDto(0);
+    auto sequence_dto_1 = CreateBasicSequenceDto(1);
+    EXPECT_CALL(*mock_json_loader, ProcessSequencesConfigFile("test.json"))
+        .WillOnce(testing::Return(std::vector{sequence_dto_0, sequence_dto_1}));
+
+    registry->RegisterSequences("test.json");
+
+    auto entity_dto = CreateComplexBehavioralEntityDto(0);
+
+    EXPECT_CALL(*mock_json_loader, ProcessSingleEntityConfigFile("test.json"))
+        .WillOnce(testing::Return(std::optional{entity_dto}));
+
+    EXPECT_CALL(*mock_logger, LogWarning(
+       testing::HasSubstr("is not in the registry"),
+       "FrameworkRegistry"))
+       .Times(1);
+
+    EXPECT_CALL(*mock_state_schema, GetStateKey("AVAILABLE_SEATS"))
+         .WillOnce(testing::Return(0));
+
+    registry->RegisterEntity(BehavioralEntityHandle(), "test.json");
+
+    auto framework_entity = registry->GetBehavioralEntityById(0);
+
+    EXPECT_EQ(0, registry->GetFrameworkEntitiesCount());
+    EXPECT_EQ(1, registry->GetBehavioralEntitiesCount());
+    EXPECT_EQ(1, framework_entity->GetSupportedActionsIds().size());
+    EXPECT_EQ(3, framework_entity->GetStateValue(0));
+    EXPECT_EQ(true, framework_entity->HasFallbackSequence(1));
+    EXPECT_EQ(nullptr, framework_entity->FindInterruptionHandler(0));
 }

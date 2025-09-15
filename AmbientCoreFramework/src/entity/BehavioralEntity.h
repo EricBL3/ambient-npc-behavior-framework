@@ -22,7 +22,7 @@ private:
 
     std::vector<std::shared_ptr<Sequence>> fallback_sequences;
 
-    std::unordered_map<int, std::shared_ptr<Sequence>> interruption_handlers;
+    std::unordered_map<int32_t, std::shared_ptr<Sequence>> interruption_handlers;
 
     int32_t current_action_target_index;
 
@@ -39,12 +39,16 @@ public:
         main_sequence(nullptr), current_action_target_index(-1), is_processing(false) {}
 
     const MemorySystem& GetMemorySystem() const { return memory; }
-    void SetMainSequence(const std::shared_ptr<Sequence> &new_sequence) { main_sequence = new_sequence; }
-    const std::shared_ptr<Sequence>& GetMainSequence() const { return main_sequence; }
-    void AddFallbackSequence(const std::shared_ptr<Sequence> &new_sequence) { fallback_sequences.emplace_back(new_sequence); }
 
+    void SetMainSequence(const std::shared_ptr<Sequence> &new_sequence);
+    const std::shared_ptr<Sequence>& GetMainSequence() const { return main_sequence; }
+
+    void AddFallbackSequence(const std::shared_ptr<Sequence> &new_sequence);
     bool HasFallbackSequence(int32_t sequence_id) const;
     std::shared_ptr<Sequence> GetFallbackSequenceById(int32_t sequence_id) const;
+
+    void AddInterruptionHandler(int32_t interruption_id, const std::shared_ptr<Sequence> &handler);
+    std::shared_ptr<Sequence> FindInterruptionHandler(int32_t interruption_id) const;
 
 };
 }

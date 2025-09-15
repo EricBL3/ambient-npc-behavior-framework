@@ -18,7 +18,7 @@ namespace AmbientCharacterBehavior {
  * @brief Interactive entities that maintain state and support actions
  */
 class FrameworkEntity {
-private:
+protected:
 
     void* entity_handle;
 

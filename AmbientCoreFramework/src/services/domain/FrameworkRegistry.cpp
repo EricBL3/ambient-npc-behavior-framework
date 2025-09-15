@@ -411,15 +411,37 @@ void FrameworkRegistry::ConfigureBehavioralEntityWithDto(const std::unique_ptr<B
     AddInitialStateMapToEntity(entity_dto.base_properties.initial_state, new_entity);
 
     new_entity->SetMainSequence(GetSequenceById(entity_dto.main_sequence_id));
+    AddFallbackSequencesToEntity(entity_dto.fallback_sequences, new_entity);
+    AddInterruptionHandlersToEntity(entity_dto.interruption_handlers, new_entity);
+}
 
-    // Add fallback sequences
-    for (const auto& fallback_sequence_id : entity_dto.fallback_sequences)
+void FrameworkRegistry::AddFallbackSequencesToEntity(const std::vector<int32_t> &fallback_sequences,
+    const std::unique_ptr<BehavioralEntity> &new_entity) const
+{
+    for (const auto& fallback_sequence_id : fallback_sequences)
     {
         new_entity->AddFallbackSequence(GetSequenceById(fallback_sequence_id));
     }
+}
 
-    // Add interruption handlers
-
+void FrameworkRegistry::AddInterruptionHandlersToEntity(const std::unordered_map<std::string, int32_t> &interruption_handlers,
+    const std::unique_ptr<BehavioralEntity> &new_entity) const
+{
+    for (const auto& interruption_handler_pair : interruption_handlers)
+    {
+        try
+        {
+            //TODO: Add interruption key mapping
+            //auto interruption_key = state_schema.GetInterruptionKey(interruption_handler_pair.first);
+            auto interruption_key = 0;
+            new_entity->AddInterruptionHandler(interruption_key, GetSequenceById(interruption_handler_pair.second));
+        }
+        catch (const std::exception &e)
+        {
+            logger.LogWarning("Interruption id '" + interruption_handler_pair.first + "' does not exist.",
+                "FrameworkRegistry");
+        }
+    }
 }
 
 void FrameworkRegistry::UnregisterEntity(void *entity_handle)
