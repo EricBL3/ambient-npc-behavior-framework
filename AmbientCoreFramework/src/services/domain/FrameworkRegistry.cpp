@@ -286,6 +286,11 @@ FrameworkEntity * FrameworkRegistry::GenerateFrameworkEntityFromDto(void *entity
 
     try
     {
+        if (IsEntityDuplicate(entity_handle, entity_dto->entity_id))
+        {
+            return nullptr;
+        }
+
         auto [new_entity_iterator, inserted] = framework_entities.emplace(entity_dto->entity_id,
             std::make_unique<FrameworkEntity>(FrameworkEntity(entity_handle, entity_dto->entity_id, entity_dto->entity_name)));
 
@@ -308,6 +313,16 @@ FrameworkEntity * FrameworkRegistry::GenerateFrameworkEntityFromDto(void *entity
 
         return nullptr;
     }
+}
+
+bool FrameworkRegistry::IsEntityDuplicate(void* entity_handle, int32_t entity_id) const
+{
+    return (
+        GetFrameworkIdFromHandle(entity_handle) >= 0 ||
+        GetBehavioralIdFromHandle(entity_handle) >= 0 ||
+        GetHandleFromFrameworkId(entity_id) ||
+        GetHandleFromBehavioralId(entity_id)
+    );
 }
 
 void FrameworkRegistry::GenerateFrameworkEntityIdAndHandleMapping(const FrameworkEntity *framework_entity)
@@ -343,6 +358,11 @@ BehavioralEntity * FrameworkRegistry::GenerateBehavioralEntityFromDto(void *enti
 
     try
     {
+        if (IsEntityDuplicate(entity_handle, entity_dto->base_properties.entity_id))
+        {
+            return nullptr;
+        }
+
         auto [new_entity_iterator, inserted] = behavioral_entities.emplace(entity_dto->base_properties.entity_id,
             std::make_unique<BehavioralEntity>(BehavioralEntity(entity_handle, entity_dto->base_properties.entity_id,
                 entity_dto->memory_limits.max_transition_memories, entity_dto->memory_limits.max_action_memories,
@@ -448,12 +468,15 @@ FrameworkEntity* FrameworkRegistry::GetFrameworkEntityById(int32_t entity_id) co
 
 void* FrameworkRegistry::GetHandleFromFrameworkId(int32_t entity_id) const
 {
-    return framework_id_to_handle.at(entity_id);
+    auto iterator = framework_id_to_handle.find(entity_id);
+    return iterator != framework_id_to_handle.end() ? iterator->second : nullptr;
 }
 
 int32_t FrameworkRegistry::GetFrameworkIdFromHandle(void *entity_handle) const
 {
-    return handle_to_framework_id.at(entity_handle);
+    auto iterator = handle_to_framework_id.find(entity_handle);
+    // -1 is an invalid id
+    return iterator != handle_to_framework_id.end() ? iterator->second : -1;
 }
 
 bool FrameworkRegistry::HasBehavioralEntity(int32_t entity_id) const
@@ -476,10 +499,14 @@ BehavioralEntity * FrameworkRegistry::GetBehavioralEntityById(int32_t entity_id)
 
 void * FrameworkRegistry::GetHandleFromBehavioralId(int32_t entity_id) const
 {
-    return behavioral_id_to_handle.at(entity_id);
+    auto iterator = behavioral_id_to_handle.find(entity_id);
+    return iterator != behavioral_id_to_handle.end() ? iterator->second : nullptr;
 }
+
 
 int32_t FrameworkRegistry::GetBehavioralIdFromHandle(void *entity_handle) const
 {
-    return handle_to_behavioral_id.at(entity_handle);
+    auto iterator = handle_to_behavioral_id.find(entity_handle);
+    // -1 is an invalid id
+    return iterator != handle_to_behavioral_id.end() ? iterator->second : -1;
 }

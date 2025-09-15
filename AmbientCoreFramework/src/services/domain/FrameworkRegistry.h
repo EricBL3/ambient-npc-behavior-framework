@@ -85,6 +85,7 @@ private:
     void ConfigureActionWithDto(const std::shared_ptr<Action> &new_action, const ActionDto &action_dto) const;
 
     FrameworkEntity* GenerateFrameworkEntityFromDto(void* entity_handle, std::optional<FrameworkEntityDto> entity_dto);
+    bool IsEntityDuplicate(void* entity_handle, int32_t entity_id) const;
     void GenerateFrameworkEntityIdAndHandleMapping(const FrameworkEntity* framework_entity);
     void ConfigureFrameworkEntityWithDto(const std::unique_ptr<FrameworkEntity> &new_entity, const FrameworkEntityDto &entity_dto) const;
 

@@ -408,26 +408,163 @@ TEST_F(FrameworkRegistryTest, RegisterEntity_CreatesBehavioralEntityMapping)
 
 TEST_F(FrameworkRegistryTest, RegisterEntity_InvalidEntityType_LogsWarningAndReturns)
 {
-    // Test registry is empty
-    GTEST_SKIP() << "Test not yet implemented";
+    auto entity_dto = CreateBasicBehavioralEntityDto(0);
+    entity_dto.entity_type = "OTHER";
+
+    EXPECT_CALL(*mock_json_loader, ProcessSingleEntityConfigFile("test.json"))
+        .WillOnce(testing::Return(std::optional{entity_dto}));
+
+    EXPECT_CALL(*mock_logger, LogWarning(
+        testing::HasSubstr("does not exist"),
+        "FrameworkRegistry"))
+        .Times(1);
+
+    registry->RegisterEntity(BehavioralEntityHandle(), "test.json");
+
+    EXPECT_EQ(0, registry->GetFrameworkEntitiesCount());
+    EXPECT_EQ(0, registry->GetBehavioralEntitiesCount());
 }
 
 TEST_F(FrameworkRegistryTest, RegisterEntity_EmptyConfigFile_LogsWarningAndReturns)
 {
-    // Test registry is empty
-    GTEST_SKIP() << "Test not yet implemented";
+    EXPECT_CALL(*mock_json_loader, ProcessSingleEntityConfigFile("test.json"))
+        .WillOnce(testing::Return(std::nullopt));
+
+    EXPECT_CALL(*mock_logger, LogWarning(
+        testing::HasSubstr("did not contain any valid entity"),
+        "FrameworkRegistry"))
+        .Times(1);
+
+    registry->RegisterEntity(BehavioralEntityHandle(), "test.json");
+
+    EXPECT_EQ(0, registry->GetFrameworkEntitiesCount());
+    EXPECT_EQ(0, registry->GetBehavioralEntitiesCount());
 }
 
-TEST_F(FrameworkRegistryTest, RegisterEntity_DuplicateEntityId_LogsWarningAndSkipsSecond)
+TEST_F(FrameworkRegistryTest, RegisterFrameworkEntity_DuplicateEntityId_LogsWarningAndSkipsSecond)
 {
-    // Test registry only contains first entity. Even if handles are different, entity shouldn't register.
-    GTEST_SKIP() << "Test not yet implemented";
+    auto entity_dto = CreateBasicFrameworkEntityDto(0);
+
+    EXPECT_CALL(*mock_json_loader, ProcessSingleEntityConfigFile("test.json"))
+        .WillOnce(testing::Return(std::optional{entity_dto}));
+
+    registry->RegisterEntity(FrameworkEntityHandle(), "test.json");
+
+    auto repeated_entity_dto = CreateBasicFrameworkEntityDto(0);
+    repeated_entity_dto.framework_entity->entity_name = "repeated_entity";
+
+    EXPECT_CALL(*mock_json_loader, ProcessSingleEntityConfigFile("test.json"))
+        .WillOnce(testing::Return(std::optional{repeated_entity_dto}));
+
+    EXPECT_CALL(*mock_logger, LogWarning(
+       testing::HasSubstr("The framework entity was not generated."),
+       "FrameworkRegistry"))
+       .Times(1);
+
+    registry->RegisterEntity(BehavioralEntityHandle(), "test.json");
+
+    auto framework_entity = registry->GetFrameworkEntityById(0);
+
+    EXPECT_EQ(1, registry->GetFrameworkEntitiesCount());
+    EXPECT_EQ(0, registry->GetBehavioralEntitiesCount());
+    EXPECT_EQ(0, framework_entity->GetEntityId());
+    EXPECT_EQ(FrameworkEntityHandle(), framework_entity->GetEntityHandle());
+    EXPECT_EQ("test_entity", framework_entity->GetName());
 }
 
-TEST_F(FrameworkRegistryTest, RegisterEntity_DuplicateEntityHandle_LogsWarningAndSkipsSecond)
+TEST_F(FrameworkRegistryTest, RegisterFrameworkEntity_DuplicateEntityHandle_LogsWarningAndSkipsSecond)
 {
-    // Test registry only contains first entity. Even if ids are different, entity shouldn't register.
-    GTEST_SKIP() << "Test not yet implemented";
+    auto entity_dto = CreateBasicFrameworkEntityDto(0);
+
+    EXPECT_CALL(*mock_json_loader, ProcessSingleEntityConfigFile("test.json"))
+        .WillOnce(testing::Return(std::optional{entity_dto}));
+
+    registry->RegisterEntity(FrameworkEntityHandle(), "test.json");
+
+    auto repeated_entity_dto = CreateBasicFrameworkEntityDto(1);
+    repeated_entity_dto.framework_entity->entity_name = "repeated_entity";
+
+    EXPECT_CALL(*mock_json_loader, ProcessSingleEntityConfigFile("test.json"))
+        .WillOnce(testing::Return(std::optional{repeated_entity_dto}));
+
+    EXPECT_CALL(*mock_logger, LogWarning(
+       testing::HasSubstr("The framework entity was not generated."),
+       "FrameworkRegistry"))
+       .Times(1);
+
+    // repeated handle
+    registry->RegisterEntity(FrameworkEntityHandle(), "test.json");
+
+    auto framework_entity = registry->GetFrameworkEntityById(0);
+
+    EXPECT_EQ(1, registry->GetFrameworkEntitiesCount());
+    EXPECT_EQ(0, registry->GetBehavioralEntitiesCount());
+    EXPECT_EQ(0, framework_entity->GetEntityId());
+    EXPECT_EQ(FrameworkEntityHandle(), framework_entity->GetEntityHandle());
+    EXPECT_EQ("test_entity", framework_entity->GetName());
+}
+
+TEST_F(FrameworkRegistryTest, RegisterBehavioralEntity_DuplicateEntityId_LogsWarningAndSkipsSecond)
+{
+    auto entity_dto = CreateBasicBehavioralEntityDto(0);
+
+    EXPECT_CALL(*mock_json_loader, ProcessSingleEntityConfigFile("test.json"))
+        .WillOnce(testing::Return(std::optional{entity_dto}));
+
+    registry->RegisterEntity(FrameworkEntityHandle(), "test.json");
+
+    auto repeated_entity_dto = CreateBasicBehavioralEntityDto(0);
+    repeated_entity_dto.framework_entity->entity_name = "repeated_entity";
+
+    EXPECT_CALL(*mock_json_loader, ProcessSingleEntityConfigFile("test.json"))
+        .WillOnce(testing::Return(std::optional{repeated_entity_dto}));
+
+    EXPECT_CALL(*mock_logger, LogWarning(
+       testing::HasSubstr("The framework entity was not generated."),
+       "FrameworkRegistry"))
+       .Times(1);
+
+    registry->RegisterEntity(BehavioralEntityHandle(), "test.json");
+
+    auto framework_entity = registry->GetBehavioralEntityById(0);
+
+    EXPECT_EQ(0, registry->GetFrameworkEntitiesCount());
+    EXPECT_EQ(1, registry->GetBehavioralEntitiesCount());
+    EXPECT_EQ(0, framework_entity->GetEntityId());
+    EXPECT_EQ(FrameworkEntityHandle(), framework_entity->GetEntityHandle());
+    EXPECT_EQ("test_entity", framework_entity->GetName());
+}
+
+TEST_F(FrameworkRegistryTest, RegisterBehavioralEntity_DuplicateEntityHandle_LogsWarningAndSkipsSecond)
+{
+    auto entity_dto = CreateBasicBehavioralEntityDto(0);
+
+    EXPECT_CALL(*mock_json_loader, ProcessSingleEntityConfigFile("test.json"))
+        .WillOnce(testing::Return(std::optional{entity_dto}));
+
+    registry->RegisterEntity(BehavioralEntityHandle(), "test.json");
+
+    auto repeated_entity_dto = CreateBasicBehavioralEntityDto(1);
+    repeated_entity_dto.framework_entity->entity_name = "repeated_entity";
+
+    EXPECT_CALL(*mock_json_loader, ProcessSingleEntityConfigFile("test.json"))
+        .WillOnce(testing::Return(std::optional{repeated_entity_dto}));
+
+    EXPECT_CALL(*mock_logger, LogWarning(
+       testing::HasSubstr("The framework entity was not generated."),
+       "FrameworkRegistry"))
+       .Times(1);
+
+    // repeated handle
+    registry->RegisterEntity(BehavioralEntityHandle(), "test.json");
+
+    auto framework_entity = registry->GetBehavioralEntityById(0);
+
+    EXPECT_EQ(0, registry->GetFrameworkEntitiesCount());
+    EXPECT_EQ(1, registry->GetBehavioralEntitiesCount());
+    EXPECT_EQ(0, framework_entity->GetEntityId());
+    EXPECT_EQ(BehavioralEntityHandle(), framework_entity->GetEntityHandle());
+    EXPECT_EQ("test_entity", framework_entity->GetName());
 }
 
 // REGISTER COMPLEX FRAMEWORK ENTITY TESTS
