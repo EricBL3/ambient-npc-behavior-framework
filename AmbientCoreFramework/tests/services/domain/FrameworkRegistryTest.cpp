@@ -271,7 +271,7 @@ TEST_F(FrameworkRegistryTest, RegisterSequences_StateReference_CallsStateSchema)
 
     auto preconditions = transitions[0].GetPreconditions();
     EXPECT_EQ(1, preconditions.size());
-    EXPECT_EQ(StateOperationTarget::SELF, preconditions[0].GetTargetId());
+    EXPECT_EQ(StateOperationTarget::SELF, preconditions[0].GetTarget());
     EXPECT_EQ(42, preconditions[0].GetStateKey());  // From StateSchema
     EXPECT_EQ(StateOperationType::EQUALS, preconditions[0].GetOperationType());
     EXPECT_EQ(100, preconditions[0].GetParameters().front());
@@ -359,7 +359,7 @@ TEST_F(FrameworkRegistryTest, RegisterActions_StateReference_CallsStateSchema) {
     auto action = registry->GetActionById(1);
     auto preconditions = action->GetPreconditions();
     EXPECT_EQ(1, preconditions.size());
-    EXPECT_EQ(StateOperationTarget::ENTITY, preconditions[0].GetTargetId());
+    EXPECT_EQ(StateOperationTarget::ENTITY, preconditions[0].GetTarget());
     EXPECT_EQ(3, preconditions[0].GetStateKey());  // From StateSchema
     EXPECT_EQ(StateOperationType::GREATER_THAN, preconditions[0].GetOperationType());
     EXPECT_EQ(0, preconditions[0].GetParameters().front());
@@ -385,7 +385,7 @@ TEST_F(FrameworkRegistryTest, RegisterActions_EnvironmentReference_CallsEnvironm
     auto action = registry->GetActionById(1);
     auto preconditions = action->GetPreconditions();
     EXPECT_EQ(1, preconditions.size());
-    EXPECT_EQ(StateOperationTarget::ENVIRONMENT, preconditions[0].GetTargetId());
+    EXPECT_EQ(StateOperationTarget::ENVIRONMENT, preconditions[0].GetTarget());
     EXPECT_EQ(3, preconditions[0].GetStateKey());  // From StateSchema
     EXPECT_EQ(StateOperationType::EQUALS, preconditions[0].GetOperationType());
     EXPECT_EQ(0, preconditions[0].GetParameters().front());

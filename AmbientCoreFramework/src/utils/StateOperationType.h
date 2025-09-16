@@ -9,10 +9,6 @@ enum class StateOperationType {
     SET = 4,
     INCREMENT = 5,
     DECREMENT = 6,
-    EQUALS_STATE = 7,
-    NOT_EQUALS_STATE = 8,
-    GREATER_THAN_STATE = 9,
-    LESS_THAN_STATE = 10,
 
     EXTERNAL_OPERATIONS = 1000
 };

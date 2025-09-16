@@ -25,7 +25,7 @@ public:
     explicit StateOperation(StateOperationTarget target_id, int32_t state_key, StateOperationType operation, std::vector<int32_t> parameters) :
         target_id(target_id), state_key(state_key), operation_type(operation), parameters(std::move(parameters)) {}
 
-    StateOperationTarget GetTargetId() const { return target_id; }
+    StateOperationTarget GetTarget() const { return target_id; }
     int32_t GetStateKey() const { return state_key; }
     StateOperationType GetOperationType() const { return operation_type; }
     const std::vector<int32_t>& GetParameters() const { return parameters; }

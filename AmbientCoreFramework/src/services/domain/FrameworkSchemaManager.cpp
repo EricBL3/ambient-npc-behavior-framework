@@ -135,22 +135,6 @@ StateOperationType FrameworkSchemaManager::GetStateOperationTypeId(const std::st
     {
         return StateOperationType::DECREMENT;
     }
-    if (name == "EQUALS_STATE")
-    {
-        return StateOperationType::EQUALS_STATE;
-    }
-    if (name == "NOT_EQUALS_STATE")
-    {
-        return StateOperationType::NOT_EQUALS_STATE;
-    }
-    if (name == "GREATER_THAN_STATE")
-    {
-        return StateOperationType::GREATER_THAN_STATE;
-    }
-    if (name == "LESS_THAN_STATE")
-    {
-        return StateOperationType::LESS_THAN_STATE;
-    }
 
     logger.LogWarning("Unknown operation type '" + name + "', treating as external operation", "FrameworkSchemaManager");
     return StateOperationType::EXTERNAL_OPERATIONS;
@@ -174,14 +158,6 @@ std::string FrameworkSchemaManager::GetStateOperationTypeName(StateOperationType
             return "INCREMENT";
         case StateOperationType::DECREMENT:
             return "DECREMENT";
-        case StateOperationType::EQUALS_STATE:
-            return "EQUALS_STATE";
-        case StateOperationType::NOT_EQUALS_STATE:
-            return "NOT_EQUALS_STATE";
-        case StateOperationType::GREATER_THAN_STATE:
-            return "GREATER_THAN_STATE";
-        case StateOperationType::LESS_THAN_STATE:
-            return "LESS_THAN_STATE";
         default:
             logger.LogWarning("Unknown operation type '" + std::to_string(static_cast<int>(operation_type)) +
                 "', treating as external operation", "FrameworkSchemaManager");
