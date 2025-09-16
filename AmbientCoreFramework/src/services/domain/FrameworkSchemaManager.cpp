@@ -1,10 +1,10 @@
 #include <nlohmann/json.hpp>
-#include "StateSchemaManager.h"
+#include "FrameworkSchemaManager.h"
 
 using json = nlohmann::json;
 using namespace AmbientCharacterBehavior;
 
-void StateSchemaManager::LoadFrameworkSchema(const std::string &config_file_path)
+void FrameworkSchemaManager::LoadFrameworkSchema(const std::string &config_file_path)
 {
     auto config_json = json_loader.LoadConfigFileJson(config_file_path);
 
@@ -18,7 +18,7 @@ void StateSchemaManager::LoadFrameworkSchema(const std::string &config_file_path
 
 }
 
-void StateSchemaManager::LoadSchemaConfiguration(const std::optional<json> &config_json, const std::string& schema_name,
+void FrameworkSchemaManager::LoadSchemaConfiguration(const std::optional<json> &config_json, const std::string& schema_name,
     std::unordered_map<std::string, int32_t>& name_to_key_map, std::unordered_map<int32_t, std::string>& key_to_name_map)
 {
     if (config_json.value().contains(schema_name) && config_json.value()[schema_name].is_array())
@@ -36,50 +36,50 @@ void StateSchemaManager::LoadSchemaConfiguration(const std::optional<json> &conf
                     key_to_name_map[key] = name;
 
                     logger.LogInfo("Registered " + schema_name + " in schema. Name: " + name +
-                         " Key: " + std::to_string(key), "StateSchemaManager");
+                         " Key: " + std::to_string(key), "FrameworkSchemaManager");
 
                 }
 
             }
             catch (const json::exception& e) {
                 logger.LogError("Failed to parse "+ schema_name + " schema from JSON: " +
-                     std::string(e.what()),"StateSchemaManager");
+                     std::string(e.what()),"FrameworkSchemaManager");
             }
         }
 
         logger.LogInfo("Registered " + std::to_string(name_to_key_map.size()) + " " + schema_name + " schemas",
-             "StateSchemaManager");
+             "FrameworkSchemaManager");
     }
     else
     {
         logger.LogError("Config file missing '" + schema_name + "' array",
-            "StateSchemaManager");
+            "FrameworkSchemaManager");
     }
 }
 
-bool StateSchemaManager::IsValidForCreation(const std::string &name, int32_t key,
+bool FrameworkSchemaManager::IsValidForCreation(const std::string &name, int32_t key,
     std::unordered_map<std::string, int32_t>& name_to_key_map, std::unordered_map<int32_t, std::string>& key_to_name_map)
 {
     if (name.empty()) {
         logger.LogWarning("name cannot be empty for key: " + std::to_string(key),
-                         "StateSchemaManager");
+                         "FrameworkSchemaManager");
         return false;
     }
 
     if (key < 0) {
         logger.LogWarning("key cannot be negative, got: " + std::to_string(key) +
-                         " for state: " + name, "StateSchemaManager");
+                         " for state: " + name, "FrameworkSchemaManager");
         return false;
     }
 
     if (name_to_key_map.find(name) != name_to_key_map.end()) {
-        logger.LogWarning("Duplicate name: " + name, "StateSchemaManager");
+        logger.LogWarning("Duplicate name: " + name, "FrameworkSchemaManager");
         return false;
     }
 
     if (key_to_name_map.find(key) != key_to_name_map.end()) {
         logger.LogWarning("Duplicate key: " + std::to_string(key) + " for name: " + name,
-             "StateSchemaManager");
+             "FrameworkSchemaManager");
 
         return false;
     }
@@ -90,7 +90,7 @@ bool StateSchemaManager::IsValidForCreation(const std::string &name, int32_t key
 /**
  * @throw std::out_of_range if state_name is not in the schema.
  */
-int32_t StateSchemaManager::GetStateKey(const std::string &state_name)
+int32_t FrameworkSchemaManager::GetStateKey(const std::string &state_name)
 {
     return state_name_to_key.at(state_name);
 }
@@ -98,14 +98,14 @@ int32_t StateSchemaManager::GetStateKey(const std::string &state_name)
 /**
  * @throw std::out_of_range if state_key is not in the schema.
  */
-std::string StateSchemaManager::GetStateName(int32_t state_key)
+std::string FrameworkSchemaManager::GetStateName(int32_t state_key)
 {
     return state_key_to_name.at(state_key);
 }
 
-StateOperationType StateSchemaManager::GetStateOperationTypeId(const std::string &name)
+StateOperationType FrameworkSchemaManager::GetStateOperationTypeId(const std::string &name)
 {
-    logger.LogInfo("Getting state operation type: " + name, "StateSchemaManager");
+    logger.LogInfo("Getting state operation type: " + name, "FrameworkSchemaManager");
 
     if (name == "EQUALS")
     {
@@ -156,7 +156,7 @@ StateOperationType StateSchemaManager::GetStateOperationTypeId(const std::string
     return StateOperationType::EXTERNAL_OPERATIONS;
 }
 
-std::string StateSchemaManager::GetStateOperationTypeName(StateOperationType operation_type)
+std::string FrameworkSchemaManager::GetStateOperationTypeName(StateOperationType operation_type)
 {
     switch (operation_type)
     {
@@ -193,7 +193,7 @@ std::string StateSchemaManager::GetStateOperationTypeName(StateOperationType ope
 /**
  * @throw std::out_of_range if interruption_name is not in the schema.
  */
-int32_t StateSchemaManager::GetInterruptionKey(const std::string &interruption_name)
+int32_t FrameworkSchemaManager::GetInterruptionKey(const std::string &interruption_name)
 {
     return interruption_name_to_key.at(interruption_name);
 }
@@ -201,7 +201,7 @@ int32_t StateSchemaManager::GetInterruptionKey(const std::string &interruption_n
 /**
  * @throw std::out_of_range if interruption_key is not in the schema.
  */
-std::string StateSchemaManager::GetInterruptionName(int32_t interruption_key)
+std::string FrameworkSchemaManager::GetInterruptionName(int32_t interruption_key)
 {
     return interruption_key_to_name.at(interruption_key);
 }

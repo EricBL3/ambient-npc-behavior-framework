@@ -6,12 +6,12 @@
 
 namespace AmbientCharacterBehavior {
 /**
- * @brief Handles the mappings of state names and keys.
+ * @brief Handles the mappings of different containers in the framework.
  */
-class IStateSchemaManager {
+class IFrameworkSchemaManager {
 
 public:
-    virtual ~IStateSchemaManager() = default;
+    virtual ~IFrameworkSchemaManager() = default;
     virtual void LoadFrameworkSchema(const std::string& config_file_path) = 0;
 
     virtual int32_t GetStateKey(const std::string& state_name) = 0;

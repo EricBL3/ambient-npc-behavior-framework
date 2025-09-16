@@ -139,16 +139,16 @@ StateOperation FrameworkRegistry::GenerateStateOperationFromDto(const StateOpera
     else if (dto_state_operation.target_id_name == "SELF")
     {
         target_id = StateOperationTarget::SELF;
-        state_key = state_schema.GetStateKey(dto_state_operation.state_key_name);
+        state_key = schema_manager.GetStateKey(dto_state_operation.state_key_name);
     }
     else
     {
         // Assume that all other names will reference ENTITY
         target_id = StateOperationTarget::ENTITY;
-        state_key = state_schema.GetStateKey(dto_state_operation.state_key_name);
+        state_key = schema_manager.GetStateKey(dto_state_operation.state_key_name);
     }
 
-    auto operation_type = state_schema.GetStateOperationTypeId(dto_state_operation.operation_name);
+    auto operation_type = schema_manager.GetStateOperationTypeId(dto_state_operation.operation_name);
 
     return StateOperation(target_id, state_key, operation_type, dto_state_operation.parameters);
 }
@@ -414,8 +414,7 @@ void FrameworkRegistry::AddInterruptionHandlersToEntity(const std::unordered_map
     {
         try
         {
-            //TODO: Add interruption key mapping
-            auto interruption_key = state_schema.GetInterruptionKey(interruption_handler_pair.first);
+            auto interruption_key = schema_manager.GetInterruptionKey(interruption_handler_pair.first);
             new_entity->AddInterruptionHandler(interruption_key, GetSequenceById(interruption_handler_pair.second));
         }
         catch (const std::exception &e)

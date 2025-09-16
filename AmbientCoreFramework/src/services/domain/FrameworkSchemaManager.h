@@ -5,14 +5,14 @@
 
 #include "interfaces/IJsonLoader.h"
 #include "interfaces/ILogger.h"
-#include "interfaces/IStateSchemaManager.h"
+#include "interfaces/IFrameworkSchemaManager.h"
 #include "utils/StateOperationType.h"
 
 namespace AmbientCharacterBehavior {
 /**
  * @brief Handles the mappings of state names and keys.
  */
-class StateSchemaManager : public IStateSchemaManager {
+class FrameworkSchemaManager : public IFrameworkSchemaManager {
     std::unordered_map<std::string, int32_t> state_name_to_key;
     std::unordered_map<int32_t, std::string> state_key_to_name;
 
@@ -23,7 +23,7 @@ class StateSchemaManager : public IStateSchemaManager {
     IJsonLoader& json_loader;
 
 public:
-    explicit StateSchemaManager(ILogger& logger, IJsonLoader& json_loader) : logger(logger), json_loader(json_loader) {}
+    explicit FrameworkSchemaManager(ILogger& logger, IJsonLoader& json_loader) : logger(logger), json_loader(json_loader) {}
 
     void LoadFrameworkSchema(const std::string& config_file_path) override;
     int32_t GetStateKey(const std::string& state_name) override;

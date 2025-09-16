@@ -2,10 +2,10 @@
 
 #include <gmock/gmock.h>
 
-#include "interfaces/IStateSchemaManager.h"
+#include "interfaces/IFrameworkSchemaManager.h"
 
 namespace AmbientCharacterBehavior {
-class MockStateSchemaManager : public IStateSchemaManager {
+class MockFrameworkSchemaManager : public IFrameworkSchemaManager {
 public:
     MOCK_METHOD(void, LoadFrameworkSchema, (const std::string& config_file_path), (override));
     MOCK_METHOD((int32_t), GetStateKey, (const std::string& state_name), (override));

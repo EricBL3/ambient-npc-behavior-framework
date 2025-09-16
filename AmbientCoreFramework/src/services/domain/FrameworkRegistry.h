@@ -11,7 +11,7 @@
 #include "interfaces/IFrameworkRegistry.h"
 #include "interfaces/IJsonLoader.h"
 #include "interfaces/ILogger.h"
-#include "interfaces/IStateSchemaManager.h"
+#include "interfaces/IFrameworkSchemaManager.h"
 
 namespace AmbientCharacterBehavior {
 class FrameworkRegistry : public IFrameworkRegistry {
@@ -29,13 +29,13 @@ private:
 
     ILogger& logger;
     IJsonLoader& json_loader;
-    IStateSchemaManager& state_schema;
+    IFrameworkSchemaManager& schema_manager;
     IEnvironmentalConditionManager& environment_manager;
 
 public:
-    explicit FrameworkRegistry(ILogger& logger, IJsonLoader& json_loader, IStateSchemaManager& state_schema,
+    explicit FrameworkRegistry(ILogger& logger, IJsonLoader& json_loader, IFrameworkSchemaManager& state_schema,
         IEnvironmentalConditionManager& environment_manager) :
-        logger(logger), json_loader(json_loader), state_schema(state_schema), environment_manager(environment_manager) {}
+        logger(logger), json_loader(json_loader), schema_manager(state_schema), environment_manager(environment_manager) {}
 
     void RegisterSequences(const std::string& config_file_path) override;
     void RegisterActions(const std::string& config_file_path) override;
@@ -128,7 +128,7 @@ private:
         {
             try
             {
-                auto state_key = state_schema.GetStateKey(state_pair.first);
+                auto state_key = schema_manager.GetStateKey(state_pair.first);
                 new_entity->SetStateValue(state_key, state_pair.second);
             }
             catch (const std::exception &e)

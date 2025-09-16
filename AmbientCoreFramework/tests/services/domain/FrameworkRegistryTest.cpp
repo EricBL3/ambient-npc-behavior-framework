@@ -3,7 +3,7 @@
 #include "../../mocks/MockEnvironmentalConditionManager.h"
 #include "../../mocks/MockJsonLoader.h"
 #include "../../mocks/MockLogger.h"
-#include "../../mocks/MockStateSchemaManager.h"
+#include "../../mocks/MockFrameworkSchemaManager.h"
 #include "services/domain/FrameworkRegistry.h"
 
 using namespace AmbientCharacterBehavior;
@@ -12,7 +12,7 @@ class FrameworkRegistryTest : public testing::Test {
 protected:
     std::unique_ptr<MockLogger> mock_logger;
     std::unique_ptr<MockJsonLoader> mock_json_loader;
-    std::unique_ptr<MockStateSchemaManager> mock_state_schema;
+    std::unique_ptr<MockFrameworkSchemaManager> mock_schema;
     std::unique_ptr<MockEnvironmentalConditionManager> mock_environment_manager;
 
     std::unique_ptr<FrameworkRegistry> registry;
@@ -22,10 +22,10 @@ protected:
     void SetUp() override {
         mock_logger = std::make_unique<MockLogger>();
         mock_json_loader = std::make_unique<MockJsonLoader>();
-        mock_state_schema = std::make_unique<MockStateSchemaManager>();
+        mock_schema = std::make_unique<MockFrameworkSchemaManager>();
         mock_environment_manager = std::make_unique<MockEnvironmentalConditionManager>();
 
-        registry = std::make_unique<FrameworkRegistry>(*mock_logger, *mock_json_loader, *mock_state_schema,
+        registry = std::make_unique<FrameworkRegistry>(*mock_logger, *mock_json_loader, *mock_schema,
             *mock_environment_manager);
     }
 
@@ -185,7 +185,7 @@ protected:
 
 // Constructor test
 TEST_F(FrameworkRegistryTest, Constructor_ValidServices_CreatesFrameworkRegistry) {
-    EXPECT_NO_THROW(FrameworkRegistry framework_registry(*mock_logger, *mock_json_loader, *mock_state_schema,
+    EXPECT_NO_THROW(FrameworkRegistry framework_registry(*mock_logger, *mock_json_loader, *mock_schema,
         *mock_environment_manager));
 }
 
@@ -254,7 +254,7 @@ TEST_F(FrameworkRegistryTest, RegisterSequences_StateReference_CallsStateSchema)
     EXPECT_CALL(*mock_json_loader, ProcessSequencesConfigFile("test.json"))
         .WillOnce(testing::Return(std::vector{sequence_dto}));
 
-    EXPECT_CALL(*mock_state_schema, GetStateKey("ENERGY"))
+    EXPECT_CALL(*mock_schema, GetStateKey("ENERGY"))
          .WillOnce(testing::Return(42));
 
     EXPECT_CALL(*mock_logger, LogWarning(testing::_, testing::_))
@@ -342,10 +342,10 @@ TEST_F(FrameworkRegistryTest, RegisterActions_StateReference_CallsStateSchema) {
     EXPECT_CALL(*mock_json_loader, ProcessActionsConfigFile("test.json"))
         .WillOnce(testing::Return(std::vector{action_dto}));
 
-    EXPECT_CALL(*mock_state_schema, GetStateKey("AVAILABLE_SEATS"))
+    EXPECT_CALL(*mock_schema, GetStateKey("AVAILABLE_SEATS"))
          .WillOnce(testing::Return(3));
 
-    EXPECT_CALL(*mock_state_schema, GetStateOperationTypeId("GREATER_THAN"))
+    EXPECT_CALL(*mock_schema, GetStateOperationTypeId("GREATER_THAN"))
          .WillOnce(testing::Return(StateOperationType::GREATER_THAN));
 
     EXPECT_CALL(*mock_logger, LogWarning(testing::_, testing::_))
@@ -680,7 +680,7 @@ TEST_F(FrameworkRegistryTest, RegisterEntity_ComplexFrameworkEntity_RegistersVal
     EXPECT_CALL(*mock_logger, LogError(testing::_, testing::_))
         .Times(0);
 
-    EXPECT_CALL(*mock_state_schema, GetStateKey("AVAILABLE_SEATS"))
+    EXPECT_CALL(*mock_schema, GetStateKey("AVAILABLE_SEATS"))
          .WillOnce(testing::Return(0));
 
     registry->RegisterEntity(FrameworkEntityHandle(), "test.json");
@@ -706,7 +706,7 @@ TEST_F(FrameworkRegistryTest, RegisterEntity_ComplexFrameworkEntity_LogsWarningA
        "FrameworkRegistry"))
        .Times(1);
 
-    EXPECT_CALL(*mock_state_schema, GetStateKey("AVAILABLE_SEATS"))
+    EXPECT_CALL(*mock_schema, GetStateKey("AVAILABLE_SEATS"))
          .WillOnce(testing::Return(0));
 
     registry->RegisterEntity(FrameworkEntityHandle(), "test.json");
@@ -748,7 +748,7 @@ TEST_F(FrameworkRegistryTest, RegisterEntity_ComplexBehavioralEntity_ConfiguresC
     EXPECT_CALL(*mock_logger, LogError(testing::_, testing::_))
         .Times(0);
 
-    EXPECT_CALL(*mock_state_schema, GetStateKey("AVAILABLE_SEATS"))
+    EXPECT_CALL(*mock_schema, GetStateKey("AVAILABLE_SEATS"))
          .WillOnce(testing::Return(0));
 
     registry->RegisterEntity(BehavioralEntityHandle(), "test.json");
@@ -785,7 +785,7 @@ TEST_F(FrameworkRegistryTest, RegisterEntity_ComplexBehavioralEntity_LogsWarning
        "FrameworkRegistry"))
        .Times(1);
 
-    EXPECT_CALL(*mock_state_schema, GetStateKey("AVAILABLE_SEATS"))
+    EXPECT_CALL(*mock_schema, GetStateKey("AVAILABLE_SEATS"))
          .WillOnce(testing::Return(0));
 
     registry->RegisterEntity(BehavioralEntityHandle(), "test.json");
@@ -823,7 +823,7 @@ TEST_F(FrameworkRegistryTest, RegisterEntity_ComplexBehavioralEntity_LogsWarning
        "FrameworkRegistry"))
        .Times(1);
 
-    EXPECT_CALL(*mock_state_schema, GetStateKey("AVAILABLE_SEATS"))
+    EXPECT_CALL(*mock_schema, GetStateKey("AVAILABLE_SEATS"))
          .WillOnce(testing::Return(0));
 
     registry->RegisterEntity(BehavioralEntityHandle(), "test.json");
@@ -862,7 +862,7 @@ TEST_F(FrameworkRegistryTest, RegisterEntity_ComplexBehavioralEntity_LogsWarning
        "FrameworkRegistry"))
        .Times(1);
 
-    EXPECT_CALL(*mock_state_schema, GetStateKey("AVAILABLE_SEATS"))
+    EXPECT_CALL(*mock_schema, GetStateKey("AVAILABLE_SEATS"))
          .WillOnce(testing::Return(0));
 
     registry->RegisterEntity(BehavioralEntityHandle(), "test.json");
@@ -901,7 +901,7 @@ TEST_F(FrameworkRegistryTest, RegisterEntity_ComplexBehavioralEntity_LogsWarning
        "FrameworkRegistry"))
        .Times(1);
 
-    EXPECT_CALL(*mock_state_schema, GetStateKey("AVAILABLE_SEATS"))
+    EXPECT_CALL(*mock_schema, GetStateKey("AVAILABLE_SEATS"))
          .WillOnce(testing::Return(0));
 
     registry->RegisterEntity(BehavioralEntityHandle(), "test.json");
