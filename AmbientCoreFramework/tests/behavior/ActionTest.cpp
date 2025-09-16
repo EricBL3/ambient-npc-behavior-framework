@@ -48,7 +48,7 @@ TEST_F(ActionTest, ConstructorRejectsNegativeValues)
 TEST_F(ActionTest, AddPreconditionsWorksCorrectly)
 {
 
-    StateOperation stateOperation(0, 0, 0, {1});
+    StateOperation stateOperation(StateOperationTarget::ENTITY, 0, 0, {1});
     action->AddPrecondition(stateOperation);
 
     EXPECT_EQ(1, action->GetPreconditions().size());
@@ -61,7 +61,7 @@ TEST_F(ActionTest, AddPreconditionsWorksCorrectly)
 TEST_F(ActionTest, AddImmediateEffectsWorksCorrectly)
 {
 
-    StateOperation stateOperation(0, 0, 0, {1});
+    StateOperation stateOperation(StateOperationTarget::ENTITY, 0, 0, {1});
     action->AddImmediateEffect(stateOperation);
 
     EXPECT_EQ(1, action->GetImmediateEffects().size());
@@ -74,7 +74,7 @@ TEST_F(ActionTest, AddImmediateEffectsWorksCorrectly)
 TEST_F(ActionTest, AddCompletionEffectsWorksCorrectly)
 {
 
-    StateOperation stateOperation(0, 0, 0, {1});
+    StateOperation stateOperation(StateOperationTarget::ENTITY, 0, 0, {1});
     action->AddCompletionEffect(stateOperation);
 
     EXPECT_EQ(1, action->GetCompletionEffects().size());

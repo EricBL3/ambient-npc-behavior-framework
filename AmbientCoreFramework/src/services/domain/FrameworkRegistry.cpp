@@ -2,6 +2,8 @@
 
 #include <memory>
 
+#include "utils/StateOperationTarget.h"
+
 using namespace AmbientCharacterBehavior;
 
 void FrameworkRegistry::RegisterSequences(const std::string &config_file_path)
@@ -127,22 +129,22 @@ std::vector<StateOperation> FrameworkRegistry::GenerateStateOperationVectorFromD
 
 StateOperation FrameworkRegistry::GenerateStateOperationFromDto(const StateOperationDto &dto_state_operation) const
 {
-    int32_t target_id;
+    StateOperationTarget target_id;
     int32_t state_key;
     if (dto_state_operation.target_id_name == "ENVIRONMENT")
     {
-        target_id = -2;
+        target_id = StateOperationTarget::ENVIRONMENT;
         state_key = environment_manager.GetEnvironmentalConditionKey(dto_state_operation.state_key_name);
     }
     else if (dto_state_operation.target_id_name == "SELF")
     {
-        target_id = -1;
+        target_id = StateOperationTarget::SELF;
         state_key = state_schema.GetStateKey(dto_state_operation.state_key_name);
     }
     else
     {
         // Assume that all other names will reference ENTITY
-        target_id = 0;
+        target_id = StateOperationTarget::ENTITY;
         state_key = state_schema.GetStateKey(dto_state_operation.state_key_name);
     }
 
