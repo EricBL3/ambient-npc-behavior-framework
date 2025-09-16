@@ -273,7 +273,7 @@ TEST_F(FrameworkRegistryTest, RegisterSequences_StateReference_CallsStateSchema)
     EXPECT_EQ(1, preconditions.size());
     EXPECT_EQ(StateOperationTarget::SELF, preconditions[0].GetTargetId());
     EXPECT_EQ(42, preconditions[0].GetStateKey());  // From StateSchema
-    EXPECT_EQ(0, preconditions[0].GetOperation());
+    EXPECT_EQ(StateOperationType::EQUALS, preconditions[0].GetOperationType());
     EXPECT_EQ(100, preconditions[0].GetParameters().front());
 }
 
@@ -337,13 +337,16 @@ TEST_F(FrameworkRegistryTest, RegisterActions_DuplicateActionId_LogsWarningAndSk
 }
 
 TEST_F(FrameworkRegistryTest, RegisterActions_StateReference_CallsStateSchema) {
-    auto sequence_dto = CreateActionDtoWithEntityPrecondition(1);
+    auto action_dto = CreateActionDtoWithEntityPrecondition(1);
 
     EXPECT_CALL(*mock_json_loader, ProcessActionsConfigFile("test.json"))
-        .WillOnce(testing::Return(std::vector{sequence_dto}));
+        .WillOnce(testing::Return(std::vector{action_dto}));
 
     EXPECT_CALL(*mock_state_schema, GetStateKey("AVAILABLE_SEATS"))
          .WillOnce(testing::Return(3));
+
+    EXPECT_CALL(*mock_state_schema, GetStateOperationTypeId("GREATER_THAN"))
+         .WillOnce(testing::Return(StateOperationType::GREATER_THAN));
 
     EXPECT_CALL(*mock_logger, LogWarning(testing::_, testing::_))
         .Times(0);
@@ -358,7 +361,7 @@ TEST_F(FrameworkRegistryTest, RegisterActions_StateReference_CallsStateSchema) {
     EXPECT_EQ(1, preconditions.size());
     EXPECT_EQ(StateOperationTarget::ENTITY, preconditions[0].GetTargetId());
     EXPECT_EQ(3, preconditions[0].GetStateKey());  // From StateSchema
-    EXPECT_EQ(1, preconditions[0].GetOperation()); // GREATER_THAN
+    EXPECT_EQ(StateOperationType::GREATER_THAN, preconditions[0].GetOperationType());
     EXPECT_EQ(0, preconditions[0].GetParameters().front());
 }
 
@@ -384,7 +387,7 @@ TEST_F(FrameworkRegistryTest, RegisterActions_EnvironmentReference_CallsEnvironm
     EXPECT_EQ(1, preconditions.size());
     EXPECT_EQ(StateOperationTarget::ENVIRONMENT, preconditions[0].GetTargetId());
     EXPECT_EQ(3, preconditions[0].GetStateKey());  // From StateSchema
-    EXPECT_EQ(0, preconditions[0].GetOperation());
+    EXPECT_EQ(StateOperationType::EQUALS, preconditions[0].GetOperationType());
     EXPECT_EQ(0, preconditions[0].GetParameters().front());
 }
 

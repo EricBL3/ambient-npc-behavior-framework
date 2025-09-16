@@ -148,27 +148,9 @@ StateOperation FrameworkRegistry::GenerateStateOperationFromDto(const StateOpera
         state_key = state_schema.GetStateKey(dto_state_operation.state_key_name);
     }
 
-    //todo: This is hardcoded and incomplete. Look for a different way to handle this.
-    // Map operation name to value
-    int32_t operation;
-    if (dto_state_operation.operation_name == "EQUALS")
-    {
-        operation = 0;
-    }
-    else if (dto_state_operation.operation_name == "GREATER_THAN")
-    {
-        operation = 1;
-    }
-    else if (dto_state_operation.operation_name == "LESS_THAN")
-    {
-        operation = 2;
-    }
-    else
-    {
-        operation = 3;
-    }
+    auto operation_type = state_schema.GetStateOperationTypeId(dto_state_operation.operation_name);
 
-    return StateOperation(target_id, state_key, operation, dto_state_operation.parameters);
+    return StateOperation(target_id, state_key, operation_type, dto_state_operation.parameters);
 }
 
 void FrameworkRegistry::RegisterActions(const std::string &config_file_path)

@@ -6,6 +6,7 @@
 #include "interfaces/IJsonLoader.h"
 #include "interfaces/ILogger.h"
 #include "interfaces/IStateSchemaManager.h"
+#include "utils/StateOperationType.h"
 
 namespace AmbientCharacterBehavior {
 /**
@@ -23,6 +24,9 @@ public:
     void LoadStateSchema(const std::string& config_file_path) override;
     int32_t GetStateKey(const std::string& state_name) override;
     std::string GetStateName(int32_t state_key) override;
+
+    StateOperationType GetStateOperationTypeId(const std::string &name) override;
+    std::string GetStateOperationTypeName(StateOperationType id) override;
 
 private:
 

@@ -66,6 +66,93 @@ std::string StateSchemaManager::GetStateName(int32_t state_key)
     return state_key_to_name.at(state_key);
 }
 
+StateOperationType StateSchemaManager::GetStateOperationTypeId(const std::string &name)
+{
+    logger.LogInfo("Getting state operation type: " + name, "StateSchemaManager");
+
+    if (name == "EQUALS")
+    {
+        return StateOperationType::EQUALS;
+    }
+    if (name == "NOT_EQUALS")
+    {
+        return StateOperationType::NOT_EQUALS;
+    }
+    if (name == "GREATER_THAN")
+    {
+        return StateOperationType::GREATER_THAN;
+    }
+    if (name == "LESS_THAN")
+    {
+        return StateOperationType::LESS_THAN;
+    }
+    if (name == "SET")
+    {
+        return StateOperationType::SET;
+    }
+    if (name == "INCREMENT")
+    {
+        return StateOperationType::INCREMENT;
+    }
+    if (name == "DECREMENT")
+    {
+        return StateOperationType::DECREMENT;
+    }
+    if (name == "EQUALS_STATE")
+    {
+        return StateOperationType::EQUALS_STATE;
+    }
+    if (name == "NOT_EQUALS_STATE")
+    {
+        return StateOperationType::NOT_EQUALS_STATE;
+    }
+    if (name == "GREATER_THAN_STATE")
+    {
+        return StateOperationType::GREATER_THAN_STATE;
+    }
+    if (name == "LESS_THAN_STATE")
+    {
+        return StateOperationType::LESS_THAN_STATE;
+    }
+
+    logger.LogWarning("Unknown operation type '" + name + "', treating as external operation", "FrameworkSchemaManager");
+    return StateOperationType::EXTERNAL_OPERATIONS;
+}
+
+std::string StateSchemaManager::GetStateOperationTypeName(StateOperationType operation_type)
+{
+    switch (operation_type)
+    {
+        case StateOperationType::EQUALS:
+            return "EQUALS";
+        case StateOperationType::NOT_EQUALS:
+            return "NOT_EQUALS";
+        case StateOperationType::GREATER_THAN:
+            return "GREATER_THAN";
+        case StateOperationType::LESS_THAN:
+            return "LESS_THAN";
+        case StateOperationType::SET:
+            return "SET";
+        case StateOperationType::INCREMENT:
+            return "INCREMENT";
+        case StateOperationType::DECREMENT:
+            return "DECREMENT";
+        case StateOperationType::EQUALS_STATE:
+            return "EQUALS_STATE";
+        case StateOperationType::NOT_EQUALS_STATE:
+            return "NOT_EQUALS_STATE";
+        case StateOperationType::GREATER_THAN_STATE:
+            return "GREATER_THAN_STATE";
+        case StateOperationType::LESS_THAN_STATE:
+            return "LESS_THAN_STATE";
+        default:
+            logger.LogWarning("Unknown operation type '" + std::to_string(static_cast<int>(operation_type)) +
+                "', treating as external operation", "FrameworkSchemaManager");
+
+            return "EXTERNAL_OPERATIONS";
+    }
+}
+
 bool StateSchemaManager::IsValidForCreation(const std::string &state_name, int32_t state_key)
 {
     if (state_name.empty()) {

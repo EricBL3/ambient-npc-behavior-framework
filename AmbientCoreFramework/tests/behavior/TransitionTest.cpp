@@ -42,7 +42,7 @@ TEST(TransitionTest, AddPreconditionWorksCorrectly)
 
     EXPECT_EQ(0, transition.GetPreconditions().size());
 
-    StateOperation stateOperation(StateOperationTarget::ENTITY, 0, 0, {1});
+    StateOperation stateOperation(StateOperationTarget::ENTITY, 0, StateOperationType::EQUALS, {1});
     transition.AddPrecondition(stateOperation);
 
     EXPECT_EQ(1, transition.GetPreconditions().size());
