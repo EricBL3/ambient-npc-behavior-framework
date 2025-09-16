@@ -415,8 +415,7 @@ void FrameworkRegistry::AddInterruptionHandlersToEntity(const std::unordered_map
         try
         {
             //TODO: Add interruption key mapping
-            //auto interruption_key = state_schema.GetInterruptionKey(interruption_handler_pair.first);
-            auto interruption_key = 0;
+            auto interruption_key = state_schema.GetInterruptionKey(interruption_handler_pair.first);
             new_entity->AddInterruptionHandler(interruption_key, GetSequenceById(interruption_handler_pair.second));
         }
         catch (const std::exception &e)

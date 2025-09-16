@@ -76,18 +76,18 @@ TEST_F(StateSchemaManagerTest, LoadStateSchema_ValidSchema_LoadsAllStates) {
         .WillOnce(testing::Return(valid_json));
 
     // Expect individual state registration logs
-    EXPECT_CALL(*mock_logger, LogInfo(testing::HasSubstr("Registered state in schema. Name: HEALTH"),
+    EXPECT_CALL(*mock_logger, LogInfo(testing::HasSubstr("Registered entity_states in schema. Name: HEALTH"),
                                        testing::Eq("StateSchemaManager")));
-    EXPECT_CALL(*mock_logger, LogInfo(testing::HasSubstr("Registered state in schema. Name: ENERGY"),
+    EXPECT_CALL(*mock_logger, LogInfo(testing::HasSubstr("Registered entity_states in schema. Name: ENERGY"),
                                        testing::Eq("StateSchemaManager")));
-    EXPECT_CALL(*mock_logger, LogInfo(testing::HasSubstr("Registered state in schema. Name: MOOD"),
-                                       testing::Eq("StateSchemaManager")));
-
-
-    EXPECT_CALL(*mock_logger, LogInfo(testing::HasSubstr("Registered 3 state schemas"),
+    EXPECT_CALL(*mock_logger, LogInfo(testing::HasSubstr("Registered entity_states in schema. Name: MOOD"),
                                        testing::Eq("StateSchemaManager")));
 
-    manager->LoadStateSchema("valid_schema.json");
+
+    EXPECT_CALL(*mock_logger, LogInfo(testing::HasSubstr("Registered 3 entity_states schemas"),
+                                       testing::Eq("StateSchemaManager")));
+
+    manager->LoadFrameworkSchema("valid_schema.json");
 
     // Verify bidirectional mapping works
     EXPECT_EQ(manager->GetStateKey("HEALTH"), 0);
@@ -105,10 +105,10 @@ TEST_F(StateSchemaManagerTest, LoadStateSchema_EmptyValidSchema_LogsAppropriatel
     EXPECT_CALL(*mock_json_loader, LoadConfigFileJson("empty_schema.json"))
         .WillOnce(testing::Return(empty_json));
 
-    EXPECT_CALL(*mock_logger, LogInfo(testing::HasSubstr("Registered 0 state schemas"),
+    EXPECT_CALL(*mock_logger, LogInfo(testing::HasSubstr("Registered 0 entity_states schemas"),
                                        testing::Eq("StateSchemaManager")));
 
-    manager->LoadStateSchema("empty_schema.json");
+    manager->LoadFrameworkSchema("empty_schema.json");
 }
 
 TEST_F(StateSchemaManagerTest, LoadStateSchema_DuplicateNames_RejectsDuplicates) {
@@ -118,18 +118,18 @@ TEST_F(StateSchemaManagerTest, LoadStateSchema_DuplicateNames_RejectsDuplicates)
         .WillOnce(testing::Return(duplicate_name_json));
 
     // First HEALTH should succeed
-    EXPECT_CALL(*mock_logger, LogInfo(testing::HasSubstr("Registered state in schema. Name: HEALTH"),
+    EXPECT_CALL(*mock_logger, LogInfo(testing::HasSubstr("Registered entity_states in schema. Name: HEALTH"),
                                        testing::Eq("StateSchemaManager")));
 
     // Second HEALTH should be rejected
-    EXPECT_CALL(*mock_logger, LogWarning(testing::HasSubstr("Duplicate state name: HEALTH"),
+    EXPECT_CALL(*mock_logger, LogWarning(testing::HasSubstr("Duplicate name: HEALTH"),
                                           testing::Eq("StateSchemaManager")));
 
     // Final count should be 1, not 2
-    EXPECT_CALL(*mock_logger, LogInfo(testing::HasSubstr("Registered 1 state schemas"),
+    EXPECT_CALL(*mock_logger, LogInfo(testing::HasSubstr("Registered 1 entity_states schemas"),
                                        testing::Eq("StateSchemaManager")));
 
-    manager->LoadStateSchema("duplicate_names.json");
+    manager->LoadFrameworkSchema("duplicate_names.json");
 
     // Verify only first mapping exists
     EXPECT_EQ(manager->GetStateKey("HEALTH"), 0);
@@ -144,17 +144,17 @@ TEST_F(StateSchemaManagerTest, LoadStateSchema_DuplicateKeys_RejectsDuplicates) 
         .WillOnce(testing::Return(duplicate_key_json));
 
     // First entry should succeed
-    EXPECT_CALL(*mock_logger, LogInfo(testing::HasSubstr("Registered state in schema. Name: HEALTH"),
+    EXPECT_CALL(*mock_logger, LogInfo(testing::HasSubstr("Registered entity_states in schema. Name: HEALTH"),
                                        testing::Eq("StateSchemaManager")));
 
     // Second entry should be rejected
-    EXPECT_CALL(*mock_logger, LogWarning(testing::HasSubstr("Duplicate state key: 0 for state: ENERGY"),
+    EXPECT_CALL(*mock_logger, LogWarning(testing::HasSubstr("Duplicate key: 0 for name: ENERGY"),
                                           testing::Eq("StateSchemaManager")));
 
-    EXPECT_CALL(*mock_logger, LogInfo(testing::HasSubstr("Registered 1 state schemas"),
+    EXPECT_CALL(*mock_logger, LogInfo(testing::HasSubstr("Registered 1 entity_states schemas"),
                                        testing::Eq("StateSchemaManager")));
 
-    manager->LoadStateSchema("duplicate_keys.json");
+    manager->LoadFrameworkSchema("duplicate_keys.json");
 
     // Verify only first mapping exists
     EXPECT_EQ(manager->GetStateKey("HEALTH"), 0);
@@ -172,13 +172,13 @@ TEST_F(StateSchemaManagerTest, LoadStateSchema_JsonLoaderFails_ReturnsEarly) {
     EXPECT_CALL(*mock_logger, LogError(testing::_, testing::_))
         .Times(0);
 
-    manager->LoadStateSchema("bad_file.json");
+    manager->LoadFrameworkSchema("bad_file.json");
 
     // No states should be loaded
     EXPECT_THROW(manager->GetStateKey("HEALTH"), std::out_of_range);
 }
 
-TEST_F(StateSchemaManagerTest, LoadStateSchema_MissingEntityStatesArray_LogsError) {
+TEST_F(StateSchemaManagerTest, LoadStateSchema_MissingArrays_LogsError) {
     json json_without_states = {{"other_field", "value"}};
 
     EXPECT_CALL(*mock_json_loader, LoadConfigFileJson("no_states.json"))
@@ -187,7 +187,10 @@ TEST_F(StateSchemaManagerTest, LoadStateSchema_MissingEntityStatesArray_LogsErro
     EXPECT_CALL(*mock_logger, LogError(testing::HasSubstr("Config file missing 'entity_states' array"),
                                         testing::Eq("StateSchemaManager")));
 
-    manager->LoadStateSchema("no_states.json");
+    EXPECT_CALL(*mock_logger, LogError(testing::HasSubstr("Config file missing 'interruption_handlers' array"),
+                                        testing::Eq("StateSchemaManager")));
+
+    manager->LoadFrameworkSchema("no_states.json");
 }
 
 TEST_F(StateSchemaManagerTest, LoadStateSchema_MalformedStateEntries_LogsErrorsContinuesProcessing) {
@@ -197,15 +200,18 @@ TEST_F(StateSchemaManagerTest, LoadStateSchema_MalformedStateEntries_LogsErrorsC
         .WillOnce(testing::Return(malformed_json));
 
     // Should log errors for malformed entries
-    EXPECT_CALL(*mock_logger, LogError(testing::HasSubstr("Failed to parse state schema from JSON"),
+    EXPECT_CALL(*mock_logger, LogError(testing::HasSubstr("Failed to parse entity_states schema from JSON"),
                                         testing::Eq("StateSchemaManager")))
         .Times(2); // Two malformed entries
 
     // Should still log final count (0 in this case)
-    EXPECT_CALL(*mock_logger, LogInfo(testing::HasSubstr("Registered 0 state schemas"),
+    EXPECT_CALL(*mock_logger, LogInfo(testing::HasSubstr("Registered 0 entity_states schemas"),
                                        testing::Eq("StateSchemaManager")));
 
-    manager->LoadStateSchema("malformed.json");
+    EXPECT_CALL(*mock_logger, LogError(testing::HasSubstr("Config file missing 'interruption_handlers' array"),
+                                        testing::Eq("StateSchemaManager")));
+
+    manager->LoadFrameworkSchema("malformed.json");
 }
 
 // INVALID LOAD TESTS
@@ -221,18 +227,18 @@ TEST_F(StateSchemaManagerTest, LoadStateSchema_EmptyStateName_RejectsEntry) {
         .WillOnce(testing::Return(empty_name_json));
 
     // Should log warning for empty name
-    EXPECT_CALL(*mock_logger, LogWarning(testing::HasSubstr("State name cannot be empty for key: 0"),
+    EXPECT_CALL(*mock_logger, LogWarning(testing::HasSubstr("name cannot be empty for key: 0"),
                                           testing::Eq("StateSchemaManager")));
 
     // Should log success for valid state
-    EXPECT_CALL(*mock_logger, LogInfo(testing::HasSubstr("Registered state in schema. Name: VALID_STATE"),
+    EXPECT_CALL(*mock_logger, LogInfo(testing::HasSubstr("Registered entity_states in schema. Name: VALID_STATE"),
                                        testing::Eq("StateSchemaManager")));
 
     // Final count should be 1, not 2
-    EXPECT_CALL(*mock_logger, LogInfo(testing::HasSubstr("Registered 1 state schemas"),
+    EXPECT_CALL(*mock_logger, LogInfo(testing::HasSubstr("Registered 1 entity_states schemas"),
                                        testing::Eq("StateSchemaManager")));
 
-    manager->LoadStateSchema("empty_name.json");
+    manager->LoadFrameworkSchema("empty_name.json");
 
     // Empty name should not be accessible
     EXPECT_THROW(manager->GetStateKey(""), std::out_of_range);
@@ -255,15 +261,15 @@ TEST_F(StateSchemaManagerTest, LoadStateSchema_WhitespaceOnlyStateName_RejectsEn
         .WillOnce(testing::Return(whitespace_name_json));
 
     // Should log warning for whitespace-only name (you might want to trim and validate)
-    EXPECT_CALL(*mock_logger, LogInfo(testing::HasSubstr("Registered state in schema. Name:    "),
+    EXPECT_CALL(*mock_logger, LogInfo(testing::HasSubstr("Registered entity_states in schema. Name:    "),
                                        testing::Eq("StateSchemaManager")));
-    EXPECT_CALL(*mock_logger, LogInfo(testing::HasSubstr("Registered state in schema. Name: VALID_STATE"),
-                                       testing::Eq("StateSchemaManager")));
-
-    EXPECT_CALL(*mock_logger, LogInfo(testing::HasSubstr("Registered 2 state schemas"),
+    EXPECT_CALL(*mock_logger, LogInfo(testing::HasSubstr("Registered entity_states in schema. Name: VALID_STATE"),
                                        testing::Eq("StateSchemaManager")));
 
-    manager->LoadStateSchema("whitespace_name.json");
+    EXPECT_CALL(*mock_logger, LogInfo(testing::HasSubstr("Registered 2 entity_states schemas"),
+                                       testing::Eq("StateSchemaManager")));
+
+    manager->LoadFrameworkSchema("whitespace_name.json");
 
     // Whitespace name should be accessible (unless you add trimming logic)
     EXPECT_EQ(manager->GetStateKey("   "), 0);
@@ -282,18 +288,18 @@ TEST_F(StateSchemaManagerTest, LoadStateSchema_NegativeKeys_RejectsEntry) {
         .WillOnce(testing::Return(negative_key_json));
 
     // Should log warning for negative key
-    EXPECT_CALL(*mock_logger, LogWarning(testing::HasSubstr("State key cannot be negative, got: -1 for state: NEGATIVE_STATE"),
+    EXPECT_CALL(*mock_logger, LogWarning(testing::HasSubstr("key cannot be negative, got: -1 for state: NEGATIVE_STATE"),
                                           testing::Eq("StateSchemaManager")));
 
     // Should log success for valid state
-    EXPECT_CALL(*mock_logger, LogInfo(testing::HasSubstr("Registered state in schema. Name: VALID_STATE"),
+    EXPECT_CALL(*mock_logger, LogInfo(testing::HasSubstr("Registered entity_states in schema. Name: VALID_STATE"),
                                        testing::Eq("StateSchemaManager")));
 
     // Final count should be 1, not 2
-    EXPECT_CALL(*mock_logger, LogInfo(testing::HasSubstr("Registered 1 state schemas"),
+    EXPECT_CALL(*mock_logger, LogInfo(testing::HasSubstr("Registered 1 entity_states schemas"),
                                        testing::Eq("StateSchemaManager")));
 
-    manager->LoadStateSchema("negative.json");
+    manager->LoadFrameworkSchema("negative.json");
 
     // Negative key should not be accessible
     EXPECT_THROW(manager->GetStateKey("NEGATIVE_STATE"), std::out_of_range);
@@ -313,7 +319,7 @@ TEST_F(StateSchemaManagerTest, GetStateKey_ValidName_ReturnsCorrectKey) {
     EXPECT_CALL(*mock_logger, LogInfo(testing::_, testing::_))
         .Times(testing::AnyNumber());
 
-    manager->LoadStateSchema("schema.json");
+    manager->LoadFrameworkSchema("schema.json");
 
     // Test lookups
     EXPECT_EQ(manager->GetStateKey("HEALTH"), 0);
@@ -333,7 +339,7 @@ TEST_F(StateSchemaManagerTest, GetStateName_ValidKey_ReturnsCorrectName) {
     EXPECT_CALL(*mock_logger, LogInfo(testing::_, testing::_))
         .Times(testing::AnyNumber());
 
-    manager->LoadStateSchema("schema.json");
+    manager->LoadFrameworkSchema("schema.json");
 
     // Test lookups
     EXPECT_EQ(manager->GetStateName(0), "HEALTH");

@@ -4,7 +4,7 @@
 using json = nlohmann::json;
 using namespace AmbientCharacterBehavior;
 
-void StateSchemaManager::LoadStateSchema(const std::string &config_file_path)
+void StateSchemaManager::LoadFrameworkSchema(const std::string &config_file_path)
 {
     auto config_json = json_loader.LoadConfigFileJson(config_file_path);
 
@@ -13,41 +13,78 @@ void StateSchemaManager::LoadStateSchema(const std::string &config_file_path)
         return;
     }
 
-    if (config_json.value().contains("entity_states") && config_json.value()["entity_states"].is_array())
+    LoadSchemaConfiguration(config_json, "entity_states", state_name_to_key, state_key_to_name);
+    LoadSchemaConfiguration(config_json, "interruption_handlers", interruption_name_to_key, interruption_key_to_name);
+
+}
+
+void StateSchemaManager::LoadSchemaConfiguration(const std::optional<json> &config_json, const std::string& schema_name,
+    std::unordered_map<std::string, int32_t>& name_to_key_map, std::unordered_map<int32_t, std::string>& key_to_name_map)
+{
+    if (config_json.value().contains(schema_name) && config_json.value()[schema_name].is_array())
     {
-        for (const auto& state_json : config_json.value()["entity_states"])
+        for (const auto& state_json : config_json.value()[schema_name])
         {
             try
             {
                 auto name = state_json.at("name").get<std::string>();
                 auto key = state_json.at("key").get<int32_t>();
 
-                if (IsValidForCreation(name, key))
+                if (IsValidForCreation(name, key, name_to_key_map, key_to_name_map))
                 {
-                    state_name_to_key[name] = key;
-                    state_key_to_name[key] = name;
+                    name_to_key_map[name] = key;
+                    key_to_name_map[key] = name;
 
-                    logger.LogInfo("Registered state in schema. Name: " + name +
+                    logger.LogInfo("Registered " + schema_name + " in schema. Name: " + name +
                          " Key: " + std::to_string(key), "StateSchemaManager");
 
                 }
 
             }
             catch (const json::exception& e) {
-                logger.LogError("Failed to parse state schema from JSON: " +
+                logger.LogError("Failed to parse "+ schema_name + " schema from JSON: " +
                      std::string(e.what()),"StateSchemaManager");
             }
         }
 
-        logger.LogInfo("Registered " + std::to_string(state_name_to_key.size()) + " state schemas",
+        logger.LogInfo("Registered " + std::to_string(name_to_key_map.size()) + " " + schema_name + " schemas",
              "StateSchemaManager");
-
     }
     else
     {
-        logger.LogError("Config file missing 'entity_states' array",
+        logger.LogError("Config file missing '" + schema_name + "' array",
             "StateSchemaManager");
     }
+}
+
+bool StateSchemaManager::IsValidForCreation(const std::string &name, int32_t key,
+    std::unordered_map<std::string, int32_t>& name_to_key_map, std::unordered_map<int32_t, std::string>& key_to_name_map)
+{
+    if (name.empty()) {
+        logger.LogWarning("name cannot be empty for key: " + std::to_string(key),
+                         "StateSchemaManager");
+        return false;
+    }
+
+    if (key < 0) {
+        logger.LogWarning("key cannot be negative, got: " + std::to_string(key) +
+                         " for state: " + name, "StateSchemaManager");
+        return false;
+    }
+
+    if (name_to_key_map.find(name) != name_to_key_map.end()) {
+        logger.LogWarning("Duplicate name: " + name, "StateSchemaManager");
+        return false;
+    }
+
+    if (key_to_name_map.find(key) != key_to_name_map.end()) {
+        logger.LogWarning("Duplicate key: " + std::to_string(key) + " for name: " + name,
+             "StateSchemaManager");
+
+        return false;
+    }
+
+    return true;
 }
 
 /**
@@ -153,31 +190,19 @@ std::string StateSchemaManager::GetStateOperationTypeName(StateOperationType ope
     }
 }
 
-bool StateSchemaManager::IsValidForCreation(const std::string &state_name, int32_t state_key)
+/**
+ * @throw std::out_of_range if interruption_name is not in the schema.
+ */
+int32_t StateSchemaManager::GetInterruptionKey(const std::string &interruption_name)
 {
-    if (state_name.empty()) {
-        logger.LogWarning("State name cannot be empty for key: " + std::to_string(state_key),
-                         "StateSchemaManager");
-        return false;
-    }
-
-    if (state_key < 0) {
-        logger.LogWarning("State key cannot be negative, got: " + std::to_string(state_key) +
-                         " for state: " + state_name, "StateSchemaManager");
-        return false;
-    }
-
-    if (state_name_to_key.find(state_name) != state_name_to_key.end()) {
-        logger.LogWarning("Duplicate state name: " + state_name, "StateSchemaManager");
-        return false;
-    }
-
-    if (state_key_to_name.find(state_key) != state_key_to_name.end()) {
-        logger.LogWarning("Duplicate state key: " + std::to_string(state_key) + " for state: " + state_name,
-             "StateSchemaManager");
-
-        return false;
-    }
-
-    return true;
+    return interruption_name_to_key.at(interruption_name);
 }
+
+/**
+ * @throw std::out_of_range if interruption_key is not in the schema.
+ */
+std::string StateSchemaManager::GetInterruptionName(int32_t interruption_key)
+{
+    return interruption_key_to_name.at(interruption_key);
+}
+
