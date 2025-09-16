@@ -15,5 +15,11 @@ public:
     MOCK_METHOD(bool, HasAction, (int32_t action_id), (const, override));
     MOCK_METHOD(std::shared_ptr<Action>, GetActionById, (int32_t action_id), (const, override));
 
+    MOCK_METHOD(bool, HasFrameworkEntity, (int32_t entity_id), (const, override));
+    MOCK_METHOD(FrameworkEntity*, GetFrameworkEntityById, (int32_t entity_id), (const, override));
+
+    MOCK_METHOD(bool, HasBehavioralEntity, (int32_t entity_id), (const, override));
+    MOCK_METHOD(FrameworkEntity*, GetBehavioralEntityById, (int32_t entity_id), (const, override));
+
 };
 }
