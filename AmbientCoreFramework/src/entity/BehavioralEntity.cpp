@@ -2,6 +2,8 @@
 
 #include <algorithm>
 
+#include "services/composition/ServiceBuilder.h"
+
 using namespace AmbientCharacterBehavior;
 
 void BehavioralEntity::SetMainSequence(const std::shared_ptr<Sequence> &new_sequence)

@@ -4,7 +4,7 @@
 #include "../../mocks/MockJsonLoader.h"
 #include "../../mocks/MockLogger.h"
 #include "../../mocks/MockFrameworkSchemaManager.h"
-#include "services/domain/FrameworkRegistry.h"
+#include "../../../src/services/registry/FrameworkRegistry.h"
 
 using namespace AmbientCharacterBehavior;
 
