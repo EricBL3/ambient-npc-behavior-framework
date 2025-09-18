@@ -4,16 +4,16 @@
 namespace AmbientCharacterBehavior {
 class BehaviorFramework {
 private:
-    std::unique_ptr<ApplicationContext> app_context;
-    bool is_initialized;
-    bool is_processing_entity_batch;
-
-    int32_t current_batch_start_index;
-
     struct EntityBatchRange {
         int32_t start_index;
         int32_t count;
     };
+
+    std::unique_ptr<ApplicationContext> app_context;
+    bool is_initialized;
+    bool is_processing_entity_batch;
+    int32_t current_batch_start_index;
+
 
 public:
     explicit BehaviorFramework(std::unique_ptr<ApplicationContext> context) :
@@ -29,6 +29,9 @@ public:
     void Update(int32_t character_batch_size, int64_t current_time_ms);
     void ProcessInterruption(int32_t interruption_id, const std::vector<void*> &affected_entity_handles) const;
 
+    void RegisterEntity(void* entity_handle, const std::string& config_path) const;
+    void UnregisterEntity(void* entity_handle) const;
+
 private:
 
     void InitializeCoreServices(const std::string& log_file_path) const;
@@ -36,8 +39,10 @@ private:
         const std::string& environmental_conditions_file_path ) const;
 
     void InitializeRegistry(const std::string& actions_file_path, const std::string& sequences_file_path) const;
+
     void UpdateBehavioralEntities(int32_t character_batch_size);
     bool IsFrameworkInitialized() const;
+    void ProcessPendingEntityCommands() const;
     bool CanUpdateBehavioralEntities(int32_t character_batch_size) const;
     int32_t GetTotalEntitiesCount() const;
     EntityBatchRange ComputeBatchRange(int32_t character_batch_size, int32_t total_entities) const;

@@ -71,6 +71,11 @@ void BehaviorFramework::Update(int32_t character_batch_size, int64_t current_tim
     {
         app_context->Core().time_manager.SetCurrentTime(current_time_ms);
 
+        if (app_context->Registry().registry.GetPendingCommandCount() > 0)
+        {
+            ProcessPendingEntityCommands();
+        }
+
         if (CanUpdateBehavioralEntities(character_batch_size))
         {
             UpdateBehavioralEntities(character_batch_size);
@@ -89,6 +94,22 @@ bool BehaviorFramework::IsFrameworkInitialized() const
     }
 
     return true;
+}
+
+void BehaviorFramework::ProcessPendingEntityCommands() const
+{
+    try
+    {
+        auto processed_count = app_context->Registry().registry.ProcessPendingEntityCommands();
+        app_context->Core().logger.LogInfo("Processed " + std::to_string(processed_count) + " entity commands",
+        "BehaviorFramework");
+
+    }
+    catch (const std::exception &e)
+    {
+        app_context->Core().logger.LogError("Error processing entity commands: " +
+                std::string(e.what()),"BehaviorFramework");
+    }
 }
 
 bool BehaviorFramework::CanUpdateBehavioralEntities(int32_t character_batch_size) const
@@ -239,4 +260,16 @@ bool BehaviorFramework::ProcessInterruptionForEntity(int32_t interruption_id, vo
             std::string(e.what()), "BehaviorFramework");
     }
     return false;
+}
+
+void BehaviorFramework::RegisterEntity(void *entity_handle, const std::string &config_path) const
+{
+    app_context->Registry().registry.QueueEntityRegistration(entity_handle, config_path);
+    app_context->Core().logger.LogInfo("Queued entity registration command" ,"BehaviorFramework");
+}
+
+void BehaviorFramework::UnregisterEntity(void *entity_handle) const
+{
+    app_context->Registry().registry.QueueEntityUnregistration(entity_handle);
+    app_context->Core().logger.LogInfo("Queued entity registration command" ,"BehaviorFramework");
 }

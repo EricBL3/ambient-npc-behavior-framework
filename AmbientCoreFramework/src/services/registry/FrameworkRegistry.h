@@ -1,6 +1,7 @@
 #pragma once
 #include <cstdint>
 #include <memory>
+#include <queue>
 #include <unordered_map>
 
 #include "behavior/Action.h"
@@ -32,6 +33,19 @@ private:
     IFrameworkSchemaManager& schema_manager;
     IEnvironmentalConditionManager& environment_manager;
 
+    enum class EntityCommandType {
+        REGISTER,
+        UNREGISTER
+    };
+
+    struct EntityCommand {
+        EntityCommandType type;
+        void* entity_handle;
+        std::string config_path;
+    };
+
+    std::queue<EntityCommand> pending_commands;
+
 public:
     explicit FrameworkRegistry(ILogger& logger, IJsonLoader& json_loader, IFrameworkSchemaManager& state_schema,
         IEnvironmentalConditionManager& environment_manager) :
@@ -39,8 +53,12 @@ public:
 
     void RegisterSequences(const std::string& config_file_path) override;
     void RegisterActions(const std::string& config_file_path) override;
-    void RegisterEntity(void* entity_handle, const std::string& config_file_path) override;
-    void UnregisterEntity(void* entity_handle) override;
+
+    void QueueEntityRegistration(void* handle, const std::string& path) override;
+    void QueueEntityUnregistration(void* handle) override;
+    size_t ProcessPendingEntityCommands() override;
+    size_t GetPendingCommandCount() const override;
+    void ClearPendingCommands() override;
 
     bool HasSequence(int32_t sequence_id) const override;
     std::shared_ptr<Sequence> GetSequenceById(int32_t sequence_id) const override;
@@ -91,6 +109,9 @@ private:
     void GenerateActionFromDto(const ActionDto &action_dto);
     InterruptionBehaviorType ParseInterruptionBehavior(const std::string& behavior_name) const;
     void ConfigureActionWithDto(const std::shared_ptr<Action> &new_action, const ActionDto &action_dto) const;
+
+    void RegisterEntity(void* entity_handle, const std::string& config_file_path);
+    void UnregisterEntity(void* entity_handle);
 
     FrameworkEntity* GenerateFrameworkEntityFromDto(void* entity_handle, std::optional<FrameworkEntityDto> entity_dto);
     bool IsEntityDuplicate(void* entity_handle, int32_t entity_id) const;

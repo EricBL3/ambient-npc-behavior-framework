@@ -228,6 +228,76 @@ void FrameworkRegistry::ConfigureActionWithDto(const std::shared_ptr<Action> &ne
             "FrameworkRegistry");
 }
 
+void FrameworkRegistry::QueueEntityRegistration(void *handle, const std::string &path)
+{
+    EntityCommand command {
+    EntityCommandType::REGISTER,
+    handle,
+    path,
+    };
+
+    pending_commands.push(command);
+
+    logger.LogInfo("Queued entity registration command", "FrameworkRegistry");
+}
+
+void FrameworkRegistry::QueueEntityUnregistration(void *handle)
+{
+    EntityCommand command {
+        EntityCommandType::UNREGISTER,
+        handle,
+        };
+
+    pending_commands.push(command);
+
+    logger.LogInfo("Queued entity unregistration command", "FrameworkRegistry");
+}
+
+size_t FrameworkRegistry::ProcessPendingEntityCommands()
+{
+    size_t processed = 0;
+
+    while (!pending_commands.empty())
+    {
+        auto command = pending_commands.front();
+        pending_commands.pop();
+
+        try
+        {
+            if (command.type == EntityCommandType::REGISTER)
+            {
+                RegisterEntity(command.entity_handle, command.config_path);
+            }
+            else
+            {
+                UnregisterEntity(command.entity_handle);
+            }
+            processed++;
+        }
+        catch (const std::exception &e)
+        {
+            logger.LogError(
+                    "Failed to process entity command: " + std::string(e.what()),
+                    "FrameworkRegistry");
+        }
+    }
+
+    return processed;
+}
+
+size_t FrameworkRegistry::GetPendingCommandCount() const
+{
+    return pending_commands.size();
+}
+
+void FrameworkRegistry::ClearPendingCommands()
+{
+    while (!pending_commands.empty())
+    {
+        pending_commands.pop();
+    }
+}
+
 void FrameworkRegistry::RegisterEntity(void *entity_handle, const std::string &config_file_path)
 {
     auto entity_dto = json_loader.ProcessSingleEntityConfigFile(config_file_path);
