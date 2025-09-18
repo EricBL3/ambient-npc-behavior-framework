@@ -50,5 +50,9 @@ public:
     void AddInterruptionHandler(int32_t interruption_id, const std::shared_ptr<Sequence> &handler);
     std::shared_ptr<Sequence> FindInterruptionHandler(int32_t interruption_id) const;
 
+    void ExecuteCurrentSequence();
+
+    void ProcessInterruption(int32_t interruption_id);
+
 };
 }

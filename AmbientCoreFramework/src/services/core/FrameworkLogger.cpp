@@ -28,6 +28,25 @@ FrameworkLogger::FrameworkLogger(const std::string &log_file_path)
     }
 }
 
+void FrameworkLogger::Initialize(const std::string &log_file_path)
+{
+    if (!log_file_path.empty())
+    {
+        log_file = make_unique<std::ofstream>(log_file_path, std::ios::out | std::ios::app);
+
+        if (!log_file->is_open())
+        {
+            throw std::runtime_error("FrameworkLogger: Failed to open log file: " + log_file_path);
+        }
+
+        is_logging_enabled = true;
+    }
+    else
+    {
+        is_logging_enabled = false;
+    }
+}
+
 void FrameworkLogger::WriteLog(FrameworkLogLevel level, const std::string &message, const std::string &component_name)
 {
     if (!is_logging_enabled || level < log_level || !log_file || !log_file->is_open())

@@ -6,6 +6,7 @@
 namespace AmbientCharacterBehavior {
 class MockLogger : public ILogger {
 public:
+    MOCK_METHOD(void, Initialize, (const std::string& log_file_path), (override));
     MOCK_METHOD(void, LogError, (const std::string& message, const std::string& component_name), (override));
     MOCK_METHOD(void, LogWarning, (const std::string& message, const std::string& component_name), (override));
     MOCK_METHOD(void, LogInfo, (const std::string& message, const std::string& component_name), (override));

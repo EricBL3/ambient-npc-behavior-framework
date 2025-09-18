@@ -24,6 +24,10 @@ public:
     virtual FrameworkEntity* GetFrameworkEntityById(int32_t entity_id) const = 0;
 
     virtual bool HasBehavioralEntity(int32_t entity_id) const = 0;
-    virtual FrameworkEntity* GetBehavioralEntityById(int32_t entity_id) const = 0;
+    virtual BehavioralEntity* GetBehavioralEntityById(int32_t entity_id) const = 0;
+    virtual BehavioralEntity* GetBehavioralEntityByHandle(void* entity_handle) const = 0;
+
+    virtual std::vector<BehavioralEntity*> GetBehavioralEntitiesRange(int32_t start_index, int32_t count) const = 0;
+    virtual int32_t GetBehavioralEntityCount() const = 0;
 };
 }

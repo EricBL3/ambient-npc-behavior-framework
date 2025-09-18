@@ -54,8 +54,13 @@ public:
 
     bool HasBehavioralEntity(int32_t entity_id) const override;
     BehavioralEntity* GetBehavioralEntityById(int32_t entity_id) const override;
+    BehavioralEntity* GetBehavioralEntityByHandle(void* entity_handle) const override;
     void* GetHandleFromBehavioralId(int32_t entity_id) const;
     int32_t GetBehavioralIdFromHandle(void* entity_handle) const;
+
+    std::vector<BehavioralEntity*> GetBehavioralEntitiesRange(int32_t start_index, int32_t count) const override;
+    int32_t GetBehavioralEntityCount() const override
+    { return behavioral_entities.size(); }
 
     size_t GetSequencesCount() const
     { return sequences.size(); }

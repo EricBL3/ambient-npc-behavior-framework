@@ -558,6 +558,19 @@ BehavioralEntity * FrameworkRegistry::GetBehavioralEntityById(int32_t entity_id)
     return behavioral_entities.at(entity_id).get();
 }
 
+BehavioralEntity * FrameworkRegistry::GetBehavioralEntityByHandle(void *entity_handle) const
+{
+    auto entity_id = GetBehavioralIdFromHandle(entity_handle);
+    if (entity_id == -1)
+    {
+        logger.LogWarning("Entity with the provided handle is not in the registry",
+            "FrameworkRegistry");
+
+        return nullptr;
+    }
+    return GetBehavioralEntityById(entity_id);
+}
+
 void * FrameworkRegistry::GetHandleFromBehavioralId(int32_t entity_id) const
 {
     auto iterator = behavioral_id_to_handle.find(entity_id);
@@ -570,4 +583,19 @@ int32_t FrameworkRegistry::GetBehavioralIdFromHandle(void *entity_handle) const
     auto iterator = handle_to_behavioral_id.find(entity_handle);
     // -1 is an invalid id
     return iterator != handle_to_behavioral_id.end() ? iterator->second : -1;
+}
+
+std::vector<BehavioralEntity *> FrameworkRegistry::GetBehavioralEntitiesRange(int32_t start_index, int32_t count) const
+{
+    std::vector<BehavioralEntity *> result;
+
+    auto iterator = behavioral_entities.begin();
+    std::advance(iterator, start_index);
+
+    for (int32_t i = 0; i < count && iterator != behavioral_entities.end(); ++i, ++iterator)
+    {
+        result.emplace_back(iterator->second.get());
+    }
+
+    return result;
 }

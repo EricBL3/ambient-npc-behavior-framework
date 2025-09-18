@@ -20,14 +20,14 @@ private:
     bool is_logging_enabled;
 
 public:
-    /**
-     * @brief
-     * @param log_file_path Optional parameter
-     * @throw std::runtime_error if the log_file_path was provided and the file couldn't be opened.
-     */
+
     explicit FrameworkLogger(const std::string& log_file_path = "");
     ~FrameworkLogger() override = default;
 
+    /**
+     * @throw std::runtime_error if the log_file_path was provided and the file couldn't be opened.
+     */
+    void Initialize(const std::string& log_file_path) override;
 
     void LogError(const std::string& message, const std::string& component_name) override
     { WriteLog(FrameworkLogLevel::ERROR, message, component_name); }

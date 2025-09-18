@@ -70,3 +70,13 @@ std::shared_ptr<Sequence> BehavioralEntity::FindInterruptionHandler(int32_t inte
 
     return iterator->second;
 }
+
+void BehavioralEntity::ExecuteCurrentSequence()
+{
+
+}
+
+void BehavioralEntity::ProcessInterruption(int32_t interruption_id)
+{
+
+}
