@@ -59,6 +59,8 @@ public:
     size_t ProcessPendingEntityCommands() override;
     size_t GetPendingCommandCount() const override;
     void ClearPendingCommands() override;
+    void RegisterEntity(void* entity_handle, const std::string& config_file_path);
+    void UnregisterEntity(void* entity_handle);
 
     bool HasSequence(int32_t sequence_id) const override;
     std::shared_ptr<Sequence> GetSequenceById(int32_t sequence_id) const override;
@@ -110,8 +112,7 @@ private:
     InterruptionBehaviorType ParseInterruptionBehavior(const std::string& behavior_name) const;
     void ConfigureActionWithDto(const std::shared_ptr<Action> &new_action, const ActionDto &action_dto) const;
 
-    void RegisterEntity(void* entity_handle, const std::string& config_file_path);
-    void UnregisterEntity(void* entity_handle);
+
 
     FrameworkEntity* GenerateFrameworkEntityFromDto(void* entity_handle, std::optional<FrameworkEntityDto> entity_dto);
     bool IsEntityDuplicate(void* entity_handle, int32_t entity_id) const;

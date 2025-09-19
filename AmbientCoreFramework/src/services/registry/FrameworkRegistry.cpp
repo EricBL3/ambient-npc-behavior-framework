@@ -246,7 +246,7 @@ void FrameworkRegistry::QueueEntityUnregistration(void *handle)
     EntityCommand command {
         EntityCommandType::UNREGISTER,
         handle,
-        };
+    };
 
     pending_commands.push(command);
 
