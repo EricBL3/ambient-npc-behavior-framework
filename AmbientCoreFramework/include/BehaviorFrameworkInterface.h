@@ -15,6 +15,19 @@
 extern "C" {
 #endif
 
+    AmbientCoreFramework_API void* CreateAmbientBehaviorFramework();
+    AmbientCoreFramework_API bool InitializeAmbientBehaviorFramework(void* framework_handle, const char* schema_file_path,
+        const char* sequences_file_path, const char* actions_file_path,
+        const char* environmental_conditions_file_path, const char*  log_file_path);
+
+    AmbientCoreFramework_API void ShutdownAmbientBehaviorFramework(void* framework_handle);
+    AmbientCoreFramework_API void Update(void* framework_handle, int32_t batch_size, int64_t current_time);
+    AmbientCoreFramework_API void ProcessInterruption(void* framework_handle, int32_t interruption_id, void** entity_handles,
+        int32_t count);
+
+    AmbientCoreFramework_API void RegisterEntity(void* framework_handle, void* entity_handle, const char* config_path);
+    AmbientCoreFramework_API void UnregisterEntity(void* framework_handle, void* entity_handle);
+
     typedef int32_t (*QueryEnvironmentalConditionFn) (int32_t condition_key);
     AmbientCoreFramework_API void RegisterQueryEnvironmentalConditionFunction(QueryEnvironmentalConditionFn fn);
 

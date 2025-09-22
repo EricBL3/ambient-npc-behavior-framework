@@ -26,6 +26,8 @@ public:
         const std::string &actions_file_path, const std::string &environmental_conditions_file_path,
         const std::string& log_file_path);
 
+    bool IsInitialized() const { return is_initialized; }
+
     void Update(int32_t character_batch_size, int64_t current_time_ms);
     void ProcessInterruption(int32_t interruption_id, const std::vector<void*> &affected_entity_handles) const;
 
