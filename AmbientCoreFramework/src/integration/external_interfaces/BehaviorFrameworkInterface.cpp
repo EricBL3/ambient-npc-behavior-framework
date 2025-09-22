@@ -1,15 +1,13 @@
-#include "../include/EnvironmentalConditionInterface.h"
-
+#include "../include/BehaviorFrameworkInterface.h"
 #include <stdexcept>
 
 static QueryEnvironmentalConditionFn query_callback = nullptr;
 
 extern "C" {
-    AmbientCoreFramework_API void RegisterQueryEnvironmentalCondition(QueryEnvironmentalConditionFn fn)
+    AmbientCoreFramework_API void RegisterQueryEnvironmentalConditionFunction(QueryEnvironmentalConditionFn fn)
     {
         query_callback = fn;
     }
-
 }
 
 namespace AmbientCharacterBehavior {
@@ -23,5 +21,3 @@ namespace AmbientCharacterBehavior {
         return query_callback(condition_key);
     }
 }
-
-
