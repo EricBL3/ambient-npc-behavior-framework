@@ -1,11 +1,3 @@
-/**
- * @file EnvironmentalConditionDto.h
- * @brief 
- * @author Eric Buitrón López
- * @date 9/1/2025
- *
- *
-*/
 
 #pragma once
 #include <cstdint>

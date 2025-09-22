@@ -1,21 +1,19 @@
-/*
-* MemorySystemTest.cpp
- *
- * Unit tests for the MemorySystem class.
- *
- * Author: Eric Buitrón López
- * Created: 8/13/2025
-*/
 
 #include <gtest/gtest.h>
 #include "memory/MemorySystem.h"
+#include "../mocks/MockLogger.h"
 
 using namespace AmbientCharacterBehavior;
 
 class MemorySystemTest : public testing::Test {
 protected:
+    std::unique_ptr<MockLogger> mock_logger;
+
+
     void SetUp() override {
-        memory_system = std::make_unique<MemorySystem>(3, 3, 2);
+        mock_logger = std::make_unique<MockLogger>();
+
+        memory_system = std::make_unique<MemorySystem>(3, 3, 2, *mock_logger);
     }
 
     std::unique_ptr<MemorySystem> memory_system;
@@ -26,7 +24,7 @@ protected:
 // =============================================================================
 
 TEST_F(MemorySystemTest, ConstructorInitializesEmptyMemoryCounts) {
-    MemorySystem system(5, 10, 3);
+    MemorySystem system(5, 10, 3, *mock_logger);
 
     EXPECT_EQ(0, system.GetTransitionMemoryCount());
     EXPECT_EQ(0, system.GetActionMemoryCount());
@@ -34,25 +32,25 @@ TEST_F(MemorySystemTest, ConstructorInitializesEmptyMemoryCounts) {
 }
 
 TEST_F(MemorySystemTest, ConstructorSetsTransitionCapacity) {
-    MemorySystem system(5, 10, 3);
+    MemorySystem system(5, 10, 3, *mock_logger);
     EXPECT_EQ(5, system.GetMaxTransitionMemories());
 }
 
 TEST_F(MemorySystemTest, ConstructorSetsActionCapacity) {
-    MemorySystem system(5, 10, 3);
+    MemorySystem system(5, 10, 3, *mock_logger);
     EXPECT_EQ(10, system.GetMaxActionMemories());
 }
 
 TEST_F(MemorySystemTest, ConstructorSetsInterruptionCapacity) {
-    MemorySystem system(5, 10, 3);
+    MemorySystem system(5, 10, 3, *mock_logger);
     EXPECT_EQ(3, system.GetMaxInterruptionMemories());
 }
 
 // Configuration Tests
 TEST_F(MemorySystemTest, SetMaxMemoriesRejectsZeroValues) {
-    memory_system->SetMaxTransitionMemories(0);
-    memory_system->SetMaxActionMemories(0);
-    memory_system->SetMaxInterruptionMemories(0);
+    memory_system->SetAndEnforceMaxTransitionMemories(0);
+    memory_system->SetAndEnforceMaxActionMemories(0);
+    memory_system->SetAndEnforceMaxInterruptionMemories(0);
 
     // Should reject and keep original values
     EXPECT_EQ(3, memory_system->GetMaxTransitionMemories());
@@ -61,9 +59,9 @@ TEST_F(MemorySystemTest, SetMaxMemoriesRejectsZeroValues) {
 }
 
 TEST_F(MemorySystemTest, SetMaxMemoriesRejectsNegativeValues) {
-    memory_system->SetMaxTransitionMemories(-5);
-    memory_system->SetMaxActionMemories(-5);
-    memory_system->SetMaxInterruptionMemories(-5);
+    memory_system->SetAndEnforceMaxTransitionMemories(-5);
+    memory_system->SetAndEnforceMaxActionMemories(-5);
+    memory_system->SetAndEnforceMaxInterruptionMemories(-5);
 
     EXPECT_EQ(3, memory_system->GetMaxTransitionMemories());  // Should be unchanged
     EXPECT_EQ(3, memory_system->GetMaxActionMemories());  // Should be unchanged
@@ -77,7 +75,7 @@ TEST_F(MemorySystemTest, SetMaxTransitionMemoriesEnforcesNewCapacityImmediately)
     [[maybe_unused]] auto res2 = memory_system->UpdateTransitionMemory(3, 300);
 
     // Reduce capacity to 2
-    memory_system->SetMaxTransitionMemories(2);
+    memory_system->SetAndEnforceMaxTransitionMemories(2);
 
     // Should immediately remove oldest
     EXPECT_EQ(2, memory_system->GetTransitionMemoryCount());
@@ -89,7 +87,7 @@ TEST_F(MemorySystemTest, SetMaxActionMemoriesEnforcesNewCapacityImmediately) {
     [[maybe_unused]] auto res1 = memory_system->UpdateActionMemory(2, 20, 200);
     [[maybe_unused]] auto res2 = memory_system->UpdateActionMemory(3, 30, 300);
 
-    memory_system->SetMaxActionMemories(2);
+    memory_system->SetAndEnforceMaxActionMemories(2);
 
     EXPECT_EQ(2, memory_system->GetActionMemoryCount());
     EXPECT_EQ(nullptr, memory_system->FindActionMemory(1, 10));  // Oldest removed
@@ -99,7 +97,7 @@ TEST_F(MemorySystemTest, SetMaxInterruptionMemoriesEnforcesNewCapacityImmediatel
     [[maybe_unused]] auto res = memory_system->UpdateInterruptionMemory(1, 10, 11, 20, 100);
     [[maybe_unused]] auto res1 = memory_system->UpdateInterruptionMemory(2, 10, 12, 21, 200);
 
-    memory_system->SetMaxInterruptionMemories(1);
+    memory_system->SetAndEnforceMaxInterruptionMemories(1);
 
     EXPECT_EQ(1, memory_system->GetInterruptionMemoryCount());
     EXPECT_EQ(nullptr, memory_system->FindInterruptionMemory(1, 10, 11));  // Oldest removed
@@ -351,7 +349,7 @@ TEST_F(MemorySystemTest, GetLeastRecentlyVisitedNodePrefersNeverUsed) {
    [[maybe_unused]] auto res1 =  memory_system->UpdateTransitionMemory(7, 200);
 
     std::vector<int> node_ids = {5, 7, 9};  // 9 never used
-    int selected = memory_system->GetLeastRecentlyVisitedNode(node_ids);
+    int selected = memory_system->GetLeastRecentlyVisitedNodeId(node_ids);
 
     EXPECT_EQ(9, selected);
 }
@@ -361,14 +359,14 @@ TEST_F(MemorySystemTest, GetLeastRecentlyVisitedNodeSelectsOldestTimestamp) {
    [[maybe_unused]] auto res1 =  memory_system->UpdateTransitionMemory(7, 200);  // Newer
 
     std::vector<int> node_ids = {5, 7};
-    int selected = memory_system->GetLeastRecentlyVisitedNode(node_ids);
+    int selected = memory_system->GetLeastRecentlyVisitedNodeId(node_ids);
 
     EXPECT_EQ(5, selected);
 }
 
 TEST_F(MemorySystemTest, GetLeastRecentlyVisitedNodeReturnsMinusOneForEmptyInput) {
     std::vector<int> empty_list;
-    int selected = memory_system->GetLeastRecentlyVisitedNode(empty_list);
+    int selected = memory_system->GetLeastRecentlyVisitedNodeId(empty_list);
 
     EXPECT_EQ(-1, selected);
 }
@@ -378,7 +376,7 @@ TEST_F(MemorySystemTest, GetLeastRecentlyVisitedNodeHandlesEqualTimestamps) {
    [[maybe_unused]] auto res1 =  memory_system->UpdateTransitionMemory(7, 100);  // Same timestamp so should pick randomly
 
     std::vector<int> node_ids = {5, 7};
-    int selected = memory_system->GetLeastRecentlyVisitedNode(node_ids);
+    int selected = memory_system->GetLeastRecentlyVisitedNodeId(node_ids);
 
     EXPECT_TRUE(selected == 5 || selected == 7);
 }
@@ -389,7 +387,7 @@ TEST_F(MemorySystemTest, GetLeastRecentlyUsedEntityPrefersNeverUsed) {
    [[maybe_unused]] auto res1 =  memory_system->UpdateActionMemory(3, 11, 200);
 
     std::vector<int> entity_ids = {10, 11, 12};  // 12 never used
-    int selected = memory_system->GetLeastRecentlyUsedEntityForAction(3, entity_ids);
+    int selected = memory_system->GetLeastRecentlyUsedEntityIdForAction(3, entity_ids);
 
     EXPECT_EQ(12, selected);
 }
@@ -399,14 +397,14 @@ TEST_F(MemorySystemTest, GetLeastRecentlyUsedEntitySelectsOldestTimestamp) {
    [[maybe_unused]] auto res1 =  memory_system->UpdateActionMemory(3, 11, 200);  // Newer
 
     std::vector<int> entity_ids = {10, 11};
-    int selected = memory_system->GetLeastRecentlyUsedEntityForAction(3, entity_ids);
+    int selected = memory_system->GetLeastRecentlyUsedEntityIdForAction(3, entity_ids);
 
     EXPECT_EQ(10, selected);
 }
 
 TEST_F(MemorySystemTest, GetLeastRecentlyUsedEntityReturnsMinusOneForEmptyInput) {
     std::vector<int> empty_list;
-    int selected = memory_system->GetLeastRecentlyUsedEntityForAction(3, empty_list);
+    int selected = memory_system->GetLeastRecentlyUsedEntityIdForAction(3, empty_list);
 
     EXPECT_EQ(-1, selected);
 }
@@ -416,7 +414,7 @@ TEST_F(MemorySystemTest, GetLeastRecentlyUsedEntityHandlesEqualTimestamps) {
    [[maybe_unused]] auto res1 =  memory_system->UpdateActionMemory(3, 11, 100); // Same timestamp so should pick randomly
 
     std::vector<int> entity_ids = {10, 11};
-    int selected = memory_system->GetLeastRecentlyUsedEntityForAction(3, entity_ids);
+    int selected = memory_system->GetLeastRecentlyUsedEntityIdForAction(3, entity_ids);
 
     EXPECT_TRUE(selected == 10 || selected == 11);
 }

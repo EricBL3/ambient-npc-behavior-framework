@@ -7,6 +7,7 @@ class MockFrameworkRegistry : public IFrameworkRegistry {
 public:
     MOCK_METHOD(void, RegisterSequences, (const std::string& config_file_path), (override));
     MOCK_METHOD(void, RegisterActions, (const std::string& config_file_path), (override));
+
     MOCK_METHOD(void, QueueEntityRegistration, (void* entity_handle,const std::string& config_file_path), (override));
     MOCK_METHOD(void, QueueEntityUnregistration, (void* entity_handle), (override));
     MOCK_METHOD(size_t, ProcessPendingEntityCommands, (), (override));
@@ -23,6 +24,9 @@ public:
 
     MOCK_METHOD(bool, HasBehavioralEntity, (int32_t entity_id), (const, override));
     MOCK_METHOD(BehavioralEntity*, GetBehavioralEntityById, (int32_t entity_id), (const, override));
+    MOCK_METHOD(BehavioralEntity*, GetBehavioralEntityByHandle, (void* entity_handle), (const, override));
 
+    MOCK_METHOD(std::vector<BehavioralEntity*>, GetBehavioralEntitiesRange, (int32_t start_index, int32_t count), (const, override));
+    MOCK_METHOD(int32_t, GetBehavioralEntityCount, (), (const, override));
 };
 }

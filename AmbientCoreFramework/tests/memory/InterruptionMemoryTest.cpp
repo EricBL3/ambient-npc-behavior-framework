@@ -1,14 +1,3 @@
-/*
-* InterruptionMemoryTest.cpp
- *
- * Unit tests for the InterruptionMemory class.
- * Validates interruption context storage and three-key matching behavior
- * for action resumption in ambient characters.
- *
- * Author: Eric Buitrón López
- * Created: 8/12/2025
- */
-
 #include <gtest/gtest.h>
 #include "memory/InterruptionMemory.h"
 

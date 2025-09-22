@@ -5,6 +5,7 @@
 
 #include "FrameworkEntity.h"
 #include "behavior/Sequence.h"
+#include "interfaces/ILogger.h"
 #include "memory/MemorySystem.h"
 
 
@@ -14,6 +15,8 @@ namespace AmbientCharacterBehavior {
  */
 class BehavioralEntity : public FrameworkEntity {
 private:
+    ILogger& logger;
+
     MemorySystem memory;
 
     std::shared_ptr<Sequence> main_sequence;
@@ -32,10 +35,10 @@ public:
     /**
      * @throw std::invalid_argument if entity_id or current_location_id < 0.
      */
-    explicit BehavioralEntity(void* entity_handle, int32_t entity_id, int32_t max_transition_memories,
+    explicit BehavioralEntity(ILogger& logger, void* entity_handle, int32_t entity_id, int32_t max_transition_memories,
         int32_t max_action_memories, int32_t max_interruption_memories, std::string name = "") :
-        FrameworkEntity(entity_handle, entity_id, std::move(name)),
-        memory(max_transition_memories, max_action_memories, max_interruption_memories),
+        FrameworkEntity(entity_handle, entity_id, std::move(name)), logger(logger),
+        memory(max_transition_memories, max_action_memories, max_interruption_memories, logger),
         main_sequence(nullptr), current_action_target_index(-1), is_processing(false) {}
 
     const MemorySystem& GetMemorySystem() const { return memory; }

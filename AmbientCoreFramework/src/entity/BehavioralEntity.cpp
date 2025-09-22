@@ -39,9 +39,8 @@ std::shared_ptr<Sequence> BehavioralEntity::GetFallbackSequenceById(int32_t sequ
 
     if (iterator == fallback_sequences.end())
     {
-        // TODO: replace with logger
-        // logger.LogWarning("Sequence with id: " + std::to_string(sequence_id) + " is not in the fallback sequences",
-        // "BehavioralEntity");
+        logger.LogWarning("Sequence with id: " + std::to_string(sequence_id) + " is not in the fallback sequences",
+         "BehavioralEntity");
         return nullptr;
     }
 
@@ -61,9 +60,8 @@ std::shared_ptr<Sequence> BehavioralEntity::FindInterruptionHandler(int32_t inte
     auto iterator = interruption_handlers.find(interruption_id);
     if (iterator == interruption_handlers.end())
     {
-        //TODO: replace with logger
-        //logger.LogWarning("FrameworkEntity[" + std::to_string(entity_id) + "]: Interruption id: " +
-        //    std::to_string(interruption_id) + " not found", "BehavioralEntity");
+        logger.LogWarning("FrameworkEntity[" + std::to_string(entity_id) + "]: Interruption id: " +
+            std::to_string(interruption_id) + " not found", "BehavioralEntity");
 
         return nullptr;
     }
@@ -73,10 +71,12 @@ std::shared_ptr<Sequence> BehavioralEntity::FindInterruptionHandler(int32_t inte
 
 void BehavioralEntity::ExecuteCurrentSequence()
 {
-
+    logger.LogInfo("Executing current sequence for entity: " + std::to_string(entity_id),
+        "BehavioralEntity");
 }
 
 void BehavioralEntity::ProcessInterruption(int32_t interruption_id)
 {
-
+    logger.LogInfo("Processing interruption with id: " + std::to_string(interruption_id),
+        "BehavioralEntity");
 }

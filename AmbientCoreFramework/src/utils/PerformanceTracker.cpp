@@ -1,12 +1,3 @@
-/*
-* PerformanceTracker
-*
-* [DESCRIPTION]
-*
-* Author: Eric Buitrón López
-* Created: 8/15/2025
-*/
-
 #include "PerformanceTracker.h"
 
 using namespace AmbientCharacterBehavior;

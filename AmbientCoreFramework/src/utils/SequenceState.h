@@ -1,12 +1,3 @@
-/**
- * @file SequenceState
- * @brief 
- * @author Eric Buitrón López
- * @date 8/18/2025
- *
- *
-*/
-
 #pragma once
 
 namespace AmbientCharacterBehavior {

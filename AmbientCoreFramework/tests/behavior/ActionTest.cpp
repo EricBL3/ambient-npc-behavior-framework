@@ -1,11 +1,3 @@
-/**
- * @file ActionTest.cpp
- * @brief Unit tests for the action class
- * @author Eric Buitrón López
- * @date 8/19/2025
- *
- *
-*/
 
 #include <gtest/gtest.h>
 

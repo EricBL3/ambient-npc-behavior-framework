@@ -901,6 +901,11 @@ TEST_F(FrameworkRegistryTest, RegisterEntity_ComplexBehavioralEntity_LogsWarning
        "FrameworkRegistry"))
        .Times(1);
 
+    EXPECT_CALL(*mock_logger, LogWarning(
+     testing::HasSubstr("not found"),
+     "BehavioralEntity"))
+     .Times(1);
+
     EXPECT_CALL(*mock_schema, GetStateKey("AVAILABLE_SEATS"))
          .WillOnce(testing::Return(0));
 

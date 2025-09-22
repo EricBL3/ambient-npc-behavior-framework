@@ -1,24 +1,9 @@
-/**
- * @file ActionMemory.cpp
- * @brief Implementation of action execution tracking for ambient character behavioral variety
- * @author Eric Buitrón López
- * @date 8/11/2025
- *
- */
-
 #include "ActionMemory.h"
 
 using namespace AmbientCharacterBehavior;
 
-// =============================================================================
-// CONSTRUCTION
-// =============================================================================
 
 /**
- * @brief Constructs action memory for a specific action-entity combination
- * @param action_id Unique identifier of the action that was performed
- * @param target_entity_id Unique identifier of the entity that was used
- * @param last_used_time Simulation timestamp when the action was performed
  * @throws std::invalid_argument if action_id < 0 or target_entity_id < 0 or last_used_time < 0
  *
  */
@@ -36,23 +21,9 @@ ActionMemory::ActionMemory(int32_t action_id, int32_t target_entity_id, int64_t 
     }
 }
 
-// =============================================================================
-// MEMORY MATCHING
-// =============================================================================
 
-/**
- * @brief Checks if this memory matches another memory instance polymorphically
- *
- * Implements the BaseMemory interface by safely checking if the other memory
- * is also an ActionMemory with the same action_id AND target_entity_id.
- * Uses dynamic_cast for type safety in polymorphic scenarios.
- *
- * @param other Memory instance to compare against
- * @return true if other is ActionMemory with same action_id and target_entity_id
- */
 bool ActionMemory::MatchesMemory(const BaseMemory& other) const
 {
-	// Safe type conversion - returns nullptr if 'other' is not an ActionMemory
 	const auto other_transition_memory (dynamic_cast<const ActionMemory*>(&other));
 	if(!other_transition_memory)
 	{
@@ -62,25 +33,11 @@ bool ActionMemory::MatchesMemory(const BaseMemory& other) const
 	return MatchesMemory(other_transition_memory->GetActionId(), other_transition_memory->GetTargetEntityId());
 }
 
-/**
-* @brief Checks if this memory matches the provided parameters.
- *
- * Alternative way of checking if a memory matches if full memory object is not available.
- *
- * @param other_action_id Action identifier to compare against
- * @param other_target_entity_id Entity identifier to compare against
- * @return true if both action_id and target_entity_id match
- *
- */
 bool ActionMemory::MatchesMemory(int32_t other_action_id, int32_t other_target_entity_id) const
 {
 	return this->action_id == other_action_id &&
 		this->target_entity_id == other_target_entity_id;
 }
-
-// =============================================================================
-// DATA ACCESS
-// =============================================================================
 
 int32_t ActionMemory::GetActionId() const
 {

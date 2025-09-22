@@ -1,14 +1,3 @@
-/*
-* ActionMemoryTest.cpp
- *
- * Unit tests for the ActionMemory class.
- * Validates action-entity pair tracking and dual-key matching behavior
- * for creating natural entity selection variety in ambient characters.
- *
- * Author: Eric Buitrón López
- * Created: 8/11/2025
- */
-
 #include <gtest/gtest.h>
 #include "memory/ActionMemory.h"
 

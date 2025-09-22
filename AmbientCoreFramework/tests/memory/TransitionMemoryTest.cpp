@@ -1,14 +1,4 @@
-﻿/*
-* TransitionMemoryTest.cpp
- *
- * Unit tests for the TransitionMemory class.
- * Validates transition decision tracking and memory matching behavior.
- *
- * Author: Eric Buitrón López
- * Created: 8/11/2025
- */
-
-#include <gtest/gtest.h>
+﻿#include <gtest/gtest.h>
 #include "memory/TransitionMemory.h"
 
 using namespace AmbientCharacterBehavior;

@@ -1,25 +1,10 @@
-﻿/**
- * @file TransitionMemory.cpp
- * @brief Implementation of transition decision tracking for ambient character behavioral variety
- * @author Eric Buitrón López
- * @date 8/11/2025
- *
- */
-
+﻿
 #include "TransitionMemory.h"
 
 using namespace AmbientCharacterBehavior;
 
-// =============================================================================
-// CONSTRUCTION
-// =============================================================================
-
 /**
- * @brief Constructs transition memory for a specific node visit
- * @param node_id Unique identifier of the sequence node that was visited
- * @param time Simulation timestamp when the transition was taken
  * @throws std::invalid_argument if node_id < 0 or time < 0
- *
  */
 TransitionMemory::TransitionMemory(int32_t node_id, int64_t time) : BaseMemory(time), target_node_id(node_id)
 {
@@ -29,32 +14,11 @@ TransitionMemory::TransitionMemory(int32_t node_id, int64_t time) : BaseMemory(t
     }
 }
 
-// =============================================================================
-// MEMORY MATCHING
-// =============================================================================
-
-/**
- * @brief Convenience method to check if this memory matches a specific node ID
- * @param other_node_id Node identifier to compare against
- * @return true if this memory's target_node_id matches other_node_id
- * @note More efficient than the IMemory version when you already know you're working with node IDs
- */
 bool TransitionMemory::MatchesMemory(int other_node_id) const
 {
     return target_node_id == other_node_id;
 }
 
-/**
- * @brief Checks if this memory matches another memory instance polymorphically
- *
- * Implements the BaseMemory interface by safely checking if the other memory
- * is also a TransitionMemory with the same target_node_id. Uses dynamic_cast
- * for type safety in polymorphic scenarios.
- *
- * @param other Memory instance to compare against
- * @return true if other is TransitionMemory with same target_node_id
- *
- */
 bool TransitionMemory::MatchesMemory(const BaseMemory& other) const
 {
     // Safe type conversion that returns nullptr if other is not a TransitionMemory
@@ -67,13 +31,7 @@ bool TransitionMemory::MatchesMemory(const BaseMemory& other) const
     return MatchesMemory(other_transition_memory->target_node_id);
 }
 
-// =============================================================================
-// DATA ACCESS
-// =============================================================================
-
 int32_t TransitionMemory::GetTargetNodeId() const
 {
     return target_node_id;
 }
-
-

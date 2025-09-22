@@ -8,6 +8,7 @@
 #include "entity/BehavioralEntity.h"
 
 namespace AmbientCharacterBehavior {
+
 class IFrameworkRegistry {
 public:
     virtual ~IFrameworkRegistry() = default;

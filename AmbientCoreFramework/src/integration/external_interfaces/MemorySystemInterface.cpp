@@ -1,13 +1,7 @@
-/**
- * @file MemorySystemInterface.cpp
- * @brief Implementation of public interface for MemorySystem operations
- * @author Eric Buitrón López
- * @date 8/15/2025
- */
-
 #include "../include/MemorySystemInterface.h"
 
 #include "memory/MemorySystem.h"
+#include "services/core/FrameworkLogger.h"
 #include "utils/PerformanceTracker.h"
 
 using namespace AmbientCharacterBehavior;
@@ -23,7 +17,8 @@ extern "C"
         PerformanceTracker::StartTiming();
         try
         {
-            auto memorySystem = new MemorySystem(max_transitions, max_actions, max_interruptions);
+            auto logger = FrameworkLogger();
+            auto memorySystem = new MemorySystem(max_transitions, max_actions, max_interruptions, logger);
             PerformanceTracker::StopTiming();
             return static_cast<MemorySystemHandle>(memorySystem);
         }catch (...)
@@ -63,7 +58,7 @@ extern "C"
             // Create C++ vector from a C array of integers
             std::vector<int32_t> nodes(node_ids, node_ids + count);
 
-            int32_t result = memorySystem->GetLeastRecentlyVisitedNode(nodes);
+            int32_t result = memorySystem->GetLeastRecentlyVisitedNodeId(nodes);
 
             PerformanceTracker::StopTiming();
             return result;
@@ -93,7 +88,7 @@ extern "C"
         {
             auto memorySystem = static_cast<MemorySystem*>(handle);
             std::vector<int32_t> entities(entity_ids, entity_ids + count);
-            int32_t result = memorySystem->GetLeastRecentlyUsedEntityForAction(action_id, entities);
+            int32_t result = memorySystem->GetLeastRecentlyUsedEntityIdForAction(action_id, entities);
 
             PerformanceTracker::StopTiming();
             return result;

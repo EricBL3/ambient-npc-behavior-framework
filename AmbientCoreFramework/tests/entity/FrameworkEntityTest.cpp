@@ -1,11 +1,3 @@
-/**
- * @file FrameworkEntityTest.cpp
- * @brief Unit tests for the entity class
- * @author Eric Buitrón López
- * @date 8/19/2025
- *
- *
-*/
 #include <gtest/gtest.h>
 
 #include "entity/FrameworkEntity.h"
