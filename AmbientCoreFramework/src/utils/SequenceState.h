@@ -2,10 +2,12 @@
 
 namespace AmbientCharacterBehavior {
 enum class SequenceState {
-    NORMAL = 0,
-    INTERRUPTED = 1,
-    FAILED = 2,
-    IN_SUBSEQUENCE = 3,
-    EXECUTING_ACTION = 4
+    UNINITIALIZED = 0,
+    PROCESSING_NODE = 1,
+    IN_SUBSEQUENCE = 2,
+    WAITING_FOR_ACTION = 3,
+    NODE_EXECUTED = 4,
+    FAILED = 5,
+    INTERRUPTED = 6
 };
 }

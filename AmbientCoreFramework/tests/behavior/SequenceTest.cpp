@@ -24,7 +24,7 @@ TEST_F(SequenceTest, ConstructorWorksCorrectly)
     EXPECT_EQ(sequence->HasEntryPoint(), false);
     EXPECT_EQ(sequence->GetCurrentNodeId(), -1);
     EXPECT_EQ(sequence->HasCurrentNode(), false);
-    EXPECT_EQ(sequence->GetSequenceState(), SequenceState::NORMAL);
+    EXPECT_EQ(sequence->GetSequenceState(), SequenceState::UNINITIALIZED);
 }
 
 TEST_F(SequenceTest, ConstructorRejectsNegativeSequenceId)
@@ -38,7 +38,7 @@ TEST_F(SequenceTest, ConstructorRejectsNegativeSequenceId)
 
 TEST_F(SequenceTest, SetSequenceStateWorksCorrectly)
 {
-    EXPECT_EQ(sequence->GetSequenceState(), SequenceState::NORMAL);
+    EXPECT_EQ(sequence->GetSequenceState(), SequenceState::UNINITIALIZED);
     sequence->SetSequenceState(SequenceState::INTERRUPTED);
     EXPECT_EQ(sequence->GetSequenceState(), SequenceState::INTERRUPTED);
 }

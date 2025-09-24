@@ -195,7 +195,7 @@ void BehaviorFramework::UpdateBehavioralEntities(int32_t character_batch_size)
 
             UpdateCurrentBatchStartIndex(character_batch_size, entities_range, total_entities);
 
-            app_context->Core().logger.LogInfo("Updated " + std::to_string(entities_range.count) +
+            app_context->Core().logger.LogInfo("Updated " + std::to_string(entities_to_process.size()) +
                 " entities starting from index " + std::to_string(entities_range.start_index),
                 "BehaviorFramework");
         }

@@ -703,13 +703,18 @@ int32_t FrameworkRegistry::GetBehavioralIdFromHandle(void *entity_handle) const
 std::vector<BehavioralEntity *> FrameworkRegistry::GetBehavioralEntitiesRange(int32_t start_index, int32_t count) const
 {
     std::vector<BehavioralEntity *> result;
+    result.reserve(count);
 
     auto iterator = behavioral_entities.begin();
     std::advance(iterator, start_index);
 
     for (int32_t i = 0; i < count && iterator != behavioral_entities.end(); ++i, ++iterator)
     {
-        result.emplace_back(iterator->second.get());
+        BehavioralEntity* entity = iterator->second.get();
+        if (entity && entity->CanUpdate())
+        {
+            result.emplace_back(entity);
+        }
     }
 
     return result;

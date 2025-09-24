@@ -11,7 +11,7 @@ using namespace AmbientCharacterBehavior;
 Sequence::Sequence(int32_t sequence_id, std::string sequence_name) :
     sequence_id(sequence_id),
     sequence_name(std::move(sequence_name)),
-    sequence_state(SequenceState::NORMAL)
+    sequence_state(SequenceState::UNINITIALIZED)
 {
     if (sequence_id < 0)
     {

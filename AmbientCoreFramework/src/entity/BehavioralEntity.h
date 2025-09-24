@@ -50,6 +50,10 @@ public:
 
     const MemorySystem& GetMemorySystem() const { return memory; }
 
+    bool IsProcessing() const { return is_processing; }
+
+    bool CanUpdate() const;
+
     void SetMainSequence(const std::shared_ptr<Sequence> &new_sequence);
     const std::shared_ptr<Sequence>& GetMainSequence() const { return main_sequence; }
 

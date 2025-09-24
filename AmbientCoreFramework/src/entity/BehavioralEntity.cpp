@@ -6,6 +6,16 @@
 
 using namespace AmbientCharacterBehavior;
 
+bool BehavioralEntity::CanUpdate() const
+{
+    if (sequences.empty())
+    {
+        return !is_processing;
+    }
+
+    return !is_processing && sequences.top()->GetSequenceState() != SequenceState::WAITING_FOR_ACTION;
+}
+
 void BehavioralEntity::SetMainSequence(const std::shared_ptr<Sequence> &new_sequence)
 {
     if (new_sequence && new_sequence != main_sequence)
@@ -71,8 +81,43 @@ std::shared_ptr<Sequence> BehavioralEntity::FindInterruptionHandler(int32_t inte
 
 void BehavioralEntity::ExecuteCurrentSequence()
 {
+    is_processing = true;
     logger.LogInfo("Executing current sequence for entity: " + std::to_string(entity_id),
         "BehavioralEntity");
+    switch (sequences.top()->GetSequenceState())
+    {
+        case SequenceState::UNINITIALIZED:
+            //HandleSequenceStartup();
+            break;
+        case SequenceState::PROCESSING_NODE:
+            //ExecuteCurrentNode();
+            break;
+        case SequenceState::IN_SUBSEQUENCE:
+            //HandleSubsequenceCompletion();
+            break;
+        case SequenceState::WAITING_FOR_ACTION:
+            //TODO: Start Action should set is_processing to true
+            logger.LogInfo("Waiting for character '" + std::to_string(entity_id) + "' to complete action with id: " +
+                std::to_string(current_action_id), "BehavioralEntity");
+            break;
+        case SequenceState::NODE_EXECUTED:
+            //HandleNodeExecutionCompletion(); //TODO: does the rest of the methods in this switch case.
+
+            // EvaluateTransitions();
+            // SelectBestTransition();
+            // memory.UpdateTransitionMemory();
+            // sequences.top()->SetSequenceState();
+            // sequences.top()->GetCurrentNode().ResetCompletion();
+            break;
+        case SequenceState::FAILED:
+            //HandleSequenceFailure();
+            break;
+        case SequenceState::INTERRUPTED:
+            //HandleInterruptionRecovery();
+            break;
+    }
+
+    is_processing = false;
 }
 
 void BehavioralEntity::ProcessInterruption(int32_t interruption_id)
