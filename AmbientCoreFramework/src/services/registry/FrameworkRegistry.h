@@ -141,7 +141,7 @@ private:
                 }
                 else
                 {
-                    logger.LogWarning("Action with id" + std::to_string(action_id) + " does not exist.",
+                    logger.LogWarning("Action with id: " + std::to_string(action_id) + " does not exist.",
                         "FrameworkRegistry");
                 }
             }

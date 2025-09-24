@@ -211,14 +211,7 @@ void BehaviorFramework::UpdateBehavioralEntities(int32_t character_batch_size)
 
 int32_t BehaviorFramework::GetTotalEntitiesCount() const
 {
-    auto total_entities = app_context->Registry().registry.GetBehavioralEntityCount();
-    if (total_entities == 0)
-    {
-        app_context->Core().logger.LogWarning("The framework will process 0 characters",
-        "BehaviorFramework");
-    }
-
-    return total_entities;
+    return app_context->Registry().registry.GetBehavioralEntityCount();
 }
 
 BehaviorFramework::EntityBatchRange BehaviorFramework::ComputeBatchRange(int32_t character_batch_size,
@@ -309,5 +302,5 @@ void BehaviorFramework::RegisterEntity(void *entity_handle, const std::string &c
 void BehaviorFramework::UnregisterEntity(void *entity_handle) const
 {
     app_context->Registry().registry.QueueEntityUnregistration(entity_handle);
-    app_context->Core().logger.LogInfo("Queued entity registration command" ,"BehaviorFramework");
+    app_context->Core().logger.LogInfo("Queued entity unregistration command" ,"BehaviorFramework");
 }

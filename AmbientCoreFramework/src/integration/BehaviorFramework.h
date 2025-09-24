@@ -34,6 +34,8 @@ public:
     void RegisterEntity(void* entity_handle, const std::string& config_path) const;
     void UnregisterEntity(void* entity_handle) const;
 
+    void ProcessPendingEntityCommands() const;
+
 private:
 
     bool InitializeCoreServices(const std::string& log_file_path) const;
@@ -44,7 +46,7 @@ private:
 
     void UpdateBehavioralEntities(int32_t character_batch_size);
     bool IsFrameworkInitialized() const;
-    void ProcessPendingEntityCommands() const;
+
     bool CanUpdateBehavioralEntities(int32_t character_batch_size) const;
     int32_t GetTotalEntitiesCount() const;
     EntityBatchRange ComputeBatchRange(int32_t character_batch_size, int32_t total_entities) const;

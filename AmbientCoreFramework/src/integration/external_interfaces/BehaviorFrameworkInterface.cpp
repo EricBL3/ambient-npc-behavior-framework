@@ -45,6 +45,8 @@ extern "C" {
             framework->GetServices().Core().logger.LogInfo("Shutting down ambient character behavior framework",
                 "BehaviorFrameworkInterface");
 
+            framework->ProcessPendingEntityCommands();
+
             delete framework;
         }
     }

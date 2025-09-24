@@ -279,8 +279,6 @@ void FrameworkRegistry::QueueEntityRegistration(void *handle, const std::string 
     };
 
     pending_commands.push(command);
-
-    logger.LogInfo("Queued entity registration command", "FrameworkRegistry");
 }
 
 void FrameworkRegistry::QueueEntityUnregistration(void *handle)
@@ -291,8 +289,6 @@ void FrameworkRegistry::QueueEntityUnregistration(void *handle)
     };
 
     pending_commands.push(command);
-
-    logger.LogInfo("Queued entity unregistration command", "FrameworkRegistry");
 }
 
 size_t FrameworkRegistry::ProcessPendingEntityCommands()
@@ -355,11 +351,17 @@ void FrameworkRegistry::RegisterEntity(void *entity_handle, const std::string &c
     {
         auto entity = GenerateFrameworkEntityFromDto(entity_handle, entity_dto->framework_entity);
         GenerateFrameworkEntityIdAndHandleMapping(entity);
+
+        logger.LogInfo("Registered Framework Entity: " + entity_dto->framework_entity->entity_name,
+            "FrameworkRegistry");
     }
     else if (entity_dto->entity_type == "BEHAVIORAL")
     {
         auto entity = GenerateBehavioralEntityFromDto(entity_handle, entity_dto->behavioral_entity);
         GenerateBehavioralEntityIdAndHandleMapping(entity);
+
+        logger.LogInfo("Registered Behavioral Entity: " + entity_dto->behavioral_entity->base_properties.entity_name,
+            "FrameworkRegistry");
     }
     else
     {
