@@ -5,8 +5,8 @@
 namespace AmbientCharacterBehavior {
 class MockFrameworkRegistry : public IFrameworkRegistry {
 public:
-    MOCK_METHOD(void, RegisterSequences, (const std::string& config_file_path), (override));
-    MOCK_METHOD(void, RegisterActions, (const std::string& config_file_path), (override));
+    MOCK_METHOD(bool, RegisterSequences, (const std::string& config_file_path), (override));
+    MOCK_METHOD(bool, RegisterActions, (const std::string& config_file_path), (override));
 
     MOCK_METHOD(void, QueueEntityRegistration, (void* entity_handle,const std::string& config_file_path), (override));
     MOCK_METHOD(void, QueueEntityUnregistration, (void* entity_handle), (override));

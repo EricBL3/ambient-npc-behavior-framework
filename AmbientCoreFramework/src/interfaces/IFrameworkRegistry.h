@@ -12,8 +12,8 @@ namespace AmbientCharacterBehavior {
 class IFrameworkRegistry {
 public:
     virtual ~IFrameworkRegistry() = default;
-    virtual void RegisterSequences(const std::string& config_file_path) = 0;
-    virtual void RegisterActions(const std::string& config_file_path) = 0;
+    virtual bool RegisterSequences(const std::string& config_file_path) = 0;
+    virtual bool RegisterActions(const std::string& config_file_path) = 0;
 
     virtual void QueueEntityRegistration(void* handle, const std::string& path) = 0;
     virtual void QueueEntityUnregistration(void* handle) = 0;

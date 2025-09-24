@@ -12,16 +12,16 @@ void BehaviorFramework::InitializeFramework(const std::string &schema_file_path,
     {
         try
         {
-            InitializeCoreServices(log_file_path);
+            auto success = InitializeCoreServices(log_file_path) &&
+                InitializeDomainServices(schema_file_path, environmental_conditions_file_path) &&
+                InitializeRegistry(actions_file_path, sequences_file_path);
+            is_initialized = success;
 
-            InitializeDomainServices(schema_file_path, environmental_conditions_file_path);
-
-            InitializeRegistry(actions_file_path, sequences_file_path);
-
-            is_initialized = true;
-            app_context->Core().logger.LogInfo("The framework has been initialized",
-                "BehaviorFramework");
-
+            if (success)
+            {
+                app_context->Core().logger.LogInfo("The framework has been initialized",
+                    "BehaviorFramework");
+            }
         }
         catch (const std::exception &e)
         {
@@ -31,38 +31,76 @@ void BehaviorFramework::InitializeFramework(const std::string &schema_file_path,
     }
 }
 
-void BehaviorFramework::InitializeCoreServices(const std::string& log_file_path) const
+bool BehaviorFramework::InitializeCoreServices(const std::string& log_file_path) const
 {
-    app_context->Core().logger.Initialize(log_file_path);
+    try
+    {
+        if (app_context->Core().logger.Initialize(log_file_path))
+        {
+            app_context->Core().logger.LogInfo("Initialized Core Services.","BehaviorFramework");
+            return true;
+        }
+    }
+    catch (const std::exception &e)
+    {
+        app_context->Core().logger.Initialize("framework_error.log");
+        app_context->Core().logger.LogInfo(e.what(), "BehaviorFramework");
+    }
 
-    app_context->Core().logger.LogInfo("Initialized Core Services.","BehaviorFramework");
+    return false;
 }
 
-void BehaviorFramework::InitializeDomainServices(const std::string& schema_file_path,
+bool BehaviorFramework::InitializeDomainServices(const std::string& schema_file_path,
     const std::string& environmental_conditions_file_path ) const
 {
     app_context->Core().logger.LogInfo("Loading framework schema","BehaviorFramework");
 
-    app_context->Domain().schema_manager.LoadFrameworkSchema(schema_file_path);
+    if (!app_context->Domain().schema_manager.LoadFrameworkSchema(schema_file_path))
+    {
+        app_context->Core().logger.LogError("Failed to load framework schema","BehaviorFramework");
+        return false;
+    }
 
     app_context->Core().logger.LogInfo("Registering environmental conditions","BehaviorFramework");
 
-    app_context->Domain().environmental_condition_manager.RegisterEnvironmentalConditions(
-        environmental_conditions_file_path);
+    if (!app_context->Domain().environmental_condition_manager.RegisterEnvironmentalConditions(environmental_conditions_file_path))
+    {
+        app_context->Core().logger.LogError("Failed to register environmental conditions",
+            "BehaviorFramework");
+
+        return false;
+    }
 
     app_context->Core().logger.LogInfo("Initialized Domain Services","BehaviorFramework");
+
+    return true;
 }
 
-void BehaviorFramework::InitializeRegistry(const std::string& actions_file_path, const std::string& sequences_file_path) const
+bool BehaviorFramework::InitializeRegistry(const std::string& actions_file_path, const std::string& sequences_file_path) const
 {
     app_context->Core().logger.LogInfo("Registering actions", "BehaviorFramework");
-    app_context->Registry().registry.RegisterActions(actions_file_path);
+    if (!app_context->Registry().registry.RegisterActions(actions_file_path))
+    {
+        app_context->Core().logger.LogError("Failed to register actions",
+            "BehaviorFramework");
+
+        return false;
+    }
 
     app_context->Core().logger.LogInfo("Registering sequences", "BehaviorFramework");
-    app_context->Registry().registry.RegisterSequences(sequences_file_path);
+
+    if (!app_context->Registry().registry.RegisterSequences(sequences_file_path))
+    {
+        app_context->Core().logger.LogError("Failed to register sequences",
+            "BehaviorFramework");
+
+        return false;
+    }
 
     app_context->Core().logger.LogInfo("Initialized Registry",
         "BehaviorFramework");
+
+    return true;
 }
 
 void BehaviorFramework::Update(int32_t character_batch_size, int64_t current_time_ms)

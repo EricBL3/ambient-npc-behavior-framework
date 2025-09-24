@@ -36,11 +36,11 @@ public:
 
 private:
 
-    void InitializeCoreServices(const std::string& log_file_path) const;
-    void InitializeDomainServices(const std::string& schema_file_path,
+    bool InitializeCoreServices(const std::string& log_file_path) const;
+    bool InitializeDomainServices(const std::string& schema_file_path,
         const std::string& environmental_conditions_file_path ) const;
 
-    void InitializeRegistry(const std::string& actions_file_path, const std::string& sequences_file_path) const;
+    bool InitializeRegistry(const std::string& actions_file_path, const std::string& sequences_file_path) const;
 
     void UpdateBehavioralEntities(int32_t character_batch_size);
     bool IsFrameworkInitialized() const;

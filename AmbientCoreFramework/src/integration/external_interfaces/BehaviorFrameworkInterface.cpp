@@ -41,7 +41,11 @@ extern "C" {
     {
         if (framework_handle)
         {
-            delete static_cast<BehaviorFramework*>(framework_handle);
+            auto framework = static_cast<BehaviorFramework*>(framework_handle);
+            framework->GetServices().Core().logger.LogInfo("Shutting down ambient character behavior framework",
+                "BehaviorFrameworkInterface");
+
+            delete framework;
         }
     }
 

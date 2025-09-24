@@ -27,7 +27,7 @@ public:
     /**
      * @throw std::runtime_error if the log_file_path was provided and the file couldn't be opened.
      */
-    void Initialize(const std::string& log_file_path) override;
+    bool Initialize(const std::string& log_file_path) override;
 
     void LogError(const std::string& message, const std::string& component_name) override
     { WriteLog(FrameworkLogLevel::ERROR, message, component_name); }
@@ -46,6 +46,8 @@ public:
 
     void SetLoggingEnabled(bool enabled) override
     { is_logging_enabled = enabled; }
+
+    bool IsLoggingEnabled() const override { return is_logging_enabled; }
 
 private:
     void WriteLog(FrameworkLogLevel level, const std::string& message, const std::string& component_name);

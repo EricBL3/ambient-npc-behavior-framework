@@ -6,7 +6,7 @@
 
 using namespace AmbientCharacterBehavior;
 
-void FrameworkRegistry::RegisterSequences(const std::string &config_file_path)
+bool FrameworkRegistry::RegisterSequences(const std::string &config_file_path)
 {
     auto sequence_dtos = json_loader.ProcessSequencesConfigFile(config_file_path);
     if (sequence_dtos.empty())
@@ -14,16 +14,24 @@ void FrameworkRegistry::RegisterSequences(const std::string &config_file_path)
         logger.LogWarning("The configuration file did not contain any valid sequences.",
             "FrameworkRegistry");
 
-        return;
+        return false;
     }
 
     for (const auto &sequence_dto : sequence_dtos)
     {
-        GenerateSequenceFromDto(sequence_dto);
+        if (!GenerateSequenceFromDto(sequence_dto))
+        {
+            return false;
+        }
     }
+
+    logger.LogInfo("Registered " + std::to_string(sequence_dtos.size()) + " sequences.",
+        "FrameworkRegistry");
+
+    return true;
 }
 
-void FrameworkRegistry::GenerateSequenceFromDto(const SequenceDto &sequence_dto)
+bool FrameworkRegistry::GenerateSequenceFromDto(const SequenceDto &sequence_dto)
 {
     try
     {
@@ -35,29 +43,37 @@ void FrameworkRegistry::GenerateSequenceFromDto(const SequenceDto &sequence_dto)
             logger.LogWarning("Sequence '" + sequence_dto.sequence_name + " ' was not added to the registry.",
                 "FrameworkRegistry");
 
-            return;
+            return false;
         }
 
-        ConfigureSequenceWithDto(new_sequence_iterator->second, sequence_dto);
+        return ConfigureSequenceWithDto(new_sequence_iterator->second, sequence_dto);
     }
     catch (const std::exception &e)
     {
         logger.LogError("Error while generating the sequence '" + sequence_dto.sequence_name + "', " +
             e.what(), "FrameworkRegistry");
+
+        return true;
     }
 }
 
-void FrameworkRegistry::ConfigureSequenceWithDto(const std::shared_ptr<Sequence> &new_sequence,
+bool FrameworkRegistry::ConfigureSequenceWithDto(const std::shared_ptr<Sequence> &new_sequence,
     const SequenceDto &sequence_dto) const
 {
     for (const auto &dto_node : sequence_dto.nodes)
     {
-        GenerateSequenceNodeFromDto(new_sequence, dto_node);
+        if (!GenerateSequenceNodeFromDto(new_sequence, dto_node))
+        {
+            return false;
+        }
     }
 
     for (const auto &dto_transition : sequence_dto.transitions)
     {
-        GenerateTransitionFromDto(new_sequence, dto_transition);
+        if (!GenerateTransitionFromDto(new_sequence, dto_transition))
+        {
+            return false;
+        }
     }
 
     if (!new_sequence->TrySetEntryPoint(sequence_dto.entry_point_node_id))
@@ -65,13 +81,17 @@ void FrameworkRegistry::ConfigureSequenceWithDto(const std::shared_ptr<Sequence>
         logger.LogWarning("The entry point node id for sequence '" + sequence_dto.sequence_name +
             "' was not set. Value: " + std::to_string(sequence_dto.entry_point_node_id),
             "FrameworkRegistry");
+
+        return false;
     }
 
     logger.LogInfo("Sequence '" + sequence_dto.sequence_name + " ' has been configured.",
             "FrameworkRegistry");
+
+    return true;
 }
 
-void FrameworkRegistry::GenerateSequenceNodeFromDto(const std::shared_ptr<Sequence> &new_sequence,
+bool FrameworkRegistry::GenerateSequenceNodeFromDto(const std::shared_ptr<Sequence> &new_sequence,
     const SequenceNodeDto &dto_node) const
 {
     try
@@ -91,6 +111,8 @@ void FrameworkRegistry::GenerateSequenceNodeFromDto(const std::shared_ptr<Sequen
         {
             logger.LogError("Unknown node type '" + dto_node.node_type + "' for node " +
                             std::to_string(dto_node.node_id), "FrameworkRegistry");
+
+            return false;
         }
     }
     catch (const std::exception &e)
@@ -98,10 +120,14 @@ void FrameworkRegistry::GenerateSequenceNodeFromDto(const std::shared_ptr<Sequen
         logger.LogError("Error while generating node " + std::to_string(dto_node.node_id) +
             " for the sequence '" + new_sequence->GetSequenceName() + "', " + e.what(),
             "FrameworkRegistry");
+
+        return false;
     }
+
+    return true;
 }
 
-void FrameworkRegistry::GenerateTransitionFromDto(const std::shared_ptr<Sequence> &new_sequence,
+bool FrameworkRegistry::GenerateTransitionFromDto(const std::shared_ptr<Sequence> &new_sequence,
     const TransitionDto &dto_transition) const
 {
     auto preconditions = GenerateStateOperationVectorFromDto(dto_transition.preconditions);
@@ -110,8 +136,13 @@ void FrameworkRegistry::GenerateTransitionFromDto(const std::shared_ptr<Sequence
         dto_transition.to_node_id, preconditions))
     {
         logger.LogError("Transition " + std::to_string(dto_transition.transition_id) +
-            " was not able to be added to the sequence '" + new_sequence->GetSequenceName(), "FrameworkRegistry");
+            " was not able to be added to the sequence '" + new_sequence->GetSequenceName(),
+            "FrameworkRegistry");
+
+        return false;
     }
+
+    return true;
 }
 
 std::vector<StateOperation> FrameworkRegistry::GenerateStateOperationVectorFromDto(
@@ -153,7 +184,7 @@ StateOperation FrameworkRegistry::GenerateStateOperationFromDto(const StateOpera
     return StateOperation(target_id, state_key, operation_type, dto_state_operation.parameters);
 }
 
-void FrameworkRegistry::RegisterActions(const std::string &config_file_path)
+bool FrameworkRegistry::RegisterActions(const std::string &config_file_path)
 {
     auto action_dtos = json_loader.ProcessActionsConfigFile(config_file_path);
     if (action_dtos.empty())
@@ -161,16 +192,23 @@ void FrameworkRegistry::RegisterActions(const std::string &config_file_path)
         logger.LogWarning("The configuration file did not contain any valid actions.",
             "FrameworkRegistry");
 
-        return;
+        return false;
     }
 
     for (const auto &action_dto : action_dtos)
     {
-        GenerateActionFromDto(action_dto);
+        if (!GenerateActionFromDto(action_dto))
+        {
+            return false;
+        }
     }
+
+    logger.LogInfo("Registered " + std::to_string(action_dtos.size()) + " actions.", "FrameworkRegistry");
+
+    return true;
 }
 
-void FrameworkRegistry::GenerateActionFromDto(const ActionDto &action_dto)
+bool FrameworkRegistry::GenerateActionFromDto(const ActionDto &action_dto)
 {
     try
     {
@@ -184,15 +222,17 @@ void FrameworkRegistry::GenerateActionFromDto(const ActionDto &action_dto)
             logger.LogWarning("Action '" + action_dto.action_name + " ' was not added to the registry.",
                 "FrameworkRegistry");
 
-            return;
+            return false;
         }
 
-        ConfigureActionWithDto(new_action_iterator->second, action_dto);
+        return ConfigureActionWithDto(new_action_iterator->second, action_dto);
     }
     catch (const std::exception &e)
     {
         logger.LogError("Error while generating the action '" + action_dto.action_name + "', " +
             e.what(), "FrameworkRegistry");
+
+        return false;
     }
 }
 
@@ -206,7 +246,7 @@ InterruptionBehaviorType FrameworkRegistry::ParseInterruptionBehavior(const std:
     throw std::invalid_argument("Unknown interruption behavior: " + behavior_name);
 }
 
-void FrameworkRegistry::ConfigureActionWithDto(const std::shared_ptr<Action> &new_action,
+bool FrameworkRegistry::ConfigureActionWithDto(const std::shared_ptr<Action> &new_action,
     const ActionDto &action_dto) const
 {
     for (const auto& precondition_dto : action_dto.preconditions)
@@ -226,6 +266,8 @@ void FrameworkRegistry::ConfigureActionWithDto(const std::shared_ptr<Action> &ne
 
     logger.LogInfo("Action '" + action_dto.action_name + " ' has been configured.",
             "FrameworkRegistry");
+
+    return true;
 }
 
 void FrameworkRegistry::QueueEntityRegistration(void *handle, const std::string &path)

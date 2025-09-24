@@ -51,8 +51,8 @@ public:
         IEnvironmentalConditionManager& environment_manager) :
         logger(logger), json_loader(json_loader), schema_manager(state_schema), environment_manager(environment_manager) {}
 
-    void RegisterSequences(const std::string& config_file_path) override;
-    void RegisterActions(const std::string& config_file_path) override;
+    bool RegisterSequences(const std::string& config_file_path) override;
+    bool RegisterActions(const std::string& config_file_path) override;
 
     void QueueEntityRegistration(void* handle, const std::string& path) override;
     void QueueEntityUnregistration(void* handle) override;
@@ -101,16 +101,16 @@ public:
     }
 
 private:
-    void GenerateSequenceFromDto(const SequenceDto &sequence_dto);
-    void ConfigureSequenceWithDto(const std::shared_ptr<Sequence> &new_sequence, const SequenceDto &sequence_dto) const;
-    void GenerateSequenceNodeFromDto(const std::shared_ptr<Sequence> &new_sequence, const SequenceNodeDto & dto_node) const;
-    void GenerateTransitionFromDto(const std::shared_ptr<Sequence> &new_sequence, const TransitionDto &dto_transition) const;
+    bool GenerateSequenceFromDto(const SequenceDto &sequence_dto);
+    bool ConfigureSequenceWithDto(const std::shared_ptr<Sequence> &new_sequence, const SequenceDto &sequence_dto) const;
+    bool GenerateSequenceNodeFromDto(const std::shared_ptr<Sequence> &new_sequence, const SequenceNodeDto & dto_node) const;
+    bool GenerateTransitionFromDto(const std::shared_ptr<Sequence> &new_sequence, const TransitionDto &dto_transition) const;
     std::vector<StateOperation> GenerateStateOperationVectorFromDto(const std::vector<StateOperationDto> &dto_state_operations) const;
     StateOperation GenerateStateOperationFromDto(const StateOperationDto &dto_state_operation) const;
 
-    void GenerateActionFromDto(const ActionDto &action_dto);
+    bool GenerateActionFromDto(const ActionDto &action_dto);
     InterruptionBehaviorType ParseInterruptionBehavior(const std::string& behavior_name) const;
-    void ConfigureActionWithDto(const std::shared_ptr<Action> &new_action, const ActionDto &action_dto) const;
+    bool ConfigureActionWithDto(const std::shared_ptr<Action> &new_action, const ActionDto &action_dto) const;
 
 
 

@@ -2,7 +2,9 @@
 
 using namespace AmbientCharacterBehavior;
 
-void EnvironmentalConditionManager::RegisterEnvironmentalConditions(const std::string& config_file_path)
+constexpr int32_t CONDITION_QUERY_FAILED = INT32_MIN;
+
+bool EnvironmentalConditionManager::RegisterEnvironmentalConditions(const std::string& config_file_path)
 {
     try
     {
@@ -11,7 +13,7 @@ void EnvironmentalConditionManager::RegisterEnvironmentalConditions(const std::s
         {
             logger.LogWarning("No valid environmental conditions found in config",
                  "EnvironmentalConditionManager");
-            return;
+            return false;
         }
 
         CreateEnvironmentalConditions(condition_dtos);
@@ -19,11 +21,15 @@ void EnvironmentalConditionManager::RegisterEnvironmentalConditions(const std::s
 
         logger.LogInfo("Successfully registered " + std::to_string(environmental_conditions_cache.size()) +
              " environmental conditions", "EnvironmentalConditionManager");
+
+        return true;
     }
     catch (const std::exception& e)
     {
         logger.LogError("Unexpected error loading environmental conditions: " + std::string(e.what()),
              "EnvironmentalConditionManager");
+
+        return false;
     }
 }
 
@@ -99,7 +105,16 @@ void EnvironmentalConditionManager::UpdateEnvironmentalCondition(int32_t conditi
 
     try
     {
+        logger.LogInfo("Updating environment condition: " + std::to_string(condition_key), "EnvironmentalConditionManager");
         auto new_value = provider.QueryEnvironmentalCondition(condition_key);
+
+        if (new_value == CONDITION_QUERY_FAILED)
+        {
+            logger.LogInfo("Updating environment condition " + std::to_string(condition_key) + " failed.",
+                "EnvironmentalConditionManager");
+
+            return;
+        }
 
         condition.SetValue(new_value);
         condition.SetLastUpdateMs(time_manager.GetCurrentTime());

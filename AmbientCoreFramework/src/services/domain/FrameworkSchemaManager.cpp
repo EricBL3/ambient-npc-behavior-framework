@@ -4,22 +4,22 @@
 using json = nlohmann::json;
 using namespace AmbientCharacterBehavior;
 
-void FrameworkSchemaManager::LoadFrameworkSchema(const std::string &config_file_path)
+bool FrameworkSchemaManager::LoadFrameworkSchema(const std::string &config_file_path)
 {
     auto config_json = json_loader.LoadConfigFileJson(config_file_path);
 
     if (!config_json.has_value())
     {
-        return;
+        return false;
     }
 
-    LoadSchemaConfiguration(config_json, "entity_states", state_name_to_key, state_key_to_name);
-    LoadSchemaConfiguration(config_json, "interruption_handlers", interruption_name_to_key, interruption_key_to_name);
+    return LoadSchemaConfiguration(config_json, "entity_states", state_name_to_key, state_key_to_name) &&
+        LoadSchemaConfiguration(config_json, "interruption_handlers", interruption_name_to_key, interruption_key_to_name);
 
 }
 
-void FrameworkSchemaManager::LoadSchemaConfiguration(const std::optional<json> &config_json, const std::string& schema_name,
-    std::unordered_map<std::string, int32_t>& name_to_key_map, std::unordered_map<int32_t, std::string>& key_to_name_map)
+bool FrameworkSchemaManager::LoadSchemaConfiguration(const std::optional<json> &config_json, const std::string& schema_name,
+    std::unordered_map<std::string, int32_t>& name_to_key_map, std::unordered_map<int32_t, std::string>& key_to_name_map) const
 {
     if (config_json.value().contains(schema_name) && config_json.value()[schema_name].is_array())
     {
@@ -35,7 +35,7 @@ void FrameworkSchemaManager::LoadSchemaConfiguration(const std::optional<json> &
                     name_to_key_map[name] = key;
                     key_to_name_map[key] = name;
 
-                    logger.LogInfo("Registered " + schema_name + " in schema. Name: " + name +
+                    logger.LogInfo("Registered " + schema_name + " in schema. Name: " + std::string(name) +
                          " Key: " + std::to_string(key), "FrameworkSchemaManager");
 
                 }
@@ -44,21 +44,25 @@ void FrameworkSchemaManager::LoadSchemaConfiguration(const std::optional<json> &
             catch (const json::exception& e) {
                 logger.LogError("Failed to parse "+ schema_name + " schema from JSON: " +
                      std::string(e.what()),"FrameworkSchemaManager");
+
+                return false;
             }
         }
 
         logger.LogInfo("Registered " + std::to_string(name_to_key_map.size()) + " " + schema_name + " schemas",
              "FrameworkSchemaManager");
+
+        return true;
     }
-    else
-    {
-        logger.LogError("Config file missing '" + schema_name + "' array",
-            "FrameworkSchemaManager");
-    }
+
+    logger.LogError("Config file missing '" + schema_name + "' array",
+                    "FrameworkSchemaManager");
+
+    return false;
 }
 
 bool FrameworkSchemaManager::IsValidForCreation(const std::string &name, int32_t key,
-    std::unordered_map<std::string, int32_t>& name_to_key_map, std::unordered_map<int32_t, std::string>& key_to_name_map)
+    std::unordered_map<std::string, int32_t>& name_to_key_map, std::unordered_map<int32_t, std::string>& key_to_name_map) const
 {
     if (name.empty()) {
         logger.LogWarning("name cannot be empty for key: " + std::to_string(key),

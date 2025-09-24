@@ -26,7 +26,7 @@ public:
         IEnvironmentalConditionProvider& provider) :
         logger(logger), time_manager(time_manager), json_loader(json_loader), provider(provider) {}
 
-    void RegisterEnvironmentalConditions(const std::string& config_file_path) override;
+    bool RegisterEnvironmentalConditions(const std::string& config_file_path) override;
     int32_t GetEnvironmentalConditionKey(const std::string& state_name) override;
     std::string GetEnvironmentalConditionName(int32_t state_key) override;
 

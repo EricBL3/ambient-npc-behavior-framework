@@ -25,7 +25,7 @@ class FrameworkSchemaManager : public IFrameworkSchemaManager {
 public:
     explicit FrameworkSchemaManager(ILogger& logger, IJsonLoader& json_loader) : logger(logger), json_loader(json_loader) {}
 
-    void LoadFrameworkSchema(const std::string& config_file_path) override;
+    bool LoadFrameworkSchema(const std::string& config_file_path) override;
     int32_t GetStateKey(const std::string& state_name) override;
     std::string GetStateName(int32_t state_key) override;
 
@@ -36,10 +36,10 @@ public:
     std::string GetInterruptionName(int32_t interruption_key) override;
 
 private:
-    void LoadSchemaConfiguration(const std::optional<nlohmann::json> &config_json, const std::string& schema_name,
-        std::unordered_map<std::string, int32_t>& name_to_key_map, std::unordered_map<int32_t, std::string>& key_to_name_map);
+    bool LoadSchemaConfiguration(const std::optional<nlohmann::json> &config_json, const std::string& schema_name,
+        std::unordered_map<std::string, int32_t>& name_to_key_map, std::unordered_map<int32_t, std::string>& key_to_name_map) const;
 
     bool IsValidForCreation(const std::string& name, int32_t key,
-        std::unordered_map<std::string, int32_t>& name_to_key_map, std::unordered_map<int32_t, std::string>& key_to_name_map);
+        std::unordered_map<std::string, int32_t>& name_to_key_map, std::unordered_map<int32_t, std::string>& key_to_name_map) const;
 };
 }
