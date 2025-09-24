@@ -304,3 +304,22 @@ void BehaviorFramework::UnregisterEntity(void *entity_handle) const
     app_context->Registry().registry.QueueEntityUnregistration(entity_handle);
     app_context->Core().logger.LogInfo("Queued entity unregistration command" ,"BehaviorFramework");
 }
+
+void BehaviorFramework::CompleteCharacterAction(void *entity_handle, int32_t action_id, int64_t action_token) const
+{
+    try
+    {
+        if (BehavioralEntity* entity = app_context->Registry().registry.GetBehavioralEntityByHandle(entity_handle))
+        {
+            entity->CompleteAction(action_id, action_token);
+        }
+
+        app_context->Core().logger.LogWarning("Invalid entity handle during action with id " + std::to_string(action_id) +
+            " and token " + std::to_string(action_token) + " completion","BehaviorFramework");
+    }
+    catch (const std::exception &e)
+    {
+        app_context->Core().logger.LogError("Error completing character action: " +
+            std::string(e.what()), "BehaviorFramework");
+    }
+}

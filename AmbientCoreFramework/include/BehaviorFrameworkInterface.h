@@ -34,6 +34,9 @@ extern "C" {
     typedef void (*StartActionCharacterFn) (void* entity_handle, int32_t action_id, int64_t action_token, void* target_entity_id);
     AmbientCoreFramework_API void RegisterStartActionCharacterFunction(StartActionCharacterFn fn);
 
+    AmbientCoreFramework_API void CompleteCharacterAction(void* framework_handle, void* entity_handle, int32_t action_id,
+        int64_t action_token);
+
 #ifdef __cplusplus
 }
 #endif

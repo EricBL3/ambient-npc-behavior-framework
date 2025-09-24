@@ -34,6 +34,9 @@ private:
 
     bool is_processing;
 
+    int32_t current_action_id;
+    int64_t current_action_token;
+
 public:
     /**
      * @throw std::invalid_argument if entity_id or current_location_id < 0.
@@ -43,7 +46,7 @@ public:
         std::string name = "") :
         FrameworkEntity(entity_handle, entity_id, std::move(name)), logger(logger), start_character_action_provider(provider),
         memory(max_transition_memories, max_action_memories, max_interruption_memories, logger),
-        main_sequence(nullptr), current_action_target_index(-1), is_processing(false) {}
+        main_sequence(nullptr), current_action_target_index(-1), is_processing(false), current_action_token(0), current_action_id(-1) {}
 
     const MemorySystem& GetMemorySystem() const { return memory; }
 
@@ -61,5 +64,9 @@ public:
 
     void ProcessInterruption(int32_t interruption_id);
 
+    void CompleteAction(int32_t action_id, int64_t action_token);
+
+private:
+    bool CompletedCurrentAction(int32_t action_id, int64_t action_token) const;
 };
 }

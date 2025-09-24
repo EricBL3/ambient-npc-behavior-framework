@@ -80,3 +80,26 @@ void BehavioralEntity::ProcessInterruption(int32_t interruption_id)
     logger.LogInfo("Processing interruption with id: " + std::to_string(interruption_id),
         "BehavioralEntity");
 }
+
+void BehavioralEntity::CompleteAction(int32_t action_id, int64_t action_token)
+{
+    if (CompletedCurrentAction(action_id, action_token))
+    {
+        logger.LogWarning("entity with id: " + std::to_string(entity_id) + " has completed action with id: " +
+            std::to_string(action_id) + " and token: " + std::to_string(action_token) ,"BehavioralEntity");
+    }
+}
+
+bool BehavioralEntity::CompletedCurrentAction(int32_t action_id, int64_t action_token) const
+{
+    if (action_token != current_action_token || action_id != current_action_id)
+    {
+        logger.LogWarning("The completed action with id: " + std::to_string(action_id) + " and token: " +
+            std::to_string(action_token) + " is not the same as the currently executing action for entity with id: " +
+            std::to_string(entity_id),"BehavioralEntity");
+
+        return false;
+    }
+
+    return true;
+}

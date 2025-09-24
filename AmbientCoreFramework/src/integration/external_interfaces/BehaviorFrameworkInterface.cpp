@@ -100,6 +100,16 @@ extern "C" {
         start_action_callback = fn;
     }
 
+    AmbientCoreFramework_API void CompleteCharacterAction(void* framework_handle, void *entity_handle, int32_t action_id,
+        int64_t action_token)
+    {
+        if (framework_handle)
+        {
+            auto framework = static_cast<BehaviorFramework*>(framework_handle);
+            framework->CompleteCharacterAction(entity_handle, action_id, action_token);
+        }
+    }
+
 }
 
 namespace AmbientCharacterBehavior {
@@ -123,3 +133,5 @@ namespace AmbientCharacterBehavior {
         return start_action_callback(entity_handle, action_id, action_token, target_entity_id);
     }
 }
+
+

@@ -33,8 +33,9 @@ public:
 
     void RegisterEntity(void* entity_handle, const std::string& config_path) const;
     void UnregisterEntity(void* entity_handle) const;
-
     void ProcessPendingEntityCommands() const;
+
+    void CompleteCharacterAction(void* entity_handle, int32_t action_id, int64_t action_token) const;
 
 private:
 
