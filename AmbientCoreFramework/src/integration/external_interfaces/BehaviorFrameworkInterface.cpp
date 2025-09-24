@@ -6,6 +6,7 @@
 using namespace AmbientCharacterBehavior;
 
 static QueryEnvironmentalConditionFn query_callback = nullptr;
+static StartActionCharacterFn start_action_callback = nullptr;
 
 
 extern "C" {
@@ -93,6 +94,12 @@ extern "C" {
     {
         query_callback = fn;
     }
+
+    AmbientCoreFramework_API void RegisterStartActionCharacterFunction(StartActionCharacterFn fn)
+    {
+        start_action_callback = fn;
+    }
+
 }
 
 namespace AmbientCharacterBehavior {
@@ -104,5 +111,15 @@ namespace AmbientCharacterBehavior {
         }
 
         return query_callback(condition_key);
+    }
+
+    void StartCharacterAction(void* entity_handle, int32_t action_id, int64_t action_token, void* target_entity_id)
+    {
+        if (!start_action_callback)
+        {
+            throw std::runtime_error("StartCharacterAction: Callback not registered");
+        }
+
+        return start_action_callback(entity_handle, action_id, action_token, target_entity_id);
     }
 }

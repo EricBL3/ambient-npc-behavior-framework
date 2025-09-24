@@ -4,6 +4,7 @@
 #include "services/configuration/JsonLoader.h"
 #include "services/core/EnvironmentalConditionProvider.h"
 #include "services/core/FrameworkLogger.h"
+#include "services/core/StartCharacterActionProvider.h"
 #include "services/core/TimeManager.h"
 #include "services/domain/EnvironmentalConditionManager.h"
 #include "services/domain/FrameworkSchemaManager.h"
@@ -29,6 +30,14 @@ ServiceBuilder & ServiceBuilder::WithEnvironmentalConditionProvider(
     environmental_condition_provider = std::move(new_environmental_condition_provider);
     return *this;
 }
+
+ServiceBuilder & ServiceBuilder::WithStartCharacterActionProvider(
+    std::unique_ptr<IStartCharacterActionProvider> new_start_character_action_provider)
+{
+    start_character_action_provider = std::move(new_start_character_action_provider);
+    return *this;
+}
+
 
 ServiceBuilder & ServiceBuilder::WithJsonLoader()
 {
@@ -56,7 +65,9 @@ ServiceBuilder & ServiceBuilder::WithSchemaManager()
 ServiceBuilder & ServiceBuilder::WithFrameworkRegistry()
 {
     EnsureDomainServices();
-    registry = std::make_unique<FrameworkRegistry>(*logger, *json_loader, *schema_manager, *environmental_condition_manager);
+    registry = std::make_unique<FrameworkRegistry>(*logger, *start_character_action_provider, *json_loader,
+        *schema_manager, *environmental_condition_manager);
+
     return *this;
 }
 
@@ -73,8 +84,8 @@ std::unique_ptr<ApplicationContext> ServiceBuilder::Build()
 {
     EnsureAllServices();
     return std::make_unique<ApplicationContext>(std::move(logger), std::move(time_manager),
-        std::move(environmental_condition_provider), std::move(json_loader),
-        std::move(environmental_condition_manager), std::move(schema_manager), std::move(registry),
+        std::move(environmental_condition_provider), std::move(start_character_action_provider),
+        std::move(json_loader), std::move(environmental_condition_manager), std::move(schema_manager), std::move(registry),
         std::move(state_operation_evaluator));
 }
 
@@ -84,6 +95,7 @@ std::unique_ptr<ApplicationContext> ServiceBuilder::CreateApplicationContext()
         .WithLogger(std::make_unique<FrameworkLogger>())
         .WithTimeManager(std::make_unique<TimeManager>())
         .WithEnvironmentalConditionProvider(std::make_unique<EnvironmentalConditionProvider>())
+        .WithStartCharacterActionProvider(std::make_unique<StartCharacterActionProvider>())
         .WithJsonLoader()
         .WithEnvironmentalConditionManager()
         .WithSchemaManager()
@@ -99,7 +111,7 @@ std::unique_ptr<BehaviorFramework> ServiceBuilder::CreateBehaviorFramework()
 
 void ServiceBuilder::EnsureCoreServices() const
 {
-    if (!logger || !time_manager || !environmental_condition_provider)
+    if (!logger || !time_manager || !environmental_condition_provider || !start_character_action_provider)
     {
         throw std::runtime_error("Core services must be configured first");
     }

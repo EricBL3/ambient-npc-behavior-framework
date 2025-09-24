@@ -462,9 +462,10 @@ BehavioralEntity * FrameworkRegistry::GenerateBehavioralEntityFromDto(void *enti
         }
 
         auto [new_entity_iterator, inserted] = behavioral_entities.emplace(entity_dto->base_properties.entity_id,
-            std::make_unique<BehavioralEntity>(BehavioralEntity(logger, entity_handle, entity_dto->base_properties.entity_id,
-                entity_dto->memory_limits.max_transition_memories, entity_dto->memory_limits.max_action_memories,
-                entity_dto->memory_limits.max_interruption_memories, entity_dto->base_properties.entity_name)));
+            std::make_unique<BehavioralEntity>(BehavioralEntity(logger, start_action_provider, entity_handle,
+                entity_dto->base_properties.entity_id, entity_dto->memory_limits.max_transition_memories,
+                entity_dto->memory_limits.max_action_memories, entity_dto->memory_limits.max_interruption_memories,
+                entity_dto->base_properties.entity_name)));
 
         if (!inserted)
         {

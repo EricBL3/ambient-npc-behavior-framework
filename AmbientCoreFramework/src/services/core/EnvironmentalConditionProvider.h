@@ -1,7 +1,7 @@
 #pragma once
 #include <cstdint>
 
-#include "../include/BehaviorFrameworkInterface.h"
+#include "../../../include/BehaviorFrameworkInterface.h"
 #include "interfaces/IEnvironmentalConditionProvider.h"
 
 namespace AmbientCharacterBehavior {

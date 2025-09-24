@@ -18,6 +18,7 @@ private:
     std::unique_ptr<ILogger> logger;
     std::unique_ptr<ITimeManager> time_manager;
     std::unique_ptr<IEnvironmentalConditionProvider> environmental_condition_provider;
+    std::unique_ptr<IStartCharacterActionProvider> start_character_action_provider;
     std::unique_ptr<IJsonLoader> json_loader;
     std::unique_ptr<IEnvironmentalConditionManager> environmental_condition_manager;
     std::unique_ptr<IFrameworkSchemaManager> schema_manager;
@@ -28,6 +29,7 @@ public:
     ServiceBuilder& WithLogger(std::unique_ptr<ILogger> new_logger);
     ServiceBuilder& WithTimeManager(std::unique_ptr<ITimeManager> new_time_manager);
     ServiceBuilder& WithEnvironmentalConditionProvider(std::unique_ptr<IEnvironmentalConditionProvider> new_environmental_condition_provider);
+    ServiceBuilder& WithStartCharacterActionProvider(std::unique_ptr<IStartCharacterActionProvider> new_start_character_action_provider);
     ServiceBuilder& WithJsonLoader();
     ServiceBuilder& WithEnvironmentalConditionManager();
     ServiceBuilder& WithSchemaManager();

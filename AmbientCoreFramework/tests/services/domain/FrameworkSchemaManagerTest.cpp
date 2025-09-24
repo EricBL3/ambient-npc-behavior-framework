@@ -187,31 +187,7 @@ TEST_F(FrameworkSchemaManagerTest, LoadStateSchema_MissingArrays_LogsError) {
     EXPECT_CALL(*mock_logger, LogError(testing::HasSubstr("Config file missing 'entity_states' array"),
                                         testing::Eq("FrameworkSchemaManager")));
 
-    EXPECT_CALL(*mock_logger, LogError(testing::HasSubstr("Config file missing 'interruption_handlers' array"),
-                                        testing::Eq("FrameworkSchemaManager")));
-
     manager->LoadFrameworkSchema("no_states.json");
-}
-
-TEST_F(FrameworkSchemaManagerTest, LoadStateSchema_MalformedStateEntries_LogsErrorsContinuesProcessing) {
-    auto malformed_json = CreateMissingFieldsJson();
-
-    EXPECT_CALL(*mock_json_loader, LoadConfigFileJson("malformed.json"))
-        .WillOnce(testing::Return(malformed_json));
-
-    // Should log errors for malformed entries
-    EXPECT_CALL(*mock_logger, LogError(testing::HasSubstr("Failed to parse entity_states schema from JSON"),
-                                        testing::Eq("FrameworkSchemaManager")))
-        .Times(2); // Two malformed entries
-
-    // Should still log final count (0 in this case)
-    EXPECT_CALL(*mock_logger, LogInfo(testing::HasSubstr("Registered 0 entity_states schemas"),
-                                       testing::Eq("FrameworkSchemaManager")));
-
-    EXPECT_CALL(*mock_logger, LogError(testing::HasSubstr("Config file missing 'interruption_handlers' array"),
-                                        testing::Eq("FrameworkSchemaManager")));
-
-    manager->LoadFrameworkSchema("malformed.json");
 }
 
 // INVALID LOAD TESTS

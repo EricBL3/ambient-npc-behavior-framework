@@ -5,12 +5,14 @@
 #include "../../mocks/MockLogger.h"
 #include "../../mocks/MockFrameworkSchemaManager.h"
 #include "../../../src/services/registry/FrameworkRegistry.h"
+#include "../../mocks/MockStartCharacterActionProvider.h"
 
 using namespace AmbientCharacterBehavior;
 
 class FrameworkRegistryTest : public testing::Test {
 protected:
     std::unique_ptr<MockLogger> mock_logger;
+    std::unique_ptr<MockStartCharacterActionProvider> mock_action_provider;
     std::unique_ptr<MockJsonLoader> mock_json_loader;
     std::unique_ptr<MockFrameworkSchemaManager> mock_schema;
     std::unique_ptr<MockEnvironmentalConditionManager> mock_environment_manager;
@@ -21,12 +23,13 @@ protected:
 
     void SetUp() override {
         mock_logger = std::make_unique<MockLogger>();
+        mock_action_provider = std::make_unique<MockStartCharacterActionProvider>();
         mock_json_loader = std::make_unique<MockJsonLoader>();
         mock_schema = std::make_unique<MockFrameworkSchemaManager>();
         mock_environment_manager = std::make_unique<MockEnvironmentalConditionManager>();
 
-        registry = std::make_unique<FrameworkRegistry>(*mock_logger, *mock_json_loader, *mock_schema,
-            *mock_environment_manager);
+        registry = std::make_unique<FrameworkRegistry>(*mock_logger, *mock_action_provider, *mock_json_loader,
+            *mock_schema, *mock_environment_manager);
     }
 
     SequenceDto CreateBasicSequenceDto(int32_t sequence_id)
@@ -185,8 +188,8 @@ protected:
 
 // Constructor test
 TEST_F(FrameworkRegistryTest, Constructor_ValidServices_CreatesFrameworkRegistry) {
-    EXPECT_NO_THROW(FrameworkRegistry framework_registry(*mock_logger, *mock_json_loader, *mock_schema,
-        *mock_environment_manager));
+    EXPECT_NO_THROW(FrameworkRegistry framework_registry(*mock_logger, *mock_action_provider, *mock_json_loader,
+        *mock_schema, *mock_environment_manager));
 }
 
 // REGISTER SEQUENCES TESTS

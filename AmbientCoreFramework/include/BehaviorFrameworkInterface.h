@@ -31,6 +31,9 @@ extern "C" {
     typedef int32_t (*QueryEnvironmentalConditionFn) (int32_t condition_key);
     AmbientCoreFramework_API void RegisterQueryEnvironmentalConditionFunction(QueryEnvironmentalConditionFn fn);
 
+    typedef void (*StartActionCharacterFn) (void* entity_handle, int32_t action_id, int64_t action_token, void* target_entity_id);
+    AmbientCoreFramework_API void RegisterStartActionCharacterFunction(StartActionCharacterFn fn);
+
 #ifdef __cplusplus
 }
 #endif
@@ -42,4 +45,10 @@ namespace AmbientCharacterBehavior {
      * @throw std::runtime_error if the callback to the engine's method is not registered.
      */
     int32_t QueryEnvironmentalCondition(int32_t condition_key);
+
+    /**
+     * @brief Starts the requested action for the character.
+     * @throw std::runtime_error if the callback to the engine's method is not registered.
+     */
+    void StartCharacterAction(void* entity_handle, int32_t action_id, int64_t action_token, void* target_entity_id);
 }

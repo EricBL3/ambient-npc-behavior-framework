@@ -29,6 +29,7 @@ private:
     std::unordered_map<int32_t, void*> behavioral_id_to_handle;
 
     ILogger& logger;
+    IStartCharacterActionProvider& start_action_provider;
     IJsonLoader& json_loader;
     IFrameworkSchemaManager& schema_manager;
     IEnvironmentalConditionManager& environment_manager;
@@ -47,9 +48,10 @@ private:
     std::queue<EntityCommand> pending_commands;
 
 public:
-    explicit FrameworkRegistry(ILogger& logger, IJsonLoader& json_loader, IFrameworkSchemaManager& state_schema,
-        IEnvironmentalConditionManager& environment_manager) :
-        logger(logger), json_loader(json_loader), schema_manager(state_schema), environment_manager(environment_manager) {}
+    explicit FrameworkRegistry(ILogger& logger, IStartCharacterActionProvider& start_action_provider,
+        IJsonLoader& json_loader, IFrameworkSchemaManager& state_schema, IEnvironmentalConditionManager& environment_manager) :
+        logger(logger), start_action_provider(start_action_provider), json_loader(json_loader), schema_manager(state_schema),
+        environment_manager(environment_manager) {}
 
     bool RegisterSequences(const std::string& config_file_path) override;
     bool RegisterActions(const std::string& config_file_path) override;

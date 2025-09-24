@@ -5,6 +5,7 @@
 #include "interfaces/IFrameworkSchemaManager.h"
 #include "interfaces/IJsonLoader.h"
 #include "interfaces/ILogger.h"
+#include "interfaces/IStartCharacterActionProvider.h"
 #include "interfaces/IStateOperationEvaluator.h"
 #include "interfaces/ITimeManager.h"
 
@@ -14,9 +15,12 @@ struct CoreServices {
     ILogger& logger;
     ITimeManager& time_manager;
     IEnvironmentalConditionProvider& environmental_condition_provider;
+    IStartCharacterActionProvider& start_character_action_provider;
 
-    CoreServices(ILogger& logger, ITimeManager& time_manager, IEnvironmentalConditionProvider& environmental_condition_provider) :
-        logger(logger), time_manager(time_manager), environmental_condition_provider(environmental_condition_provider) {}
+    CoreServices(ILogger& logger, ITimeManager& time_manager,
+        IEnvironmentalConditionProvider& environmental_condition_provider, IStartCharacterActionProvider& start_character_action_provider) :
+        logger(logger), time_manager(time_manager), environmental_condition_provider(environmental_condition_provider),
+        start_character_action_provider(start_character_action_provider){}
 };
 
 struct ConfigurationServices {

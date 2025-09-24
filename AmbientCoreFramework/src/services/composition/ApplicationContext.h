@@ -19,6 +19,7 @@ private:
     std::unique_ptr<ILogger> logger;
     std::unique_ptr<ITimeManager> time_manager;
     std::unique_ptr<IEnvironmentalConditionProvider> environmental_condition_provider;
+    std::unique_ptr<IStartCharacterActionProvider> start_character_action_provider;
     std::unique_ptr<IJsonLoader> json_loader;
     std::unique_ptr<IEnvironmentalConditionManager> environmental_condition_manager;
     std::unique_ptr<IFrameworkSchemaManager> schema_manager;
@@ -32,16 +33,27 @@ private:
     ApplicationServices application_services;
 
 public:
-    ApplicationContext(std::unique_ptr<ILogger> logger, std::unique_ptr<ITimeManager> time_manager,
+    ApplicationContext(
+        std::unique_ptr<ILogger> logger,
+        std::unique_ptr<ITimeManager> time_manager,
         std::unique_ptr<IEnvironmentalConditionProvider> environmental_condition_provider,
-        std::unique_ptr<IJsonLoader> json_loader, std::unique_ptr<IEnvironmentalConditionManager> environmental_condition_manager,
-        std::unique_ptr<IFrameworkSchemaManager> schema_manager, std::unique_ptr<IFrameworkRegistry> registry,
+        std::unique_ptr<IStartCharacterActionProvider> start_character_action_provider,
+        std::unique_ptr<IJsonLoader> json_loader,
+        std::unique_ptr<IEnvironmentalConditionManager> environmental_condition_manager,
+        std::unique_ptr<IFrameworkSchemaManager> schema_manager,
+        std::unique_ptr<IFrameworkRegistry> registry,
         std::unique_ptr<IStateOperationEvaluator> state_operation_evaluator) :
-        logger(std::move(logger)), time_manager(std::move(time_manager)),
-        environmental_condition_provider(std::move(environmental_condition_provider)), json_loader(std::move(json_loader)),
-        environmental_condition_manager(std::move(environmental_condition_manager)), schema_manager(std::move(schema_manager)),
-        registry(std::move(registry)), state_operation_evaluator(std::move(state_operation_evaluator)),
-        core_services(*this->logger, *this->time_manager, *this->environmental_condition_provider),
+        logger(std::move(logger)),
+        time_manager(std::move(time_manager)),
+        environmental_condition_provider(std::move(environmental_condition_provider)),
+        start_character_action_provider(std::move(start_character_action_provider)),
+        json_loader(std::move(json_loader)),
+        environmental_condition_manager(std::move(environmental_condition_manager)),
+        schema_manager(std::move(schema_manager)),
+        registry(std::move(registry)),
+        state_operation_evaluator(std::move(state_operation_evaluator)),
+        core_services(*this->logger, *this->time_manager, *this->environmental_condition_provider,
+            *this->start_character_action_provider),
         configuration_services(core_services, *this->json_loader),
         domain_services(configuration_services, *this->environmental_condition_manager, *this->schema_manager),
         registry_services(domain_services, *this->registry),
