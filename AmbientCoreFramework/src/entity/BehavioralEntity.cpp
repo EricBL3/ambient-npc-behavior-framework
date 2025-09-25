@@ -120,6 +120,16 @@ void BehavioralEntity::ExecuteCurrentSequence()
 
 void BehavioralEntity::HandleEmptySequences()
 {
+    if (main_sequence == nullptr)
+    {
+        logger.LogError("character with id: " + std::to_string(entity_id) + " does not have a valid main sequence.",
+            "BehavioralEntity");
+
+        // is processing is turned true to prevent the character from receiving future updates in this invalid state.
+        is_processing = true;
+        return;
+    }
+
     sequences.emplace(main_sequence);
     sequences.top()->SetSequenceState(SequenceState::UNINITIALIZED);
 }

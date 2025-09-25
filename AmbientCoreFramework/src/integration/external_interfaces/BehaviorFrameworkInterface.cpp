@@ -123,14 +123,14 @@ namespace AmbientCharacterBehavior {
         return query_callback(condition_key);
     }
 
-    void StartCharacterAction(void* entity_handle, int32_t action_id, int64_t action_token, void* target_entity_id)
+    void StartCharacterAction(void* entity_handle, int32_t action_id, int64_t action_token, void* target_entity_handle)
     {
         if (!start_action_callback)
         {
             throw std::runtime_error("StartCharacterAction: Callback not registered");
         }
 
-        return start_action_callback(entity_handle, action_id, action_token, target_entity_id);
+        return start_action_callback(entity_handle, action_id, action_token, target_entity_handle);
     }
 }
 
