@@ -82,43 +82,92 @@ std::shared_ptr<Sequence> BehavioralEntity::FindInterruptionHandler(int32_t inte
 void BehavioralEntity::ExecuteCurrentSequence()
 {
     is_processing = true;
-    logger.LogInfo("Executing current sequence for entity: " + std::to_string(entity_id),
-        "BehavioralEntity");
+
+    if (sequences.empty())
+    {
+        HandleEmptySequences();
+        return;
+    }
+
     switch (sequences.top()->GetSequenceState())
     {
         case SequenceState::UNINITIALIZED:
-            //HandleSequenceStartup();
+            HandleSequenceStartup();
             break;
         case SequenceState::PROCESSING_NODE:
-            //ExecuteCurrentNode();
+            ExecuteCurrentNode();
             break;
         case SequenceState::IN_SUBSEQUENCE:
-            //HandleSubsequenceCompletion();
+            HandleSubsequenceCompletion();
             break;
         case SequenceState::WAITING_FOR_ACTION:
-            //TODO: Start Action should set is_processing to true
             logger.LogInfo("Waiting for character '" + std::to_string(entity_id) + "' to complete action with id: " +
                 std::to_string(current_action_id), "BehavioralEntity");
             break;
         case SequenceState::NODE_EXECUTED:
-            //HandleNodeExecutionCompletion(); //TODO: does the rest of the methods in this switch case.
-
-            // EvaluateTransitions();
-            // SelectBestTransition();
-            // memory.UpdateTransitionMemory();
-            // sequences.top()->SetSequenceState();
-            // sequences.top()->GetCurrentNode().ResetCompletion();
+            HandleNodeExecutionCompletion();
             break;
         case SequenceState::FAILED:
-            //HandleSequenceFailure();
+            HandleSequenceFailure();
             break;
         case SequenceState::INTERRUPTED:
-            //HandleInterruptionRecovery();
+            HandleInterruptionRecovery();
             break;
     }
 
     is_processing = false;
 }
+
+void BehavioralEntity::HandleEmptySequences()
+{
+    sequences.emplace(main_sequence);
+    sequences.top()->SetSequenceState(SequenceState::UNINITIALIZED);
+}
+
+
+void BehavioralEntity::HandleSequenceStartup()
+{
+    sequences.top()->SetSequenceState(SequenceState::PROCESSING_NODE);
+}
+
+void BehavioralEntity::ExecuteCurrentNode()
+{
+    //todo: implement full logic
+    current_action_id = 1;
+    current_action_token++;
+
+    start_character_action_provider.StartCharacterAction(entity_handle, current_action_id, current_action_token,
+        nullptr);
+
+
+    sequences.top()->SetSequenceState(SequenceState::WAITING_FOR_ACTION);
+}
+
+void BehavioralEntity::HandleSubsequenceCompletion()
+{
+}
+
+void BehavioralEntity::HandleNodeExecutionCompletion()
+{
+    // EvaluateTransitions();
+    // SelectBestTransition();
+    // memory.UpdateTransitionMemory();
+    // sequences.top()->SetSequenceState();
+    // sequences.top()->GetCurrentNode().ResetCompletion();
+    logger.LogInfo("Completed node execution for entity " + std::to_string(entity_id) + ". Will reset sequence to "
+        "PROCESSING_NODE state", "BehavioralEntity");
+
+    sequences.top()->SetSequenceState(SequenceState::PROCESSING_NODE);
+}
+
+void BehavioralEntity::HandleSequenceFailure()
+{
+}
+
+void BehavioralEntity::HandleInterruptionRecovery()
+{
+}
+
 
 void BehavioralEntity::ProcessInterruption(int32_t interruption_id)
 {
@@ -132,6 +181,12 @@ void BehavioralEntity::CompleteAction(int32_t action_id, int64_t action_token)
     {
         logger.LogWarning("entity with id: " + std::to_string(entity_id) + " has completed action with id: " +
             std::to_string(action_id) + " and token: " + std::to_string(action_token) ,"BehavioralEntity");
+    }
+
+    //todo: this should later be put inside of the if statement
+    if (!sequences.empty())
+    {
+        sequences.top()->SetSequenceState(SequenceState::NODE_EXECUTED);
     }
 }
 

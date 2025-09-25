@@ -71,6 +71,14 @@ public:
     void CompleteAction(int32_t action_id, int64_t action_token);
 
 private:
+    void HandleEmptySequences();
+    void HandleSequenceStartup();
+    void ExecuteCurrentNode();
+    void HandleSubsequenceCompletion();
+    void HandleNodeExecutionCompletion();
+    void HandleSequenceFailure();
+    void HandleInterruptionRecovery();
+
     bool CompletedCurrentAction(int32_t action_id, int64_t action_token) const;
 };
 }
