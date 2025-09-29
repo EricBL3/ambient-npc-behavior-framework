@@ -42,6 +42,10 @@ public:
      */
     explicit Sequence(int32_t sequence_id, std::string sequence_name);
 
+    Sequence(const Sequence& other);
+
+    std::shared_ptr<Sequence> CreateInstance() const;
+
     int32_t GetSequenceId() const { return sequence_id; }
     std::string GetSequenceName() const { return sequence_name; }
     SequenceState GetSequenceState() const { return sequence_state; }

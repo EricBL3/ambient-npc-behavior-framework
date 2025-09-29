@@ -20,7 +20,7 @@ void BehavioralEntity::SetMainSequence(const std::shared_ptr<Sequence> &new_sequ
 {
     if (new_sequence && new_sequence != main_sequence)
     {
-        main_sequence = new_sequence;
+        main_sequence = new_sequence->CreateInstance();
     }
 }
 
@@ -28,7 +28,7 @@ void BehavioralEntity::AddFallbackSequence(const std::shared_ptr<Sequence> &new_
 {
     if (new_sequence && !HasFallbackSequence(new_sequence->GetSequenceId()))
     {
-        fallback_sequences.emplace_back(new_sequence);
+        fallback_sequences.emplace_back(new_sequence->CreateInstance());
     }
 }
 
@@ -61,7 +61,7 @@ void BehavioralEntity::AddInterruptionHandler(int32_t interruption_id, const std
 {
     if (handler)
     {
-        interruption_handlers.insert_or_assign(interruption_id, handler);
+        interruption_handlers.insert_or_assign(interruption_id, handler->CreateInstance());
     }
 }
 
