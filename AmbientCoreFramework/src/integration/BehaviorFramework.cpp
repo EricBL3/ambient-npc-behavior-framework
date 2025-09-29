@@ -309,9 +309,11 @@ void BehaviorFramework::CompleteCharacterAction(void *entity_handle, int32_t act
         {
             entity->CompleteAction(action_id, action_token);
         }
-
-        app_context->Core().logger.LogWarning("Invalid entity handle during action with id " + std::to_string(action_id) +
-            " and token " + std::to_string(action_token) + " completion","BehaviorFramework");
+        else
+        {
+            app_context->Core().logger.LogWarning("Invalid entity handle during action with id " + std::to_string(action_id) +
+                " and token " + std::to_string(action_token) + " completion","BehaviorFramework");
+        }
     }
     catch (const std::exception &e)
     {

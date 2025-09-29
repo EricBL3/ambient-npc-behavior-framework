@@ -89,6 +89,8 @@ void BehavioralEntity::ExecuteCurrentSequence()
         return;
     }
 
+    logger.LogInfo("Executing sequence for entity: " + std::to_string(entity_id), "BehavioralEntity");
+
     switch (sequences.top()->GetSequenceState())
     {
         case SequenceState::UNINITIALIZED:
@@ -132,11 +134,13 @@ void BehavioralEntity::HandleEmptySequences()
 
     sequences.emplace(main_sequence);
     sequences.top()->SetSequenceState(SequenceState::UNINITIALIZED);
+    is_processing = false;
 }
 
 
 void BehavioralEntity::HandleSequenceStartup()
 {
+    logger.LogInfo("Handling sequence startup for entity: " + std::to_string(entity_id), "BehavioralEntity");
     sequences.top()->SetSequenceState(SequenceState::PROCESSING_NODE);
 }
 
@@ -145,6 +149,9 @@ void BehavioralEntity::ExecuteCurrentNode()
     //todo: implement full logic
     current_action_id = 1;
     current_action_token++;
+
+    logger.LogInfo("Calling start character action for entity: " + std::to_string(entity_id) + " with action id: " +
+        std::to_string(current_action_id) + " and token: " + std::to_string(current_action_token), "BehavioralEntity");
 
     start_character_action_provider.StartCharacterAction(entity_handle, current_action_id, current_action_token,
         nullptr);
@@ -189,7 +196,7 @@ void BehavioralEntity::CompleteAction(int32_t action_id, int64_t action_token)
 {
     if (CompletedCurrentAction(action_id, action_token))
     {
-        logger.LogWarning("entity with id: " + std::to_string(entity_id) + " has completed action with id: " +
+        logger.LogInfo("entity with id: " + std::to_string(entity_id) + " has completed action with id: " +
             std::to_string(action_id) + " and token: " + std::to_string(action_token) ,"BehavioralEntity");
     }
 
@@ -197,7 +204,15 @@ void BehavioralEntity::CompleteAction(int32_t action_id, int64_t action_token)
     if (!sequences.empty())
     {
         sequences.top()->SetSequenceState(SequenceState::NODE_EXECUTED);
+        logger.LogInfo("entity with id: " + std::to_string(entity_id) + " is now in NODE_EXECUTED step",
+            "BehavioralEntity");
     }
+    else
+    {
+        HandleEmptySequences();
+    }
+
+    is_processing = false;
 }
 
 bool BehavioralEntity::CompletedCurrentAction(int32_t action_id, int64_t action_token) const

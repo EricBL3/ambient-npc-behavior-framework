@@ -6,7 +6,7 @@
 using namespace AmbientCharacterBehavior;
 
 static QueryEnvironmentalConditionFn query_callback = nullptr;
-static StartActionCharacterFn start_action_callback = nullptr;
+static StartCharacterActionFn start_action_callback = nullptr;
 
 
 extern "C" {
@@ -95,7 +95,7 @@ extern "C" {
         query_callback = fn;
     }
 
-    AmbientCoreFramework_API void RegisterStartActionCharacterFunction(StartActionCharacterFn fn)
+    AmbientCoreFramework_API void RegisterStartCharacterActionFunction(StartCharacterActionFn fn)
     {
         start_action_callback = fn;
     }
