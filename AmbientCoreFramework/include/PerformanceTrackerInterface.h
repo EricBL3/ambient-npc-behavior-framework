@@ -1,14 +1,3 @@
-/**
- * @file PerformanceTrackerInterface.h
- * @brief Public C interface for DLL performance measurement
- * @author Eric Buitrón López
- * @date 8/15/2025
- *
- * This interface allows an engine to retrieve timing data from DLL method calls.
- * DLL methods automatically time themselves during execution, and the engine can query the results to
- * measure communication overhead and algorithm performance.
- */
-
 #pragma once
 
 #ifdef _WIN32
@@ -27,16 +16,39 @@ extern "C" {
 #endif
 
     /**
-     * @brief Retrieves timing from the last completed DLL method call
-     * @return Duration in microseconds of the last timed operation, or 0.0 if no timing is available
-     *
-     * Call this immediately after invoking any DLL method to get its execution time.
-     * DLL methods time themselves, so this retrieves their internal measurements.
-     *
-     * @note Timing data is overwritten on each new method call
-     * @note Returns 0.0 if no method has been timed or if timing failed
+    * @brief Get execution time of the last Update() call
+    * @return Duration in microseconds, or 0.0 if not available
+    */
+    AmbientCoreFramework_API double GetLastUpdateDurationMicroseconds();
+
+    /**
+     * @brief Get execution time of the last CompleteCharacterAction() call
+     * @return Duration in microseconds, or 0.0 if not available
      */
-    AmbientCoreFramework_API double GetLastDurationMicroseconds();
+    AmbientCoreFramework_API double GetLastCompleteActionDurationMicroseconds();
+
+    /**
+     * @brief Get execution time of the last ProcessInterruption() call
+     * @return Duration in microseconds, or 0.0 if not available
+     */
+    AmbientCoreFramework_API double GetLastProcessInterruptionDurationMicroseconds();
+
+    /**
+     * @brief Get execution time of the last RegisterEntity() call
+     * @return Duration in microseconds, or 0.0 if not available
+     */
+    AmbientCoreFramework_API double GetLastRegisterEntityDurationMicroseconds();
+
+    /**
+     * @brief Get execution time of the last UnregisterEntity() call
+     * @return Duration in microseconds, or 0.0 if not available
+     */
+    AmbientCoreFramework_API double GetLastUnregisterEntityDurationMicroseconds();
+
+    /**
+     * @brief Reset all performance timing data
+     */
+    AmbientCoreFramework_API void ResetAllPerformanceTimings();
 
 #ifdef __cplusplus
 }

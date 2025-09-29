@@ -14,16 +14,13 @@ extern "C"
         int32_t max_interruptions
     )
     {
-        PerformanceTracker::StartTiming();
         try
         {
             auto logger = FrameworkLogger();
             auto memorySystem = new MemorySystem(max_transitions, max_actions, max_interruptions, logger);
-            PerformanceTracker::StopTiming();
             return static_cast<MemorySystemHandle>(memorySystem);
         }catch (...)
         {
-            PerformanceTracker::StopTiming();
             return nullptr;
         }
     }
@@ -32,9 +29,7 @@ extern "C"
     {
         if (handle != nullptr)
         {
-            PerformanceTracker::StartTiming();
             delete static_cast<MemorySystem*>(handle);
-            PerformanceTracker::StopTiming();
         }
     }
 
@@ -49,7 +44,6 @@ extern "C"
             return -1;
         }
 
-        PerformanceTracker::StartTiming();
 
         try
         {
@@ -60,12 +54,10 @@ extern "C"
 
             int32_t result = memorySystem->GetLeastRecentlyVisitedNodeId(nodes);
 
-            PerformanceTracker::StopTiming();
             return result;
 
         }catch (...)
         {
-            PerformanceTracker::StopTiming();
             return -1;
         }
     }
@@ -82,7 +74,6 @@ extern "C"
             return -1;
         }
 
-        PerformanceTracker::StartTiming();
 
         try
         {
@@ -90,11 +81,9 @@ extern "C"
             std::vector<int32_t> entities(entity_ids, entity_ids + count);
             int32_t result = memorySystem->GetLeastRecentlyUsedEntityIdForAction(action_id, entities);
 
-            PerformanceTracker::StopTiming();
             return result;
         } catch (...)
         {
-            PerformanceTracker::StopTiming();
             return -1;
         }
     }
@@ -110,12 +99,10 @@ extern "C"
             return 0;
         }
 
-        PerformanceTracker::StartTiming();
 
         auto memorySystem = static_cast<MemorySystem*>(handle);
         auto result = memorySystem->UpdateTransitionMemory(target_node_id, current_time);
 
-        PerformanceTracker::StopTiming();
         return result;
     }
 
@@ -131,12 +118,10 @@ extern "C"
             return 0;
         }
 
-        PerformanceTracker::StartTiming();
 
         auto memorySystem = static_cast<MemorySystem*>(handle);
         auto result = memorySystem->UpdateActionMemory(action_id, target_entity_id, current_time);
 
-        PerformanceTracker::StopTiming();
         return result;
     }
 
@@ -154,12 +139,10 @@ extern "C"
             return 0;
         }
 
-        PerformanceTracker::StartTiming();
 
         auto memorySystem = static_cast<MemorySystem*>(handle);
         auto result = memorySystem->UpdateInterruptionMemory(action_id, sequence_id, node_id, entity_id, current_time);
 
-        PerformanceTracker::StopTiming();
         return result;
     }
 
@@ -174,7 +157,6 @@ extern "C"
             return false;
         }
 
-        PerformanceTracker::StartTiming();
 
         auto memorySystem = static_cast<MemorySystem*>(handle);
         auto memory = memorySystem->FindTransitionMemory(target_node_id);
@@ -182,13 +164,11 @@ extern "C"
         // Memory wasn't found
         if (memory == nullptr)
         {
-            PerformanceTracker::StopTiming();
             return false;
         }
 
         *out_timestamp = memory->GetLastUsedTime();
 
-        PerformanceTracker::StopTiming();
 
         return true;
     }
@@ -205,7 +185,6 @@ extern "C"
             return false;
         }
 
-        PerformanceTracker::StartTiming();
 
         auto memorySystem = static_cast<MemorySystem*>(handle);
         auto memory = memorySystem->FindActionMemory(action_id, target_entity_id);
@@ -213,13 +192,10 @@ extern "C"
         // Memory wasn't found
         if (memory == nullptr)
         {
-            PerformanceTracker::StopTiming();
             return false;
         }
 
         *out_timestamp = memory->GetLastUsedTime();
-
-        PerformanceTracker::StopTiming();
 
         return true;
     }
@@ -238,22 +214,17 @@ extern "C"
             return false;
         }
 
-        PerformanceTracker::StartTiming();
-
         auto memorySystem = static_cast<MemorySystem*>(handle);
         auto memory = memorySystem->FindInterruptionMemory(action_id, sequence_id, node_id);
 
         // Memory wasn't found
         if (memory == nullptr)
         {
-            PerformanceTracker::StopTiming();
             return false;
         }
 
         *out_entity_id = memory->GetInterruptedTargetEntityId();
         *out_timestamp = memory->GetLastUsedTime();
-
-        PerformanceTracker::StopTiming();
 
         return true;
     }
@@ -262,12 +233,9 @@ extern "C"
     {
         if (handle != nullptr)
         {
-            PerformanceTracker::StartTiming();
-
             auto memorySystem = static_cast<MemorySystem*>(handle);
             memorySystem->ClearAllMemories();
 
-            PerformanceTracker::StopTiming();
         }
 
     }
@@ -276,12 +244,9 @@ extern "C"
     {
         if (handle != nullptr)
         {
-            PerformanceTracker::StartTiming();
-
             auto memorySystem = static_cast<MemorySystem*>(handle);
             memorySystem->ClearSequenceInterruptionMemories(sequence_id);
 
-            PerformanceTracker::StopTiming();
         }
 
     }
@@ -293,12 +258,8 @@ extern "C"
             return 0;
         }
 
-        PerformanceTracker::StartTiming();
-
         auto memorySystem = static_cast<MemorySystem*>(handle);
         auto result = static_cast<int32_t>(memorySystem->GetTransitionMemoryCount());
-
-        PerformanceTracker::StopTiming();
 
         return result;
     }
@@ -310,12 +271,8 @@ extern "C"
             return 0;
         }
 
-        PerformanceTracker::StartTiming();
-
         auto memorySystem = static_cast<MemorySystem*>(handle);
         auto result = static_cast<int32_t>(memorySystem->GetActionMemoryCount());
-
-        PerformanceTracker::StopTiming();
 
         return result;
     }
@@ -327,12 +284,8 @@ extern "C"
             return 0;
         }
 
-        PerformanceTracker::StartTiming();
-
         auto memorySystem = static_cast<MemorySystem*>(handle);
         auto result = static_cast<int32_t>(memorySystem->GetInterruptionMemoryCount());
-
-        PerformanceTracker::StopTiming();
 
         return result;
     }
