@@ -155,7 +155,7 @@ void Sequence::ResetCurrentNodeToEntry()
 {
     if (entry_point_node_id.has_value())
     {
-        current_node_id = entry_point_node_id;
+        TrySetCurrentNode(entry_point_node_id.value());
     }
 }
 

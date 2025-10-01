@@ -2,6 +2,7 @@
 
 #include <algorithm>
 
+#include "behavior/NestedSequenceNode.h"
 #include "services/composition/ServiceBuilder.h"
 
 using namespace AmbientCharacterBehavior;
@@ -142,9 +143,33 @@ void BehavioralEntity::HandleSequenceStartup()
 {
     logger.LogInfo("Handling sequence startup for entity: " + std::to_string(entity_id), "BehavioralEntity");
     sequences.top()->SetSequenceState(SequenceState::PROCESSING_NODE);
+    sequences.top()->ResetCurrentNodeToEntry();
 }
 
 void BehavioralEntity::ExecuteCurrentNode()
+{
+    auto current_node = sequences.top()->FindCurrentNode();
+    auto current_node_type = current_node->GetNodeType();
+
+    if (current_node_type == SequenceNodeType::ACTION_NODE)
+    {
+        ExecuteActionNode(current_node);
+    }
+    else if (current_node_type == SequenceNodeType::NESTED_SEQUENCE_NODE)
+    {
+        ExecuteNestedSequenceNode(current_node);
+    }
+    else if (current_node_type == SequenceNodeType::END_SEQUENCE_NODE)
+    {
+        ExecuteEndSequenceNode(current_node);
+    }
+    else
+    {
+        logger.LogWarning("The current node type is not supported", "BehavioralEntity");
+    }
+}
+
+void BehavioralEntity::ExecuteActionNode(const SequenceNode* current_node)
 {
     //todo: implement full logic
     current_action_id = 1;
@@ -158,6 +183,28 @@ void BehavioralEntity::ExecuteCurrentNode()
 
 
     sequences.top()->SetSequenceState(SequenceState::WAITING_FOR_ACTION);
+}
+
+void BehavioralEntity::ExecuteNestedSequenceNode(const SequenceNode* current_node)
+{
+    auto nested_sequence_node = dynamic_cast<const NestedSequenceNode*>(current_node);
+    if (!nested_sequence_node)
+    {
+        logger.LogError("The current node type is not of type nested sequence node",
+            "BehavioralEntity");
+        return;
+    }
+
+    sequences.top()->SetSequenceState(SequenceState::IN_SUBSEQUENCE);
+    //todo: add content provider
+    // std::shared_ptr<Sequence> nested_sequence = content_provider.GetSequenceById(nested_sequence_node->GetTargetSequenceId());
+    // sequences.emplace(nested_sequence);
+}
+
+void BehavioralEntity::ExecuteEndSequenceNode(const SequenceNode* current_node)
+{
+    sequences.top()->SetSequenceState(SequenceState::NODE_EXECUTED);
+    sequences.pop();
 }
 
 void BehavioralEntity::HandleSubsequenceCompletion()
@@ -190,6 +237,7 @@ void BehavioralEntity::ProcessInterruption(int32_t interruption_id)
 {
     logger.LogInfo("Processing interruption with id: " + std::to_string(interruption_id),
         "BehavioralEntity");
+    //TODO: ADD FULL IMPLEMENTATION
 }
 
 void BehavioralEntity::CompleteAction(int32_t action_id, int64_t action_token)
@@ -198,21 +246,20 @@ void BehavioralEntity::CompleteAction(int32_t action_id, int64_t action_token)
     {
         logger.LogInfo("entity with id: " + std::to_string(entity_id) + " has completed action with id: " +
             std::to_string(action_id) + " and token: " + std::to_string(action_token) ,"BehavioralEntity");
-    }
 
-    //todo: this should later be put inside of the if statement
-    if (!sequences.empty())
-    {
-        sequences.top()->SetSequenceState(SequenceState::NODE_EXECUTED);
-        logger.LogInfo("entity with id: " + std::to_string(entity_id) + " is now in NODE_EXECUTED step",
-            "BehavioralEntity");
-    }
-    else
-    {
-        HandleEmptySequences();
-    }
+        if (!sequences.empty())
+        {
+            sequences.top()->SetSequenceState(SequenceState::NODE_EXECUTED);
+            logger.LogInfo("entity with id: " + std::to_string(entity_id) + " is now in NODE_EXECUTED step",
+                "BehavioralEntity");
+        }
+        else
+        {
+            HandleEmptySequences();
+        }
 
-    is_processing = false;
+        is_processing = false;
+    }
 }
 
 bool BehavioralEntity::CompletedCurrentAction(int32_t action_id, int64_t action_token) const

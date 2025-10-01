@@ -85,7 +85,6 @@ public:
     [[nodiscard]]
     bool IsValidTransition(int32_t from_node_id, int32_t to_node_id) const;
 
-    [[nodiscard]]
     bool TrySetEntryPoint(int32_t node_id);
 
     bool HasEntryPoint() const { return entry_point_node_id.has_value(); }
@@ -95,7 +94,6 @@ public:
     [[nodiscard]]
     const SequenceNode* FindEntryPointNode() const;
 
-    [[nodiscard]]
     bool TrySetCurrentNode(int32_t node_id);
 
     bool HasCurrentNode() const { return current_node_id.has_value(); }

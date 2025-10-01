@@ -73,7 +73,12 @@ public:
 private:
     void HandleEmptySequences();
     void HandleSequenceStartup();
+
     void ExecuteCurrentNode();
+    void ExecuteActionNode(const SequenceNode* current_node);
+    void ExecuteNestedSequenceNode(const SequenceNode* current_node);
+    void ExecuteEndSequenceNode(const SequenceNode* current_node);
+
     void HandleSubsequenceCompletion();
     void HandleNodeExecutionCompletion();
     void HandleSequenceFailure();
