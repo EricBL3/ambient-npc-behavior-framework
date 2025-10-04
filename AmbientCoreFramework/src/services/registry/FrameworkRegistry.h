@@ -8,14 +8,15 @@
 #include "behavior/Sequence.h"
 #include "entity/BehavioralEntity.h"
 #include "entity/FrameworkEntity.h"
+#include "interfaces/IContentProvider.h"
+#include "interfaces/IEntityRegistry.h"
 #include "interfaces/IEnvironmentalConditionManager.h"
-#include "interfaces/IFrameworkRegistry.h"
 #include "interfaces/IJsonLoader.h"
 #include "interfaces/ILogger.h"
 #include "interfaces/IFrameworkSchemaManager.h"
 
 namespace AmbientCharacterBehavior {
-class FrameworkRegistry : public IFrameworkRegistry {
+class FrameworkRegistry : public IContentProvider, public IEntityRegistry {
 private:
     std::unordered_map<int32_t, std::shared_ptr<Action>> actions;
     std::unordered_map<int32_t, std::shared_ptr<Sequence>> sequences;

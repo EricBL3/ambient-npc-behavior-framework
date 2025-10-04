@@ -62,6 +62,7 @@ ServiceBuilder & ServiceBuilder::WithSchemaManager()
     return *this;
 }
 
+
 ServiceBuilder & ServiceBuilder::WithFrameworkRegistry()
 {
     EnsureDomainServices();
@@ -75,7 +76,7 @@ ServiceBuilder & ServiceBuilder::WithStateOperationEvaluator()
 {
     EnsureRegistryServices();
     state_operation_evaluator = std::make_unique<StateOperationEvaluator>(*logger, *schema_manager,
-        *environmental_condition_manager, *registry);
+        *environmental_condition_manager);
 
     return *this;
 }

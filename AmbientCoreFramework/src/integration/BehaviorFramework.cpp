@@ -79,7 +79,7 @@ bool BehaviorFramework::InitializeDomainServices(const std::string& schema_file_
 bool BehaviorFramework::InitializeRegistry(const std::string& actions_file_path, const std::string& sequences_file_path) const
 {
     app_context->Core().logger.LogInfo("Registering actions", "BehaviorFramework");
-    if (!app_context->Registry().registry.RegisterActions(actions_file_path))
+    if (!app_context->Registry().content_provider.RegisterActions(actions_file_path))
     {
         app_context->Core().logger.LogError("Failed to register actions",
             "BehaviorFramework");
@@ -89,7 +89,7 @@ bool BehaviorFramework::InitializeRegistry(const std::string& actions_file_path,
 
     app_context->Core().logger.LogInfo("Registering sequences", "BehaviorFramework");
 
-    if (!app_context->Registry().registry.RegisterSequences(sequences_file_path))
+    if (!app_context->Registry().content_provider.RegisterSequences(sequences_file_path))
     {
         app_context->Core().logger.LogError("Failed to register sequences",
             "BehaviorFramework");
@@ -109,7 +109,7 @@ void BehaviorFramework::Update(int32_t character_batch_size, int64_t current_tim
     {
         app_context->Core().time_manager.SetCurrentTime(current_time_ms);
 
-        if (app_context->Registry().registry.GetPendingCommandCount() > 0)
+        if (app_context->Registry().entity_registry.GetPendingCommandCount() > 0)
         {
             ProcessPendingEntityCommands();
         }
@@ -138,7 +138,7 @@ void BehaviorFramework::ProcessPendingEntityCommands() const
 {
     try
     {
-        auto processed_count = app_context->Registry().registry.ProcessPendingEntityCommands();
+        auto processed_count = app_context->Registry().entity_registry.ProcessPendingEntityCommands();
         app_context->Core().logger.LogInfo("Processed " + std::to_string(processed_count) + " entity commands",
         "BehaviorFramework");
 
@@ -185,7 +185,7 @@ void BehaviorFramework::UpdateBehavioralEntities(int32_t character_batch_size)
         {
             auto entities_range = ComputeBatchRange(character_batch_size, total_entities);
 
-            auto entities_to_process = app_context->Registry().registry.GetBehavioralEntitiesRange(
+            auto entities_to_process = app_context->Registry().entity_registry.GetBehavioralEntitiesRange(
                 entities_range.start_index, entities_range.count);
 
             for (BehavioralEntity* entity : entities_to_process)
@@ -207,7 +207,7 @@ void BehaviorFramework::UpdateBehavioralEntities(int32_t character_batch_size)
 
 int32_t BehaviorFramework::GetTotalEntitiesCount() const
 {
-    return app_context->Registry().registry.GetBehavioralEntityCount();
+    return app_context->Registry().entity_registry.GetBehavioralEntityCount();
 }
 
 BehaviorFramework::EntityBatchRange BehaviorFramework::ComputeBatchRange(int32_t character_batch_size,
@@ -272,7 +272,7 @@ bool BehaviorFramework::ProcessInterruptionForEntity(int32_t interruption_id, vo
 {
     try
     {
-        if (BehavioralEntity* entity = app_context->Registry().registry.GetBehavioralEntityByHandle(entity_handle))
+        if (BehavioralEntity* entity = app_context->Registry().entity_registry.GetBehavioralEntityByHandle(entity_handle))
         {
             entity->ProcessInterruption(interruption_id);
             return true;
@@ -291,13 +291,13 @@ bool BehaviorFramework::ProcessInterruptionForEntity(int32_t interruption_id, vo
 
 void BehaviorFramework::RegisterEntity(void *entity_handle, const std::string &config_path) const
 {
-    app_context->Registry().registry.QueueEntityRegistration(entity_handle, config_path);
+    app_context->Registry().entity_registry.QueueEntityRegistration(entity_handle, config_path);
     app_context->Core().logger.LogInfo("Queued entity registration command" ,"BehaviorFramework");
 }
 
 void BehaviorFramework::UnregisterEntity(void *entity_handle) const
 {
-    app_context->Registry().registry.QueueEntityUnregistration(entity_handle);
+    app_context->Registry().entity_registry.QueueEntityUnregistration(entity_handle);
     app_context->Core().logger.LogInfo("Queued entity unregistration command" ,"BehaviorFramework");
 }
 
@@ -305,7 +305,7 @@ void BehaviorFramework::CompleteCharacterAction(void *entity_handle, int32_t act
 {
     try
     {
-        if (BehavioralEntity* entity = app_context->Registry().registry.GetBehavioralEntityByHandle(entity_handle))
+        if (BehavioralEntity* entity = app_context->Registry().entity_registry.GetBehavioralEntityByHandle(entity_handle))
         {
             entity->CompleteAction(action_id, action_token);
         }

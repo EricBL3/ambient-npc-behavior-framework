@@ -196,9 +196,14 @@ void BehavioralEntity::ExecuteNestedSequenceNode(const SequenceNode* current_nod
     }
 
     sequences.top()->SetSequenceState(SequenceState::IN_SUBSEQUENCE);
-    //todo: add content provider
-    // std::shared_ptr<Sequence> nested_sequence = content_provider.GetSequenceById(nested_sequence_node->GetTargetSequenceId());
-    // sequences.emplace(nested_sequence);
+    std::shared_ptr<Sequence> nested_sequence = content_provider.GetSequenceById(nested_sequence_node->GetTargetSequenceId());
+    if (!nested_sequence)
+    {
+        logger.LogError("Could not find nested sequence with id: " + std::to_string(nested_sequence_node->GetTargetSequenceId()),
+            "BehavioralEntity");
+    }
+
+    sequences.emplace(nested_sequence);
 }
 
 void BehavioralEntity::ExecuteEndSequenceNode(const SequenceNode* current_node)

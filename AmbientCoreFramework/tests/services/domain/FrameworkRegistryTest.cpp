@@ -762,7 +762,7 @@ TEST_F(FrameworkRegistryTest, RegisterEntity_ComplexBehavioralEntity_ConfiguresC
     EXPECT_EQ(1, registry->GetBehavioralEntitiesCount());
     EXPECT_EQ(1, framework_entity->GetSupportedActionsIds().size());
     EXPECT_EQ(3, framework_entity->GetStateValue(0));
-    EXPECT_EQ(registry->GetSequenceById(0), framework_entity->GetMainSequence());
+    EXPECT_EQ(0, framework_entity->GetMainSequence()->GetSequenceId());
     EXPECT_EQ(true, framework_entity->HasFallbackSequence(1));
     EXPECT_EQ(2, framework_entity->FindInterruptionHandler(0)->GetSequenceId());
 }

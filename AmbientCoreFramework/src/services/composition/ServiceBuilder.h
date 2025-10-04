@@ -4,13 +4,13 @@
 #include "ApplicationContext.h"
 #include "interfaces/IEnvironmentalConditionManager.h"
 #include "interfaces/IEnvironmentalConditionProvider.h"
-#include "interfaces/IFrameworkRegistry.h"
 #include "interfaces/IFrameworkSchemaManager.h"
 #include "interfaces/IJsonLoader.h"
 #include "interfaces/ILogger.h"
 #include "interfaces/IStateOperationEvaluator.h"
 #include "interfaces/ITimeManager.h"
 #include "integration/BehaviorFramework.h"
+#include "services/registry/FrameworkRegistry.h"
 
 namespace AmbientCharacterBehavior {
 class ServiceBuilder {
@@ -22,7 +22,7 @@ private:
     std::unique_ptr<IJsonLoader> json_loader;
     std::unique_ptr<IEnvironmentalConditionManager> environmental_condition_manager;
     std::unique_ptr<IFrameworkSchemaManager> schema_manager;
-    std::unique_ptr<IFrameworkRegistry> registry;
+    std::unique_ptr<FrameworkRegistry> registry;
     std::unique_ptr<IStateOperationEvaluator> state_operation_evaluator;
 
 public:

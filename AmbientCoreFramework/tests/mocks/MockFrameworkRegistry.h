@@ -1,9 +1,11 @@
 #pragma once
-#include "interfaces/IFrameworkRegistry.h"
 #include <gmock/gmock.h>
 
+#include "interfaces/IContentProvider.h"
+#include "interfaces/IEntityRegistry.h"
+
 namespace AmbientCharacterBehavior {
-class MockFrameworkRegistry : public IFrameworkRegistry {
+class MockFrameworkRegistry : public IContentProvider, public IEntityRegistry {
 public:
     MOCK_METHOD(bool, RegisterSequences, (const std::string& config_file_path), (override));
     MOCK_METHOD(bool, RegisterActions, (const std::string& config_file_path), (override));

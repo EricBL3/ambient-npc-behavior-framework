@@ -1,7 +1,8 @@
 #pragma once
+#include "interfaces/IContentProvider.h"
+#include "interfaces/IEntityRegistry.h"
 #include "interfaces/IEnvironmentalConditionManager.h"
 #include "interfaces/IEnvironmentalConditionProvider.h"
-#include "interfaces/IFrameworkRegistry.h"
 #include "interfaces/IFrameworkSchemaManager.h"
 #include "interfaces/IJsonLoader.h"
 #include "interfaces/ILogger.h"
@@ -43,10 +44,11 @@ struct DomainServices {
 
 struct RegistryServices {
     DomainServices& domain_services;
-    IFrameworkRegistry& registry;
+    IContentProvider& content_provider;
+    IEntityRegistry& entity_registry;
 
-    RegistryServices(DomainServices& domain_services, IFrameworkRegistry& registry) :
-        domain_services(domain_services), registry(registry) {}
+    RegistryServices(DomainServices& domain_services, IContentProvider& content_provider, IEntityRegistry& entity_registry) :
+        domain_services(domain_services), content_provider(content_provider), entity_registry(entity_registry) {}
 };
 
 struct ApplicationServices {
