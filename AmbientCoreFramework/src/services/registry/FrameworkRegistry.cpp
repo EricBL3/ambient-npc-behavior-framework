@@ -463,7 +463,9 @@ BehavioralEntity * FrameworkRegistry::GenerateBehavioralEntityFromDto(void *enti
         }
 
         auto [new_entity_iterator, inserted] = behavioral_entities.emplace(entity_dto->base_properties.entity_id,
-            std::make_unique<BehavioralEntity>(BehavioralEntity(logger, start_action_provider, *this, entity_handle,
+            std::make_unique<BehavioralEntity>(BehavioralEntity(logger, time_manager, start_action_provider,
+                *this, *this, state_operation_evaluator,
+                entity_handle,
                 entity_dto->base_properties.entity_id, entity_dto->memory_limits.max_transition_memories,
                 entity_dto->memory_limits.max_action_memories, entity_dto->memory_limits.max_interruption_memories,
                 entity_dto->base_properties.entity_name)));
@@ -716,6 +718,44 @@ std::vector<BehavioralEntity *> FrameworkRegistry::GetBehavioralEntitiesRange(in
         {
             result.emplace_back(entity);
         }
+    }
+
+    return result;
+}
+
+std::vector<FrameworkEntity *> FrameworkRegistry::GetEntitiesSupportingAction(int32_t action_id) const
+{
+    std::vector<FrameworkEntity *> result;
+
+    for (const auto& [id, entity]: framework_entities)
+    {
+        if (entity->SupportsAction(action_id))
+        {
+            result.push_back(entity.get());
+        }
+    }
+
+    for (const auto& [id, entity]: behavioral_entities)
+    {
+        if (entity->SupportsAction(action_id))
+        {
+            result.push_back(entity.get());
+        }
+    }
+
+    return result;
+}
+
+FrameworkEntity * FrameworkRegistry::GetEntityFromId(int32_t entity_id) const
+{
+    FrameworkEntity* result = nullptr;
+
+    // Try to get framework entity first
+    result = GetFrameworkEntityById(entity_id);
+    if (!result)
+    {
+        // Try behavioral entity if not found
+        result = GetBehavioralEntityById(entity_id);
     }
 
     return result;

@@ -56,8 +56,8 @@ public:
             *this->start_character_action_provider),
         configuration_services(core_services, *this->json_loader),
         domain_services(configuration_services, *this->environmental_condition_manager, *this->schema_manager),
-        registry_services(domain_services, *this->registry, *this->registry),
-        application_services(registry_services, *this->state_operation_evaluator) {}
+        application_services(domain_services, *this->state_operation_evaluator),
+        registry_services(application_services, *this->registry, *this->registry, *this->registry) {}
 
     CoreServices& Core() { return core_services; }
     ConfigurationServices& Configuration() { return configuration_services; }

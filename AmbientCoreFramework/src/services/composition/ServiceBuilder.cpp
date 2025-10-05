@@ -62,24 +62,25 @@ ServiceBuilder & ServiceBuilder::WithSchemaManager()
     return *this;
 }
 
-
-ServiceBuilder & ServiceBuilder::WithFrameworkRegistry()
-{
-    EnsureDomainServices();
-    registry = std::make_unique<FrameworkRegistry>(*logger, *start_character_action_provider, *json_loader,
-        *schema_manager, *environmental_condition_manager);
-
-    return *this;
-}
-
 ServiceBuilder & ServiceBuilder::WithStateOperationEvaluator()
 {
-    EnsureRegistryServices();
+    EnsureDomainServices();
     state_operation_evaluator = std::make_unique<StateOperationEvaluator>(*logger, *schema_manager,
         *environmental_condition_manager);
 
     return *this;
 }
+
+ServiceBuilder & ServiceBuilder::WithFrameworkRegistry()
+{
+    EnsureAllServices();
+    registry = std::make_unique<FrameworkRegistry>(*logger, *time_manager, *start_character_action_provider, *json_loader,
+        *schema_manager, *environmental_condition_manager, *state_operation_evaluator);
+
+    return *this;
+}
+
+
 
 std::unique_ptr<ApplicationContext> ServiceBuilder::Build()
 {
@@ -136,20 +137,20 @@ void ServiceBuilder::EnsureDomainServices() const
     }
 }
 
-void ServiceBuilder::EnsureRegistryServices() const
+void ServiceBuilder::EnsureApplicationServices() const
 {
     EnsureDomainServices();
-    if (!registry)
+    if (!state_operation_evaluator)
     {
-        throw std::runtime_error("Framework registry must be configured first");
+        throw std::runtime_error("State operation evaluator must be configured first");
     }
 }
 
 void ServiceBuilder::EnsureAllServices() const
 {
-    EnsureRegistryServices();
-    if (!state_operation_evaluator)
+    EnsureApplicationServices();
+    if (!registry)
     {
-        throw std::runtime_error("State operation evaluator must be configured first");
+        throw std::runtime_error("Framework registry must be configured first");
     }
 }

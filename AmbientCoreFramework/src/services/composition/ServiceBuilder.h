@@ -22,8 +22,8 @@ private:
     std::unique_ptr<IJsonLoader> json_loader;
     std::unique_ptr<IEnvironmentalConditionManager> environmental_condition_manager;
     std::unique_ptr<IFrameworkSchemaManager> schema_manager;
-    std::unique_ptr<FrameworkRegistry> registry;
     std::unique_ptr<IStateOperationEvaluator> state_operation_evaluator;
+    std::unique_ptr<FrameworkRegistry> registry;
 
 public:
     ServiceBuilder& WithLogger(std::unique_ptr<ILogger> new_logger);
@@ -33,8 +33,8 @@ public:
     ServiceBuilder& WithJsonLoader();
     ServiceBuilder& WithEnvironmentalConditionManager();
     ServiceBuilder& WithSchemaManager();
-    ServiceBuilder& WithFrameworkRegistry();
     ServiceBuilder& WithStateOperationEvaluator();
+    ServiceBuilder& WithFrameworkRegistry();
 
     std::unique_ptr<ApplicationContext> Build();
 
@@ -45,7 +45,7 @@ private:
     void EnsureCoreServices() const;
     void EnsureConfigurationServices() const;
     void EnsureDomainServices() const;
-    void EnsureRegistryServices() const;
+    void EnsureApplicationServices() const;
     void EnsureAllServices() const;
 };
 }

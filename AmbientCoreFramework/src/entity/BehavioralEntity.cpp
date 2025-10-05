@@ -2,6 +2,7 @@
 
 #include <algorithm>
 
+#include "behavior/ActionSequenceNode.h"
 #include "behavior/NestedSequenceNode.h"
 #include "services/composition/ServiceBuilder.h"
 
@@ -166,23 +167,14 @@ void BehavioralEntity::ExecuteCurrentNode()
     else
     {
         logger.LogWarning("The current node type is not supported", "BehavioralEntity");
+        HandleSequenceFailure();
     }
 }
 
-void BehavioralEntity::ExecuteActionNode(const SequenceNode* current_node)
+void BehavioralEntity::ExecuteEndSequenceNode(const SequenceNode* current_node)
 {
-    //todo: implement full logic
-    current_action_id = 1;
-    current_action_token++;
-
-    logger.LogInfo("Calling start character action for entity: " + std::to_string(entity_id) + " with action id: " +
-        std::to_string(current_action_id) + " and token: " + std::to_string(current_action_token), "BehavioralEntity");
-
-    start_character_action_provider.StartCharacterAction(entity_handle, current_action_id, current_action_token,
-        nullptr);
-
-
-    sequences.top()->SetSequenceState(SequenceState::WAITING_FOR_ACTION);
+    sequences.top()->SetSequenceState(SequenceState::NODE_EXECUTED);
+    sequences.pop();
 }
 
 void BehavioralEntity::ExecuteNestedSequenceNode(const SequenceNode* current_node)
@@ -192,6 +184,8 @@ void BehavioralEntity::ExecuteNestedSequenceNode(const SequenceNode* current_nod
     {
         logger.LogError("The current node type is not of type nested sequence node",
             "BehavioralEntity");
+
+        HandleSequenceFailure();
         return;
     }
 
@@ -201,48 +195,124 @@ void BehavioralEntity::ExecuteNestedSequenceNode(const SequenceNode* current_nod
     {
         logger.LogError("Could not find nested sequence with id: " + std::to_string(nested_sequence_node->GetTargetSequenceId()),
             "BehavioralEntity");
+
+        HandleSequenceFailure();
+        return;
     }
 
     sequences.emplace(nested_sequence);
 }
 
-void BehavioralEntity::ExecuteEndSequenceNode(const SequenceNode* current_node)
-{
-    sequences.top()->SetSequenceState(SequenceState::NODE_EXECUTED);
-    sequences.pop();
-}
-
 void BehavioralEntity::HandleSubsequenceCompletion()
 {
+    //todo: implement
 }
 
-void BehavioralEntity::HandleNodeExecutionCompletion()
+void BehavioralEntity::ExecuteActionNode(const SequenceNode* current_node)
 {
-    // EvaluateTransitions();
-    // SelectBestTransition();
-    // memory.UpdateTransitionMemory();
-    // sequences.top()->SetSequenceState();
-    // sequences.top()->GetCurrentNode().ResetCompletion();
-    logger.LogInfo("Completed node execution for entity " + std::to_string(entity_id) + ". Will reset sequence to "
-        "PROCESSING_NODE state", "BehavioralEntity");
+    auto action_sequence_node = dynamic_cast<const ActionSequenceNode*>(current_node);
+    if (!action_sequence_node)
+    {
+        logger.LogError("The current node type is not of type action sequence node",
+            "BehavioralEntity");
 
-    sequences.top()->SetSequenceState(SequenceState::PROCESSING_NODE);
+        HandleSequenceFailure();
+        return;
+    }
+
+    std::shared_ptr<Action> action = content_provider.GetActionById(action_sequence_node->GetTargetActionId());
+    if (!action)
+    {
+        logger.LogError("Could not find action with id: " + std::to_string(action_sequence_node->GetTargetActionId()),
+            "BehavioralEntity");
+
+        HandleSequenceFailure();
+        return;
+    }
+
+    FrameworkEntity* target_entity = nullptr;
+    void* target_entity_handle = nullptr;
+    if (action->GetRequiresTargetEntity())
+    {
+        target_entity = GetActionTargetEntity(action);
+
+        if (!target_entity)
+        {
+            logger.LogWarning("No valid entities found for action " + std::to_string(action->GetActionId()) +
+                " - triggering sequence failure","BehavioralEntity");
+
+            HandleSequenceFailure();
+            return;
+        }
+
+        target_entity_handle = target_entity->GetEntityHandle();
+    }
+
+    // Apply immediate effects
+    ApplyActionEffects(action->GetImmediateEffects(), target_entity);
+
+    // Start action
+    current_action_id = action->GetActionId();
+    current_action_token++;
+
+    logger.LogInfo("Calling start character action for entity: " + std::to_string(entity_id) + " with action id: " +
+        std::to_string(current_action_id) + " and token: " + std::to_string(current_action_token), "BehavioralEntity");
+
+    start_character_action_provider.StartCharacterAction(entity_handle, current_action_id, current_action_token,
+        target_entity_handle);
+
+    sequences.top()->SetSequenceState(SequenceState::WAITING_FOR_ACTION);
+
+    //todo: add some internal timer for action completion
 }
 
-void BehavioralEntity::HandleSequenceFailure()
+FrameworkEntity* BehavioralEntity::GetActionTargetEntity(const std::shared_ptr<Action>& action)
 {
+    FrameworkEntity* target_entity = nullptr;
+
+    // Evaluate entities
+    std::vector<FrameworkEntity*> entities = entity_query.GetEntitiesSupportingAction(action->GetActionId());
+
+    // Filter to have only the entities that can be done (precondition satisfaction)
+    std::vector<int32_t> entity_ids;
+    for (auto entity : entities)
+    {
+        auto can_do_action = true;
+
+        for (const auto& precondition : action->GetPreconditions())
+        {
+            if (!state_operation_evaluator.ProcessStateOperation(precondition, entity))
+            {
+                can_do_action = false;
+                break;
+            }
+        }
+
+        if (can_do_action)
+        {
+            entity_ids.push_back(entity->GetEntityId());
+        }
+    }
+
+    // Select best entity
+    auto selected_entity_id = memory.GetLeastRecentlyUsedEntityIdForAction(action->GetActionId(), entity_ids);
+    target_entity = entity_query.GetEntityFromId(selected_entity_id);
+
+    // Set current action target id
+    if (target_entity)
+    {
+        current_action_target_id = target_entity->GetEntityId();
+    }
+
+    return target_entity;
 }
 
-void BehavioralEntity::HandleInterruptionRecovery()
+void BehavioralEntity::ApplyActionEffects(const std::vector<StateOperation> & effects, FrameworkEntity* target_entity)
 {
-}
-
-
-void BehavioralEntity::ProcessInterruption(int32_t interruption_id)
-{
-    logger.LogInfo("Processing interruption with id: " + std::to_string(interruption_id),
-        "BehavioralEntity");
-    //TODO: ADD FULL IMPLEMENTATION
+    for (const auto& effect: effects)
+    {
+        state_operation_evaluator.ProcessStateOperation(effect, target_entity);
+    }
 }
 
 void BehavioralEntity::CompleteAction(int32_t action_id, int64_t action_token)
@@ -251,6 +321,12 @@ void BehavioralEntity::CompleteAction(int32_t action_id, int64_t action_token)
     {
         logger.LogInfo("entity with id: " + std::to_string(entity_id) + " has completed action with id: " +
             std::to_string(action_id) + " and token: " + std::to_string(action_token) ,"BehavioralEntity");
+
+        //todo: Apply completion effects
+
+        //todo: Update action memory
+
+        //todo: Mark node as completed
 
         if (!sequences.empty())
         {
@@ -279,4 +355,32 @@ bool BehavioralEntity::CompletedCurrentAction(int32_t action_id, int64_t action_
     }
 
     return true;
+}
+
+void BehavioralEntity::HandleNodeExecutionCompletion()
+{
+    // EvaluateTransitions();
+    // SelectBestTransition();
+    // memory.UpdateTransitionMemory();
+    // sequences.top()->SetSequenceState();
+    // sequences.top()->GetCurrentNode().ResetCompletion();
+    logger.LogInfo("Completed node execution for entity " + std::to_string(entity_id) + ". Will reset sequence to "
+        "PROCESSING_NODE state", "BehavioralEntity");
+
+    sequences.top()->SetSequenceState(SequenceState::PROCESSING_NODE);
+}
+
+void BehavioralEntity::HandleSequenceFailure()
+{
+}
+
+void BehavioralEntity::HandleInterruptionRecovery()
+{
+}
+
+void BehavioralEntity::ProcessInterruption(int32_t interruption_id)
+{
+    logger.LogInfo("Processing interruption with id: " + std::to_string(interruption_id),
+        "BehavioralEntity");
+    //TODO: ADD FULL IMPLEMENTATION
 }

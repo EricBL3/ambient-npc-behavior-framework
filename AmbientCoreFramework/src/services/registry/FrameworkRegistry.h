@@ -16,7 +16,7 @@
 #include "interfaces/IFrameworkSchemaManager.h"
 
 namespace AmbientCharacterBehavior {
-class FrameworkRegistry : public IContentProvider, public IEntityRegistry {
+class FrameworkRegistry : public IContentProvider, public IEntityRegistry, public IEntityQuery {
 private:
     std::unordered_map<int32_t, std::shared_ptr<Action>> actions;
     std::unordered_map<int32_t, std::shared_ptr<Sequence>> sequences;
@@ -30,10 +30,12 @@ private:
     std::unordered_map<int32_t, void*> behavioral_id_to_handle;
 
     ILogger& logger;
+    ITimeManager& time_manager;
     IStartCharacterActionProvider& start_action_provider;
     IJsonLoader& json_loader;
     IFrameworkSchemaManager& schema_manager;
     IEnvironmentalConditionManager& environment_manager;
+    IStateOperationEvaluator& state_operation_evaluator;
 
     enum class EntityCommandType {
         REGISTER,
@@ -49,10 +51,11 @@ private:
     std::queue<EntityCommand> pending_commands;
 
 public:
-    explicit FrameworkRegistry(ILogger& logger, IStartCharacterActionProvider& start_action_provider,
-        IJsonLoader& json_loader, IFrameworkSchemaManager& state_schema, IEnvironmentalConditionManager& environment_manager) :
-        logger(logger), start_action_provider(start_action_provider), json_loader(json_loader), schema_manager(state_schema),
-        environment_manager(environment_manager) {}
+    explicit FrameworkRegistry(ILogger& logger, ITimeManager& time_manager, IStartCharacterActionProvider& start_action_provider,
+        IJsonLoader& json_loader, IFrameworkSchemaManager& state_schema, IEnvironmentalConditionManager& environment_manager,
+        IStateOperationEvaluator& state_operation_evaluator) :
+        logger(logger), time_manager(time_manager), start_action_provider(start_action_provider), json_loader(json_loader),
+        schema_manager(state_schema), environment_manager(environment_manager), state_operation_evaluator(state_operation_evaluator) {}
 
     bool RegisterSequences(const std::string& config_file_path) override;
     bool RegisterActions(const std::string& config_file_path) override;
@@ -85,6 +88,9 @@ public:
     int32_t GetBehavioralEntityCount() const override
     { return behavioral_entities.size(); }
 
+    std::vector<FrameworkEntity*> GetEntitiesSupportingAction(int32_t action_id) const override;
+    FrameworkEntity* GetEntityFromId(int32_t entity_id) const override;
+
     size_t GetSequencesCount() const
     { return sequences.size(); }
 
@@ -102,6 +108,7 @@ public:
     {
         return behavioral_entities.size();
     }
+
 
 private:
     bool GenerateSequenceFromDto(const SequenceDto &sequence_dto);

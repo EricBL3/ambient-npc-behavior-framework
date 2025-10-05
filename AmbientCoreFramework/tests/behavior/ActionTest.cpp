@@ -8,7 +8,8 @@ using namespace AmbientCharacterBehavior;
 class ActionTest : public testing::Test {
 protected:
     void SetUp() override {
-        action = std::make_unique<Action>(0, "test_action", 10, InterruptionBehaviorType::NON_RESUMABLE);
+        action = std::make_unique<Action>(0, "test_action", true, 10,
+            InterruptionBehaviorType::NON_RESUMABLE);
     }
 
     std::unique_ptr<Action> action;
@@ -29,8 +30,11 @@ TEST_F(ActionTest, ConstructorWorksCorrectly)
 
 TEST_F(ActionTest, ConstructorRejectsNegativeValues)
 {
-    EXPECT_THROW(Action(-1, "test", 0, InterruptionBehaviorType::NON_RESUMABLE), std::invalid_argument);
-    EXPECT_THROW(Action(0, "test", -1, InterruptionBehaviorType::RESUMABLE), std::invalid_argument);
+    EXPECT_THROW(Action(-1, "test", true,0,
+        InterruptionBehaviorType::NON_RESUMABLE), std::invalid_argument);
+
+    EXPECT_THROW(Action(0, "test", true, -1,
+        InterruptionBehaviorType::RESUMABLE), std::invalid_argument);
 }
 
 // =============================================================================

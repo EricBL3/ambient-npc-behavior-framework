@@ -6,16 +6,20 @@
 #include "../../mocks/MockFrameworkSchemaManager.h"
 #include "../../../src/services/registry/FrameworkRegistry.h"
 #include "../../mocks/MockStartCharacterActionProvider.h"
+#include "../../mocks/MockTimeManager.h"
+#include "../../mocks/MockStateOperationEvaluator.h"
 
 using namespace AmbientCharacterBehavior;
 
 class FrameworkRegistryTest : public testing::Test {
 protected:
     std::unique_ptr<MockLogger> mock_logger;
+    std::unique_ptr<MockTimeManager> mock_time_manager;
     std::unique_ptr<MockStartCharacterActionProvider> mock_action_provider;
     std::unique_ptr<MockJsonLoader> mock_json_loader;
     std::unique_ptr<MockFrameworkSchemaManager> mock_schema;
     std::unique_ptr<MockEnvironmentalConditionManager> mock_environment_manager;
+    std::unique_ptr<MockStateOperationEvaluator> mock_state_operation_evaluator;
 
     std::unique_ptr<FrameworkRegistry> registry;
     int framework_entity_handle = 100;
@@ -28,8 +32,8 @@ protected:
         mock_schema = std::make_unique<MockFrameworkSchemaManager>();
         mock_environment_manager = std::make_unique<MockEnvironmentalConditionManager>();
 
-        registry = std::make_unique<FrameworkRegistry>(*mock_logger, *mock_action_provider, *mock_json_loader,
-            *mock_schema, *mock_environment_manager);
+        registry = std::make_unique<FrameworkRegistry>(*mock_logger, *mock_time_manager, *mock_action_provider, *mock_json_loader,
+            *mock_schema, *mock_environment_manager, *mock_state_operation_evaluator);
     }
 
     SequenceDto CreateBasicSequenceDto(int32_t sequence_id)
@@ -189,8 +193,8 @@ protected:
 
 // Constructor test
 TEST_F(FrameworkRegistryTest, Constructor_ValidServices_CreatesFrameworkRegistry) {
-    EXPECT_NO_THROW(FrameworkRegistry framework_registry(*mock_logger, *mock_action_provider, *mock_json_loader,
-        *mock_schema, *mock_environment_manager));
+    EXPECT_NO_THROW(FrameworkRegistry framework_registry(*mock_logger, *mock_time_manager, *mock_action_provider,
+        *mock_json_loader, *mock_schema, *mock_environment_manager, *mock_state_operation_evaluator));
 }
 
 // REGISTER SEQUENCES TESTS

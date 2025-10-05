@@ -1,5 +1,6 @@
 #pragma once
 #include "interfaces/IContentProvider.h"
+#include "interfaces/IEntityQuery.h"
 #include "interfaces/IEntityRegistry.h"
 #include "interfaces/IEnvironmentalConditionManager.h"
 #include "interfaces/IEnvironmentalConditionProvider.h"
@@ -42,21 +43,24 @@ struct DomainServices {
         environmental_condition_manager(environmental_condition_manager), schema_manager(schema_manager) {}
 };
 
-struct RegistryServices {
-    DomainServices& domain_services;
-    IContentProvider& content_provider;
-    IEntityRegistry& entity_registry;
-
-    RegistryServices(DomainServices& domain_services, IContentProvider& content_provider, IEntityRegistry& entity_registry) :
-        domain_services(domain_services), content_provider(content_provider), entity_registry(entity_registry) {}
-};
-
 struct ApplicationServices {
-    RegistryServices& registry;
+    DomainServices& domain_services;
     IStateOperationEvaluator& state_operation_evaluator;
 
-    ApplicationServices(RegistryServices& registry, IStateOperationEvaluator& state_operation_evaluator) :
-        registry(registry), state_operation_evaluator(state_operation_evaluator) {}
+    ApplicationServices(DomainServices& domain_services, IStateOperationEvaluator& state_operation_evaluator) :
+        domain_services(domain_services), state_operation_evaluator(state_operation_evaluator) {}
+};
+
+struct RegistryServices {
+    ApplicationServices& application_services;
+    IContentProvider& content_provider;
+    IEntityRegistry& entity_registry;
+    IEntityQuery& entity_query;
+
+    RegistryServices(ApplicationServices& application_services, IContentProvider& content_provider, IEntityRegistry& entity_registry,
+        IEntityQuery& entity_query) :
+        application_services(application_services), content_provider(content_provider), entity_registry(entity_registry),
+        entity_query(entity_query) {}
 };
 
 }
