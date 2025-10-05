@@ -4,8 +4,9 @@
 
 using namespace AmbientCharacterBehavior;
 
-Action::Action(int32_t action_id, std::string action_name, int64_t max_duration, InterruptionBehaviorType interruption_behavior) :
-    action_id(action_id), action_name(std::move(action_name)), max_duration_ms(max_duration), interruption_behavior(interruption_behavior)
+Action::Action(int32_t action_id, std::string action_name, bool requires_target_entity, int64_t max_duration,
+    InterruptionBehaviorType interruption_behavior) : action_id(action_id), action_name(std::move(action_name)),
+    requires_target_entity(requires_target_entity), max_duration_ms(max_duration), interruption_behavior(interruption_behavior)
 {
     if (action_id < 0)
     {

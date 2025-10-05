@@ -17,6 +17,7 @@ private:
 
     int32_t action_id;
     std::string action_name;
+    bool requires_target_entity;
     std::vector<StateOperation> preconditions;
     std::vector<StateOperation> immediate_effects;
     std::vector<StateOperation> completion_effects;
@@ -27,7 +28,8 @@ public:
     /**
      * @throws std::invalid_argument if action_id or max_duration < 0.
      */
-    explicit Action(int32_t action_id, std::string action_name, int64_t max_duration, InterruptionBehaviorType interruption_behavior);
+    explicit Action(int32_t action_id, std::string action_name, bool requires_target_entity, int64_t max_duration,
+        InterruptionBehaviorType interruption_behavior);
     
     void AddPrecondition(const StateOperation& precondition);
     void AddImmediateEffect(const StateOperation& effect);
@@ -36,6 +38,8 @@ public:
     int32_t GetActionId() const { return action_id; }
 
     std::string GetActionName() const { return action_name; }
+
+    bool GetRequiresTargetEntity() const { return requires_target_entity; }
 
     int64_t GetMaxDuration() const { return max_duration_ms; }
 
