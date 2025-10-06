@@ -4,20 +4,20 @@
 #include <limits>
 
 namespace AmbientCharacterBehavior {
-bool StateOperationEvaluator::ProcessStateOperation(StateOperation state_operation, FrameworkEntity* target_entity)
+bool StateOperationEvaluator::ProcessStateOperation(StateOperation state_operation, FrameworkEntity* context_entity)
 {
     auto state_key = state_operation.GetStateKey();
     auto target = state_operation.GetTarget();
     auto operation_type = state_operation.GetOperationType();
     auto parameters = state_operation.GetParameters();
 
-    if (!IsValidStateOperation(target, operation_type, parameters, target_entity))
+    if (!IsValidStateOperation(target, operation_type, parameters, context_entity))
     {
         return false;
     }
 
     // Get the state value
-    auto state_value = GetStateOperationValue(target, state_key, target_entity);
+    auto state_value = GetStateOperationValue(target, state_key, context_entity);
 
     if (!state_value.has_value())
     {
@@ -25,11 +25,11 @@ bool StateOperationEvaluator::ProcessStateOperation(StateOperation state_operati
     }
 
     // Evaluate operation
-    return EvaluateStateOperation(operation_type, state_value.value(), parameters, target_entity, state_key);
+    return EvaluateStateOperation(operation_type, state_value.value(), parameters, context_entity, state_key);
 }
 
 bool StateOperationEvaluator::IsValidStateOperation(StateOperationTarget target, StateOperationType operation_type,
-    const std::vector<int32_t>& parameters, const FrameworkEntity* target_entity) const
+    const std::vector<int32_t>& parameters, const FrameworkEntity* context_entity) const
 {
     if (target == StateOperationTarget::ENVIRONMENT && IsModificationOperation(operation_type))
     {
@@ -48,7 +48,7 @@ bool StateOperationEvaluator::IsValidStateOperation(StateOperationTarget target,
         return false;
     }
 
-    if (RequiresTargetEntity(target) && target_entity == nullptr)
+    if (RequiresTargetEntity(target) && context_entity == nullptr)
     {
         logger.LogWarning("No target entity was passed for the evaluation. The state operation will not be processed.",
             "StateOperationEvaluator");
@@ -80,7 +80,7 @@ bool StateOperationEvaluator::RequiresTargetEntity(StateOperationTarget target) 
 }
 
 std::optional<int32_t> StateOperationEvaluator::GetStateOperationValue(StateOperationTarget target, int32_t state_key,
-    FrameworkEntity* target_entity) const
+    FrameworkEntity* context_entity) const
 {
     try
     {
@@ -91,7 +91,7 @@ std::optional<int32_t> StateOperationEvaluator::GetStateOperationValue(StateOper
                 break;
             case StateOperationTarget::SELF:
             case StateOperationTarget::ENTITY:
-                return target_entity->GetStateValue(state_key);
+                return context_entity->GetStateValue(state_key);
                 break;
         }
     }
@@ -108,7 +108,7 @@ std::optional<int32_t> StateOperationEvaluator::GetStateOperationValue(StateOper
 }
 
 bool StateOperationEvaluator::EvaluateStateOperation(StateOperationType operation_type, int32_t state_value,
-    const std::vector<int32_t>& parameters, FrameworkEntity* target_entity, int32_t state_key)
+    const std::vector<int32_t>& parameters, FrameworkEntity* context_entity, int32_t state_key)
 {
     int32_t new_value;
     switch (operation_type)
@@ -136,7 +136,7 @@ bool StateOperationEvaluator::EvaluateStateOperation(StateOperationType operatio
             return false;
     }
 
-    target_entity->SetStateValue(state_key, new_value);
+    context_entity->SetStateValue(state_key, new_value);
 
     return true;
 }

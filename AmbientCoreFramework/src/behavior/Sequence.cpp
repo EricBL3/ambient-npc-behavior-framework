@@ -76,7 +76,7 @@ bool Sequence::HasNode(int32_t node_id) const
     return nodes.find(node_id) != nodes.end();
 }
 
-const SequenceNode * Sequence::FindNodeById(int32_t node_id) const
+SequenceNode * Sequence::FindNodeById(int32_t node_id) const
 {
     auto it = nodes.find(node_id);
     return it != nodes.end() ? it->second.get() : nullptr;
@@ -130,7 +130,7 @@ bool Sequence::TrySetEntryPoint(int32_t node_id)
     return false;
 }
 
-const SequenceNode * Sequence::FindEntryPointNode() const
+SequenceNode * Sequence::FindEntryPointNode() const
 {
     return entry_point_node_id ? FindNodeById(entry_point_node_id.value()) : nullptr;
 }
@@ -146,7 +146,7 @@ bool Sequence::TrySetCurrentNode(int32_t node_id)
     return false;
 }
 
-const SequenceNode * Sequence::FindCurrentNode() const
+SequenceNode * Sequence::FindCurrentNode() const
 {
     return current_node_id ? FindNodeById(current_node_id.value()) : nullptr;
 }

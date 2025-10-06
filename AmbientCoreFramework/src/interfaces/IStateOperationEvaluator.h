@@ -9,6 +9,6 @@ namespace AmbientCharacterBehavior {
 class IStateOperationEvaluator {
 public:
     virtual ~IStateOperationEvaluator() = default;
-    virtual bool ProcessStateOperation(StateOperation state_operation, FrameworkEntity* target_entity = nullptr) = 0;
+    virtual bool ProcessStateOperation(StateOperation state_operation, FrameworkEntity* context_entity = nullptr) = 0;
 };
 }

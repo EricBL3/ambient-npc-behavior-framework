@@ -70,7 +70,7 @@ public:
     bool HasNode(int32_t node_id) const;
 
     [[nodiscard]]
-    const SequenceNode* FindNodeById(int32_t node_id) const;
+    SequenceNode* FindNodeById(int32_t node_id) const;
 
     size_t GetNodeCount() const { return nodes.size(); }
 
@@ -92,7 +92,7 @@ public:
     int32_t GetEntryPointNodeId() const { return entry_point_node_id.value_or(-1); }
 
     [[nodiscard]]
-    const SequenceNode* FindEntryPointNode() const;
+    SequenceNode* FindEntryPointNode() const;
 
     bool TrySetCurrentNode(int32_t node_id);
 
@@ -101,7 +101,7 @@ public:
     int32_t GetCurrentNodeId() const { return current_node_id.value_or(-1); }
 
     [[nodiscard]]
-    const SequenceNode* FindCurrentNode() const;
+    SequenceNode* FindCurrentNode() const;
 
     void ResetCurrentNodeToEntry();
 

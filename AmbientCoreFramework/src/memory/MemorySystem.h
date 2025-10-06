@@ -48,13 +48,8 @@ public:
     void SetAndEnforceMaxActionMemories(int32_t max_actions);
     void SetAndEnforceMaxInterruptionMemories(int32_t max_interruptions);
 
-    [[nodiscard]]
     bool UpdateTransitionMemory(int32_t target_node_id, int64_t current_time);
-
-    [[nodiscard]]
     bool UpdateActionMemory(int32_t action_id, int32_t target_entity_id, int64_t current_time);
-
-    [[nodiscard]]
     bool UpdateInterruptionMemory(int32_t action_id, int32_t sequence_id, int32_t node_id, int32_t entity_id, int64_t current_time);
 
     [[nodiscard]]
