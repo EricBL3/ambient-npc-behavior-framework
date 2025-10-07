@@ -23,14 +23,14 @@ private:
     std::unique_ptr<IJsonLoader> json_loader;
     std::unique_ptr<IEnvironmentalConditionManager> environmental_condition_manager;
     std::unique_ptr<IFrameworkSchemaManager> schema_manager;
-    std::unique_ptr<FrameworkRegistry> registry;
     std::unique_ptr<IStateOperationEvaluator> state_operation_evaluator;
+    std::unique_ptr<FrameworkRegistry> registry;
 
     CoreServices core_services;
     ConfigurationServices configuration_services;
     DomainServices domain_services;
-    RegistryServices registry_services;
     ApplicationServices application_services;
+    RegistryServices registry_services;
 
 public:
     ApplicationContext(
@@ -41,8 +41,8 @@ public:
         std::unique_ptr<IJsonLoader> json_loader,
         std::unique_ptr<IEnvironmentalConditionManager> environmental_condition_manager,
         std::unique_ptr<IFrameworkSchemaManager> schema_manager,
-        std::unique_ptr<FrameworkRegistry> registry,
-        std::unique_ptr<IStateOperationEvaluator> state_operation_evaluator) :
+        std::unique_ptr<IStateOperationEvaluator> state_operation_evaluator,
+        std::unique_ptr<FrameworkRegistry> registry) :
         logger(std::move(logger)),
         time_manager(std::move(time_manager)),
         environmental_condition_provider(std::move(environmental_condition_provider)),
@@ -50,8 +50,8 @@ public:
         json_loader(std::move(json_loader)),
         environmental_condition_manager(std::move(environmental_condition_manager)),
         schema_manager(std::move(schema_manager)),
-        registry(std::move(registry)),
         state_operation_evaluator(std::move(state_operation_evaluator)),
+        registry(std::move(registry)),
         core_services(*this->logger, *this->time_manager, *this->environmental_condition_provider,
             *this->start_character_action_provider),
         configuration_services(core_services, *this->json_loader),

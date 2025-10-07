@@ -85,10 +85,17 @@ ServiceBuilder & ServiceBuilder::WithFrameworkRegistry()
 std::unique_ptr<ApplicationContext> ServiceBuilder::Build()
 {
     EnsureAllServices();
-    return std::make_unique<ApplicationContext>(std::move(logger), std::move(time_manager),
-        std::move(environmental_condition_provider), std::move(start_character_action_provider),
-        std::move(json_loader), std::move(environmental_condition_manager), std::move(schema_manager), std::move(registry),
-        std::move(state_operation_evaluator));
+    return std::make_unique<ApplicationContext>(
+        std::move(logger),
+        std::move(time_manager),
+        std::move(environmental_condition_provider),
+        std::move(start_character_action_provider),
+        std::move(json_loader),
+        std::move(environmental_condition_manager),
+        std::move(schema_manager),
+        std::move(state_operation_evaluator),
+        std::move(registry)
+    );
 }
 
 std::unique_ptr<ApplicationContext> ServiceBuilder::CreateApplicationContext()
@@ -101,8 +108,8 @@ std::unique_ptr<ApplicationContext> ServiceBuilder::CreateApplicationContext()
         .WithJsonLoader()
         .WithEnvironmentalConditionManager()
         .WithSchemaManager()
-        .WithFrameworkRegistry()
         .WithStateOperationEvaluator()
+        .WithFrameworkRegistry()
         .Build();
 }
 
