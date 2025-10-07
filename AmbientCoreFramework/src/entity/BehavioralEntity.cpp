@@ -160,7 +160,7 @@ void BehavioralEntity::ProcessCurrentNode()
     logger.LogInfo("Processing current node for entity: " + std::to_string(entity_id),
         "BehavioralEntity");
 
-    if (auto current_node = TryGetCurrentNode())
+    if (const auto current_node = TryGetCurrentNode())
     {
         ExecuteCurrentNode(current_node);
     }
@@ -180,7 +180,7 @@ SequenceNode* BehavioralEntity::TryGetCurrentNode()
     return current_node;
 }
 
-void BehavioralEntity::ExecuteCurrentNode(SequenceNode* current_node)
+void BehavioralEntity::ExecuteCurrentNode(const SequenceNode* current_node)
 {
     auto current_node_type = current_node->GetNodeType();
     if (current_node_type == SequenceNodeType::ACTION_NODE)
