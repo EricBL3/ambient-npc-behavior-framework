@@ -516,6 +516,15 @@ void BehavioralEntity::HandleSequenceFailure()
 
     memory.ClearSequenceInterruptionMemories(sequences.top()->GetSequenceId());
     sequences.pop();
+
+    if (fallback_sequences.empty())
+    {
+        logger.LogError("No fallback sequences available for entity " +
+                       std::to_string(entity_id), "BehavioralEntity");
+
+        return;
+    }
+
     auto fallback_sequence = fallback_sequences[rand() % fallback_sequences.size()];
     logger.LogInfo("Entity with id: " + std::to_string(entity_id) + " will now follow fallback sequence with id: " +
         std::to_string(fallback_sequence->GetSequenceId()), "BehavioralEntity");
