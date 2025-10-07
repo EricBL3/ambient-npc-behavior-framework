@@ -94,7 +94,10 @@ private:
     void HandleEmptySequences();
     void HandleSequenceStartup();
 
-    void ExecuteCurrentNode();
+    void ExecuteSequenceStep(SequenceState sequence_state);
+    void ProcessCurrentNode();
+    SequenceNode* TryGetCurrentNode();
+    void ExecuteCurrentNode(SequenceNode* current_node);
     void ExecuteActionNode(const SequenceNode* current_node);
     void ExecuteNestedSequenceNode(const SequenceNode* current_node);
     void ExecuteEndSequenceNode(const SequenceNode* current_node);

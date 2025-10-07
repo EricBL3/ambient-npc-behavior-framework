@@ -91,15 +91,23 @@ void BehavioralEntity::ExecuteCurrentSequence()
         return;
     }
 
-    logger.LogInfo("Executing sequence for entity: " + std::to_string(entity_id), "BehavioralEntity");
+    ExecuteSequenceStep(sequences.top()->GetSequenceState());
 
-    switch (sequences.top()->GetSequenceState())
+    is_processing = false;
+}
+
+void BehavioralEntity::ExecuteSequenceStep(SequenceState sequence_state)
+{
+    logger.LogInfo("Executing sequence state " + ToString(sequence_state) + " for entity: " +
+        std::to_string(entity_id), "BehavioralEntity");
+
+    switch (sequence_state)
     {
         case SequenceState::UNINITIALIZED:
             HandleSequenceStartup();
             break;
         case SequenceState::PROCESSING_NODE:
-            ExecuteCurrentNode();
+            ProcessCurrentNode();
             break;
         case SequenceState::IN_SUBSEQUENCE:
             HandleSubsequenceCompletion();
@@ -118,8 +126,6 @@ void BehavioralEntity::ExecuteCurrentSequence()
             HandleInterruptionRecovery();
             break;
     }
-
-    is_processing = false;
 }
 
 void BehavioralEntity::HandleEmptySequences()
@@ -149,11 +155,19 @@ void BehavioralEntity::HandleSequenceStartup()
     sequences.top()->ResetCurrentNodeToEntry();
 }
 
-void BehavioralEntity::ExecuteCurrentNode()
+void BehavioralEntity::ProcessCurrentNode()
 {
-    logger.LogInfo("Handling execution of current node for entity: " + std::to_string(entity_id),
+    logger.LogInfo("Processing current node for entity: " + std::to_string(entity_id),
         "BehavioralEntity");
 
+    if (auto current_node = TryGetCurrentNode())
+    {
+        ExecuteCurrentNode(current_node);
+    }
+}
+
+SequenceNode* BehavioralEntity::TryGetCurrentNode()
+{
     auto current_node = sequences.top()->FindCurrentNode();
     if (!current_node)
     {
@@ -161,13 +175,14 @@ void BehavioralEntity::ExecuteCurrentNode()
             "BehavioralEntity");
 
         sequences.top()->SetSequenceState(SequenceState::FAILED);
-        return;
     }
 
-    logger.LogInfo("Executing node: " + std::to_string(current_node->GetNodeId()), "BehavioralEntity");
+    return current_node;
+}
 
+void BehavioralEntity::ExecuteCurrentNode(SequenceNode* current_node)
+{
     auto current_node_type = current_node->GetNodeType();
-
     if (current_node_type == SequenceNodeType::ACTION_NODE)
     {
         logger.LogInfo("Will execute action node with id: " + std::to_string(sequences.top()->GetCurrentNodeId()) +
