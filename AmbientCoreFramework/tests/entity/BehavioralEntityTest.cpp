@@ -229,7 +229,7 @@ protected:
 
         // Mock StartCharacterAction to not actually do anything
         EXPECT_CALL(*mock_action_provider, StartCharacterAction(
-            testing::_, testing::_, testing::_, testing::_))
+            testing::_, testing::_, testing::_, testing::_, testing::_))
             .Times(1);
 
         entity->SetMainSequence(sequence);
@@ -490,7 +490,7 @@ TEST_F(BehavioralEntityTest, ExecuteActionNode_ValidEntity_AppliesImmediateEffec
 
         // Then action starts
         EXPECT_CALL(*mock_action_provider, StartCharacterAction(
-            entity_handle, 5, testing::_, target_entity->GetEntityHandle()))
+            entity_handle, 5, testing::_, testing::_, target_entity->GetEntityHandle()))
             .Times(1);
     }
 
@@ -511,7 +511,7 @@ TEST_F(BehavioralEntityTest, ExecuteActionNode_NoEntityRequired_UsesCharacterAsS
 
     // Action starts (no entity required)
     EXPECT_CALL(*mock_action_provider, StartCharacterAction(
-        entity_handle, 5, testing::_, nullptr))
+        entity_handle, 5, testing::_, testing::_, nullptr))
         .Times(1);
 
     SetupEntityWithSequenceOnStack(sequence);

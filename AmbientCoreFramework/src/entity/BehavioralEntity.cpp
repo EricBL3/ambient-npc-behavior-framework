@@ -306,11 +306,9 @@ void BehavioralEntity::ExecuteActionNode(const SequenceNode* current_node)
         std::to_string(current_action_id) + " and token: " + std::to_string(current_action_token), "BehavioralEntity");
 
     start_character_action_provider.StartCharacterAction(entity_handle, current_action_id, current_action_token,
-        target_entity_handle);
+        action->GetMaxDuration(), target_entity_handle);
 
     sequences.top()->SetSequenceState(SequenceState::WAITING_FOR_ACTION);
-
-    //todo: add some internal timer for action completion
 }
 
 FrameworkEntity* BehavioralEntity::GetActionTargetEntity(const std::shared_ptr<Action>& action)
