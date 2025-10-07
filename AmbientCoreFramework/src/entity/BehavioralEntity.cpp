@@ -88,6 +88,7 @@ void BehavioralEntity::ExecuteCurrentSequence()
     if (sequences.empty())
     {
         HandleEmptySequences();
+        return;
     }
 
     logger.LogInfo("Executing sequence for entity: " + std::to_string(entity_id), "BehavioralEntity");
@@ -141,13 +142,18 @@ void BehavioralEntity::HandleEmptySequences()
 
 void BehavioralEntity::HandleSequenceStartup()
 {
-    logger.LogInfo("Handling sequence startup for entity: " + std::to_string(entity_id), "BehavioralEntity");
+    logger.LogInfo("Handling sequence startup for entity: " + std::to_string(entity_id),
+        "BehavioralEntity");
+
     sequences.top()->SetSequenceState(SequenceState::PROCESSING_NODE);
     sequences.top()->ResetCurrentNodeToEntry();
 }
 
 void BehavioralEntity::ExecuteCurrentNode()
 {
+    logger.LogInfo("Handling execution of current node for entity: " + std::to_string(entity_id),
+        "BehavioralEntity");
+
     auto current_node = sequences.top()->FindCurrentNode();
     if (!current_node)
     {
@@ -158,18 +164,29 @@ void BehavioralEntity::ExecuteCurrentNode()
         return;
     }
 
+    logger.LogInfo("Executing node: " + std::to_string(current_node->GetNodeId()), "BehavioralEntity");
+
     auto current_node_type = current_node->GetNodeType();
 
     if (current_node_type == SequenceNodeType::ACTION_NODE)
     {
+        logger.LogInfo("Will execute action node with id: " + std::to_string(sequences.top()->GetCurrentNodeId()) +
+            " for entity with id: " + std::to_string(entity_id), "BehavioralEntity");
+
         ExecuteActionNode(current_node);
     }
     else if (current_node_type == SequenceNodeType::NESTED_SEQUENCE_NODE)
     {
+        logger.LogInfo("Will execute nested sequence node with id: " + std::to_string(sequences.top()->GetCurrentNodeId()) +
+            " for entity with id: " + std::to_string(entity_id), "BehavioralEntity");
+
         ExecuteNestedSequenceNode(current_node);
     }
     else if (current_node_type == SequenceNodeType::END_SEQUENCE_NODE)
     {
+        logger.LogInfo("Will execute end node with id: " + std::to_string(sequences.top()->GetCurrentNodeId()) +
+            " for entity with id: " + std::to_string(entity_id), "BehavioralEntity");
+
         ExecuteEndSequenceNode(current_node);
     }
     else
@@ -354,6 +371,9 @@ void BehavioralEntity::ApplyActionEffects(const std::vector<StateOperation> & ef
 
         state_operation_evaluator.ProcessStateOperation(effect, effect_entity);
     }
+
+    logger.LogInfo("Applied " + std::to_string(effects.size()) + " effects for action processing of " +
+        " entity " + std::to_string(entity_id), "BehavioralEntity");
 }
 
 void BehavioralEntity::CompleteAction(int32_t action_id, int64_t action_token)
@@ -491,7 +511,10 @@ void BehavioralEntity::HandleNodeExecutionCompletion()
 
 void BehavioralEntity::HandleSequenceFailure()
 {
-    memory.ClearSequenceInterruptionMemories(sequences.top()->GetCurrentNodeId());
+    logger.LogInfo("Handling sequence failure for entity: " + std::to_string(entity_id),
+        "BehavioralEntity");
+
+    memory.ClearSequenceInterruptionMemories(sequences.top()->GetSequenceId());
     sequences.pop();
     auto fallback_sequence = fallback_sequences[rand() % fallback_sequences.size()];
     logger.LogInfo("Entity with id: " + std::to_string(entity_id) + " will now follow fallback sequence with id: " +

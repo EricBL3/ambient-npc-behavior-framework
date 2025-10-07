@@ -74,7 +74,6 @@ public:
 
     size_t GetNodeCount() const { return nodes.size(); }
 
-    [[nodiscard]]
     bool TryAddTransition(int32_t transition_id, int32_t from_node_id, int32_t to_node_id, std::vector<StateOperation> preconditions);
 
     [[nodiscard]]

@@ -63,7 +63,12 @@ public:
         memory(max_transition_memories, max_action_memories, max_interruption_memories, logger),
         main_sequence(nullptr), current_action_target_id(-1), is_processing(false), current_action_token(0), current_action_id(-1) {}
 
-    const MemorySystem& GetMemorySystem() const { return memory; }
+    MemorySystem& GetMemorySystem() { return memory; }
+    //const MemorySystem& GetMemorySystem() const { return memory; }
+
+    int64_t GetCurrentActionToken() const { return current_action_token; }
+
+    int32_t GetCurrentActionTargetId() const { return current_action_target_id; }
 
     bool IsProcessing() const { return is_processing; }
 
