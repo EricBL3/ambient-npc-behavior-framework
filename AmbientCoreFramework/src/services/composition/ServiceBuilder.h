@@ -2,6 +2,7 @@
 #include <memory>
 
 #include "ApplicationContext.h"
+#include "../../../include/BehaviorFrameworkInterface.h"
 #include "interfaces/IEnvironmentalConditionManager.h"
 #include "interfaces/IEnvironmentalConditionProvider.h"
 #include "interfaces/IFrameworkSchemaManager.h"
@@ -15,6 +16,9 @@
 namespace AmbientCharacterBehavior {
 class ServiceBuilder {
 private:
+    QueryEnvironmentalConditionFn query_env_callback = nullptr;
+    StartCharacterActionFn start_action_callback = nullptr;
+
     std::unique_ptr<ILogger> logger;
     std::unique_ptr<ITimeManager> time_manager;
     std::unique_ptr<IEnvironmentalConditionProvider> environmental_condition_provider;
@@ -28,8 +32,10 @@ private:
 public:
     ServiceBuilder& WithLogger(std::unique_ptr<ILogger> new_logger);
     ServiceBuilder& WithTimeManager(std::unique_ptr<ITimeManager> new_time_manager);
-    ServiceBuilder& WithEnvironmentalConditionProvider(std::unique_ptr<IEnvironmentalConditionProvider> new_environmental_condition_provider);
-    ServiceBuilder& WithStartCharacterActionProvider(std::unique_ptr<IStartCharacterActionProvider> new_start_character_action_provider);
+    ServiceBuilder& WithQueryEnvironmentalConditionCallback(QueryEnvironmentalConditionFn callback);
+    ServiceBuilder& WithStartCharacterActionCallback(StartCharacterActionFn callback);
+    ServiceBuilder& WithProviders();
+
     ServiceBuilder& WithJsonLoader();
     ServiceBuilder& WithEnvironmentalConditionManager();
     ServiceBuilder& WithSchemaManager();
@@ -38,11 +44,15 @@ public:
 
     std::unique_ptr<ApplicationContext> Build();
 
-    static std::unique_ptr<ApplicationContext> CreateApplicationContext();
-    static std::unique_ptr<BehaviorFramework> CreateBehaviorFramework();
+    static std::unique_ptr<ApplicationContext> CreateApplicationContext(QueryEnvironmentalConditionFn query_callback,
+    StartCharacterActionFn start_action_callback);
+
+    static std::unique_ptr<BehaviorFramework> CreateBehaviorFramework(QueryEnvironmentalConditionFn query_callback,
+    StartCharacterActionFn start_action_callback);
 
 private:
     void EnsureCoreServices() const;
+    void EnsureProvidersConfigured() const;
     void EnsureConfigurationServices() const;
     void EnsureDomainServices() const;
     void EnsureApplicationServices() const;

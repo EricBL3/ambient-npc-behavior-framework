@@ -2,6 +2,10 @@
 #include <cstdint>
 
 namespace AmbientCharacterBehavior {
+
+// The callback type that external systems must provide
+using QueryEnvironmentalConditionCallback = int32_t(*)(int32_t);
+
 class IEnvironmentalConditionProvider {
 public:
     virtual ~IEnvironmentalConditionProvider() = default;

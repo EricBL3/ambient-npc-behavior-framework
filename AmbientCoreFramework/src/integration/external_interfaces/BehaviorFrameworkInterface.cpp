@@ -7,16 +7,13 @@
 
 using namespace AmbientCharacterBehavior;
 
-static QueryEnvironmentalConditionFn query_callback = nullptr;
-static StartCharacterActionFn start_action_callback = nullptr;
-
-
 extern "C" {
-    AmbientCoreFramework_API void * CreateAmbientBehaviorFramework()
+    AmbientCoreFramework_API void * CreateAmbientBehaviorFramework(QueryEnvironmentalConditionFn env_callback,
+        StartCharacterActionFn start_action_callback)
     {
         try
         {
-            auto framework = ServiceBuilder::CreateBehaviorFramework();
+            auto framework = ServiceBuilder::CreateBehaviorFramework(env_callback, start_action_callback);
             return framework.release();
         }
         catch (...)
@@ -108,16 +105,6 @@ extern "C" {
         PerformanceTracker::StopUnregisterEntityTiming();
     }
 
-    AmbientCoreFramework_API void RegisterQueryEnvironmentalConditionFunction(QueryEnvironmentalConditionFn fn)
-    {
-        query_callback = fn;
-    }
-
-    AmbientCoreFramework_API void RegisterStartCharacterActionFunction(StartCharacterActionFn fn)
-    {
-        start_action_callback = fn;
-    }
-
     AmbientCoreFramework_API void CompleteCharacterAction(void* framework_handle, void *entity_handle, int32_t action_id,
         int64_t action_token)
     {
@@ -134,27 +121,5 @@ extern "C" {
 
 }
 
-namespace AmbientCharacterBehavior {
-    int32_t QueryEnvironmentalCondition(int32_t condition_key)
-    {
-        if (!query_callback)
-        {
-            throw std::runtime_error("QueryEnvironmentalCondition: Callback not registered");
-        }
-
-        return query_callback(condition_key);
-    }
-
-    void StartCharacterAction(void* entity_handle, int32_t action_id, int64_t action_token, int64_t max_duration_ms,
-        void* target_entity_handle)
-    {
-        if (!start_action_callback)
-        {
-            throw std::runtime_error("StartCharacterAction: Callback not registered");
-        }
-
-        return start_action_callback(entity_handle, action_id, action_token, max_duration_ms, target_entity_handle);
-    }
-}
 
 

@@ -24,20 +24,40 @@ ServiceBuilder & ServiceBuilder::WithTimeManager(std::unique_ptr<ITimeManager> n
     return *this;
 }
 
-ServiceBuilder & ServiceBuilder::WithEnvironmentalConditionProvider(
-    std::unique_ptr<IEnvironmentalConditionProvider> new_environmental_condition_provider)
+ServiceBuilder& ServiceBuilder::WithQueryEnvironmentalConditionCallback(QueryEnvironmentalConditionFn callback)
 {
-    environmental_condition_provider = std::move(new_environmental_condition_provider);
+    if (!callback) {
+        throw std::invalid_argument("Query callback cannot be null");
+    }
+    query_env_callback = callback;
     return *this;
 }
 
-ServiceBuilder & ServiceBuilder::WithStartCharacterActionProvider(
-    std::unique_ptr<IStartCharacterActionProvider> new_start_character_action_provider)
+ServiceBuilder& ServiceBuilder::WithStartCharacterActionCallback(StartCharacterActionFn callback)
 {
-    start_character_action_provider = std::move(new_start_character_action_provider);
+    if (!callback) {
+        throw std::invalid_argument("Start action callback cannot be null");
+    }
+    start_action_callback = callback;
     return *this;
 }
 
+ServiceBuilder & ServiceBuilder::WithProviders()
+{
+    EnsureCoreServices();
+
+    if (!query_env_callback || !start_action_callback) {
+        throw std::runtime_error(
+            "Callbacks must be set before creating providers. "
+            "Call WithQueryEnvironmentalConditionCallback() and "
+            "WithStartCharacterActionCallback() first.");
+    }
+
+    environmental_condition_provider = std::make_unique<EnvironmentalConditionProvider>(query_env_callback);
+    start_character_action_provider = std::make_unique<StartCharacterActionProvider>(start_action_callback);
+
+    return *this;
+}
 
 ServiceBuilder & ServiceBuilder::WithJsonLoader()
 {
@@ -73,7 +93,7 @@ ServiceBuilder & ServiceBuilder::WithStateOperationEvaluator()
 
 ServiceBuilder & ServiceBuilder::WithFrameworkRegistry()
 {
-    EnsureAllServices();
+    EnsureApplicationServices();
     registry = std::make_unique<FrameworkRegistry>(*logger, *time_manager, *start_character_action_provider, *json_loader,
         *schema_manager, *environmental_condition_manager, *state_operation_evaluator);
 
@@ -98,13 +118,20 @@ std::unique_ptr<ApplicationContext> ServiceBuilder::Build()
     );
 }
 
-std::unique_ptr<ApplicationContext> ServiceBuilder::CreateApplicationContext()
+std::unique_ptr<ApplicationContext> ServiceBuilder::CreateApplicationContext(QueryEnvironmentalConditionFn query_callback,
+    StartCharacterActionFn start_action_callback)
 {
+    if (!query_callback || !start_action_callback) {
+        throw std::invalid_argument(
+            "CreateApplicationContext: Callbacks cannot be null");
+    }
+
     return ServiceBuilder()
         .WithLogger(std::make_unique<FrameworkLogger>())
         .WithTimeManager(std::make_unique<TimeManager>())
-        .WithEnvironmentalConditionProvider(std::make_unique<EnvironmentalConditionProvider>())
-        .WithStartCharacterActionProvider(std::make_unique<StartCharacterActionProvider>())
+        .WithQueryEnvironmentalConditionCallback(query_callback)
+        .WithStartCharacterActionCallback(start_action_callback)
+        .WithProviders()
         .WithJsonLoader()
         .WithEnvironmentalConditionManager()
         .WithSchemaManager()
@@ -113,22 +140,32 @@ std::unique_ptr<ApplicationContext> ServiceBuilder::CreateApplicationContext()
         .Build();
 }
 
-std::unique_ptr<BehaviorFramework> ServiceBuilder::CreateBehaviorFramework()
+std::unique_ptr<BehaviorFramework> ServiceBuilder::CreateBehaviorFramework(QueryEnvironmentalConditionFn query_callback,
+    StartCharacterActionFn start_action_callback)
 {
-    return std::make_unique<BehaviorFramework>(CreateApplicationContext());
+    return std::make_unique<BehaviorFramework>(CreateApplicationContext(query_callback, start_action_callback));
 }
 
 void ServiceBuilder::EnsureCoreServices() const
 {
-    if (!logger || !time_manager || !environmental_condition_provider || !start_character_action_provider)
+    if (!logger || !time_manager)
     {
         throw std::runtime_error("Core services must be configured first");
     }
 }
 
-void ServiceBuilder::EnsureConfigurationServices() const
+void ServiceBuilder::EnsureProvidersConfigured() const
 {
     EnsureCoreServices();
+    if (!environmental_condition_provider || !start_character_action_provider)
+    {
+        throw std::runtime_error("Providers must be configured first. Call WithProviders()");
+    }
+}
+
+void ServiceBuilder::EnsureConfigurationServices() const
+{
+    EnsureProvidersConfigured();
     if (!json_loader)
     {
         throw std::runtime_error("JsonLoader must be configured first");
