@@ -4,7 +4,7 @@ using namespace AmbientCharacterBehavior;
 
 
 /**
- * @throws std::invalid_argument if action_id < 0 or target_entity_id < 0 or last_used_time < 0
+ * @throws std::invalid_argument if action_id < 0 or last_used_time < 0
  *
  */
 ActionMemory::ActionMemory(int32_t action_id, int32_t target_entity_id, int64_t last_used_time) :
@@ -13,11 +13,6 @@ ActionMemory::ActionMemory(int32_t action_id, int32_t target_entity_id, int64_t 
 	if(action_id < 0)
     {
         throw std::invalid_argument("ActionMemory: action_id cannot be negative, got " + std::to_string(action_id));
-    }
-
-	if(target_entity_id < 0)
-    {
-        throw std::invalid_argument("ActionMemory: target_entity_id cannot be negative, got " + std::to_string(target_entity_id));
     }
 }
 

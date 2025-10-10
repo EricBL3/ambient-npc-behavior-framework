@@ -191,6 +191,10 @@ int32_t MemorySystem::GetLeastRecentlyVisitedNodeId(const std::vector<int32_t> &
         return -1;
     }
 
+    if (node_ids.size() == 1) {
+        return node_ids[0];
+    }
+
     std::vector<int32_t> unused {FindUnusedTransitionNodeIds(node_ids)};
     if (!unused.empty())
     {

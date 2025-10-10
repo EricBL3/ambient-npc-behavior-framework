@@ -743,6 +743,9 @@ std::vector<FrameworkEntity *> FrameworkRegistry::GetEntitiesSupportingAction(in
         }
     }
 
+    logger.LogInfo("Found " + std::to_string(result.size()) + " entities that support action " + std::to_string(action_id),
+        "FrameworkRegistry");
+
     return result;
 }
 

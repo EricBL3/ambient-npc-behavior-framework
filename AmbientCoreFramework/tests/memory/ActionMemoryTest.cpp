@@ -16,7 +16,6 @@ TEST(ActionMemoryTest, ConstructorInitializesCorrectly) {
 
 TEST(ActionMemoryTest, RejectsNegativeValues) {
     EXPECT_THROW(ActionMemory(-1, 1, 100), std::invalid_argument);
-    EXPECT_THROW(ActionMemory(1, -1, 100), std::invalid_argument);
     EXPECT_THROW(ActionMemory(1, 1, -1), std::invalid_argument);
 }
 
