@@ -114,6 +114,9 @@ bool MemorySystem::UpdateActionMemory(int32_t action_id, int32_t target_entity_i
         action_memories.push_back(new_memory);
         EnforceMaxActionMemories();
 
+        logger.LogInfo("Added action memory with action_id = " + std::to_string(action_id) + " target_entity_id = " +
+            std::to_string(target_entity_id) + " current_time = " + std::to_string(current_time), "MemorySystem");
+
         return true;
     } catch (const std::exception& e)
     {
@@ -355,7 +358,7 @@ int32_t MemorySystem::FindOldestTransitionNodeId(const std::vector<int32_t> &nod
 
     std::vector<int32_t> oldest_nodes;
     oldest_nodes.reserve(node_ids.size());
-    int64_t oldest_time = INT_MAX;
+    int64_t oldest_time = INT64_MAX;
 
     // Search for memories and track oldest timestamp(s)
     for (auto node_id : node_ids)
@@ -402,9 +405,22 @@ int32_t MemorySystem::FindOldestActionEntityId(int32_t action_id, const std::vec
         return -1;
     }
 
+    logger.LogInfo("FindOldestActionEntityId: Searching for action " + std::to_string(action_id) +
+                   " among " + std::to_string(entity_ids.size()) + " entities", "MemorySystem");
+
+    logger.LogInfo("Total action memories: " + std::to_string(action_memories.size()), "MemorySystem");
+
+    // Log all action memories
+    for (const auto& mem : action_memories)
+    {
+        logger.LogInfo("  Memory: action=" + std::to_string(mem.GetActionId()) +
+                       ", entity=" + std::to_string(mem.GetTargetEntityId()) +
+                       ", time=" + std::to_string(mem.GetLastUsedTime()), "MemorySystem");
+    }
+
     std::vector<int32_t> oldest_nodes;
     oldest_nodes.reserve(entity_ids.size());
-    int64_t oldest_time = INT_MAX;
+    int64_t oldest_time = INT64_MAX;
 
     // Search for action-specific memories and track oldest timestamp(s)
     for (int entity_id : entity_ids)
@@ -423,12 +439,14 @@ int32_t MemorySystem::FindOldestActionEntityId(int32_t action_id, const std::vec
         // If there's a new oldest_time, we restart the oldest_nodes vector.
         if (current_time < oldest_time)
         {
+            logger.LogInfo("Found a new oldest time", "MemorySystem");
             oldest_time = current_time;
             oldest_nodes.clear();
             oldest_nodes.emplace_back(entity_id);
         }
         else if (current_time == oldest_time)
         {
+            logger.LogInfo("Oldest time is equal to current time", "MemorySystem");
             oldest_nodes.emplace_back(entity_id);
         }
     }
