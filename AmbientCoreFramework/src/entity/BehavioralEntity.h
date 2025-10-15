@@ -97,8 +97,12 @@ private:
     void ExecuteSequenceStep(SequenceState sequence_state);
     void ProcessCurrentNode();
     SequenceNode* TryGetCurrentNode();
+
     void ExecuteCurrentNode(const SequenceNode* current_node);
+
     void ExecuteActionNode(const SequenceNode* current_node);
+    void InitiateActionExecution(const std::shared_ptr<Action>& action, FrameworkEntity* target_entity, void* target_entity_handle);
+
     void ExecuteNestedSequenceNode(const SequenceNode* current_node);
     void ExecuteEndSequenceNode(const SequenceNode* current_node);
 
@@ -108,7 +112,9 @@ private:
     void HandleSubsequenceCompletion();
     void HandleNodeExecutionCompletion();
     void HandleSequenceFailure();
+
     void HandleInterruptionRecovery();
+    void AttemptActionResumption();
 
     bool CompletedCurrentAction(int32_t action_id, int64_t action_token) const;
 };

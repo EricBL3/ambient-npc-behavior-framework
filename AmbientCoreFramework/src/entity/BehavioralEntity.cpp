@@ -257,6 +257,7 @@ void BehavioralEntity::HandleSubsequenceCompletion()
 
 void BehavioralEntity::ExecuteActionNode(const SequenceNode* current_node)
 {
+    // Lookup action
     auto action_sequence_node = dynamic_cast<const ActionSequenceNode*>(current_node);
     if (!action_sequence_node)
     {
@@ -277,6 +278,7 @@ void BehavioralEntity::ExecuteActionNode(const SequenceNode* current_node)
         return;
     }
 
+    // Acquire target entity
     FrameworkEntity* target_entity = nullptr;
     void* target_entity_handle = nullptr;
     if (action->GetRequiresTargetEntity())
@@ -295,6 +297,12 @@ void BehavioralEntity::ExecuteActionNode(const SequenceNode* current_node)
         target_entity_handle = target_entity->GetEntityHandle();
     }
 
+    InitiateActionExecution(action, target_entity, target_entity_handle);
+}
+
+void BehavioralEntity::InitiateActionExecution(const std::shared_ptr<Action>& action, FrameworkEntity* target_entity,
+    void* target_entity_handle)
+{
     // Apply immediate effects
     ApplyActionEffects(action->GetImmediateEffects(), target_entity);
 
@@ -426,8 +434,9 @@ void BehavioralEntity::CompleteAction(int32_t action_id, int64_t action_token)
 
         memory.UpdateActionMemory(action_id, current_action_target_id, time_manager.GetCurrentTime());
 
-        // Reset current action target id to invalid value.
+        // Reset current_action_target_id and current_action_id to invalid value.
         current_action_target_id = -1;
+        current_action_id = -1;
 
         if (!sequences.empty())
         {
@@ -547,12 +556,96 @@ void BehavioralEntity::HandleSequenceFailure()
 
 void BehavioralEntity::HandleInterruptionRecovery()
 {
-    //todo: add implementation
+    // Check if sequence was executing action
+    if (current_action_id >= 0)
+    {
+        auto action = content_provider.GetActionById(current_action_id);
+        if (!action)
+        {
+            logger.LogError("Could not find action with id: " + std::to_string(current_action_id),
+                "HandleInterruptionRecovery");
+
+            HandleSequenceFailure();
+            return;
+        }
+
+        if (action->GetInterruptionBehavior() == InterruptionBehaviorType::RESUMABLE)
+        {
+            AttemptActionResumption();
+            return;
+        }
+    }
+
+    logger.LogInfo("The interrupted sequence for entity " + std::to_string(entity_id) + " does not require action resumption",
+        "HandleInterruptionRecovery");
+    sequences.top()->SetSequenceState(SequenceState::PROCESSING_NODE);
+}
+
+void BehavioralEntity::AttemptActionResumption()
+{
+    auto interruption_memory = memory.FindInterruptionMemory(current_action_id, sequences.top()->GetSequenceId(),
+                sequences.top()->GetCurrentNodeId());
+
+    if (interruption_memory)
+    {
+        //todo: Do action resumption check
+    }
+    else
+    {
+        logger.LogInfo("No interruption memory exists for action " + std::to_string(current_action_id) +
+            " for entity " + std::to_string(entity_id), "HandleInterruptionRecovery");
+
+        sequences.top()->SetSequenceState(SequenceState::PROCESSING_NODE);
+    }
 }
 
 void BehavioralEntity::ProcessInterruption(int32_t interruption_id)
 {
     logger.LogInfo("Processing interruption with id: " + std::to_string(interruption_id),
         "BehavioralEntity");
-    //TODO: ADD FULL IMPLEMENTATION
+    // Check handler exists
+    if (!interruption_handlers.contains(interruption_id))
+    {
+        logger.LogError("Could not find interruption handler with id: " + std::to_string(interruption_id),
+            "ProcessInterruption");
+
+        HandleSequenceFailure();
+        return;
+    }
+
+    auto sequence = interruption_handlers.at(interruption_id);
+
+    logger.LogInfo("Will process interruption " + std::to_string(interruption_id) + " with sequence " +
+        std::to_string(sequence->GetSequenceId()) + " for entity: " + std::to_string(entity_id), "BehavioralEntity");
+
+    // Context preservation
+    if (sequences.top()->GetSequenceState() == SequenceState::WAITING_FOR_ACTION)
+    {
+        auto action = content_provider.GetActionById(current_action_id);
+        if (!action)
+        {
+            logger.LogError("Could not find action with id: " + std::to_string(current_action_id),
+                "ProcessInterruption");
+
+            HandleSequenceFailure();
+            return;
+        }
+
+        if (action->GetInterruptionBehavior() == InterruptionBehaviorType::RESUMABLE)
+        {
+            memory.UpdateInterruptionMemory(current_action_id, sequences.top()->GetSequenceId(), sequences.top()->GetCurrentNodeId(),
+            current_action_target_id, time_manager.GetCurrentTime());
+        }
+        else
+        {
+            logger.LogInfo("The current action is not resumable so no context will be saved in the interruption memory for "
+                           "entity " + std::to_string(entity_id), "ProcessInterruption");
+        }
+    }
+
+    // Sequence State Management
+    sequences.top()->SetSequenceState(SequenceState::INTERRUPTED);
+
+    // Response sequence activation
+    sequences.push(sequence);
 }

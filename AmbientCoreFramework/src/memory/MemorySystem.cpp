@@ -93,10 +93,13 @@ bool MemorySystem::UpdateTransitionMemory(int32_t target_node_id, int64_t curren
         transition_memories.push_back(new_memory);
         EnforceMaxTransitionMemories();
 
+        logger.LogInfo("Added transition memory with target_node_id = " + std::to_string(target_node_id) +
+            " current_time = " + std::to_string(current_time), "UpdateTransitionMemory");
+
         return true;
     } catch (const std::exception& e)
     {
-        logger.LogError("UpdateTransitionMemory failed: " + std::string(e.what()), "MemorySystem");
+        logger.LogError("UpdateTransitionMemory failed: " + std::string(e.what()), "UpdateTransitionMemory");
         return false;
     }
 }
@@ -115,12 +118,12 @@ bool MemorySystem::UpdateActionMemory(int32_t action_id, int32_t target_entity_i
         EnforceMaxActionMemories();
 
         logger.LogInfo("Added action memory with action_id = " + std::to_string(action_id) + " target_entity_id = " +
-            std::to_string(target_entity_id) + " current_time = " + std::to_string(current_time), "MemorySystem");
+            std::to_string(target_entity_id) + " current_time = " + std::to_string(current_time), "UpdateActionMemory");
 
         return true;
     } catch (const std::exception& e)
     {
-        logger.LogError("UpdateActionMemory failed: " + std::string(e.what()), "MemorySystem");
+        logger.LogError("UpdateActionMemory failed: " + std::string(e.what()), "UpdateActionMemory");
         return false;
     }
 }
@@ -137,6 +140,10 @@ bool MemorySystem::UpdateInterruptionMemory(int32_t action_id, int32_t sequence_
         RemoveInterruptionMemory(action_id, sequence_id, node_id);
         interruption_memories.push_back(new_memory);
         EnforceMaxInterruptionMemories();
+
+        logger.LogInfo("Added interruption memory with action_id = " + std::to_string(action_id) + " sequence_id = " +
+            std::to_string(sequence_id) + " node_id = " + std::to_string(node_id) + " entity_id = " + std::to_string(entity_id) +
+            " current_time = " + std::to_string(current_time), "UpdateInterruptionMemory");
 
         return true;
 

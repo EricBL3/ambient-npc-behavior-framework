@@ -14,9 +14,6 @@ private:
      */
     int32_t action_id;
 
-    /**
-     * @invariant target_entity_id >= 0
-     */
     int32_t target_entity_id;
 
 public:
