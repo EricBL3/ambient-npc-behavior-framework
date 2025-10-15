@@ -69,6 +69,7 @@ public:
 
     void ClearSequenceInterruptionMemories(int32_t sequence_id);
     bool RemoveInterruptionMemory(int32_t action_id, int32_t sequence_id, int32_t node_id);
+    bool RemoveInterruptionMemory(const InterruptionMemory* memory);
     void ClearAllMemories();
 
     size_t GetTransitionMemoryCount() const;

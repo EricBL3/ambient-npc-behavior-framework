@@ -101,7 +101,8 @@ private:
     void ExecuteCurrentNode(const SequenceNode* current_node);
 
     void ExecuteActionNode(const SequenceNode* current_node);
-    void InitiateActionExecution(const std::shared_ptr<Action>& action, FrameworkEntity* target_entity, void* target_entity_handle);
+    void InitiateActionExecution(const std::shared_ptr<Action>& action, FrameworkEntity* target_entity, void* target_entity_handle,
+        bool apply_immediate_effects = true);
 
     void ExecuteNestedSequenceNode(const SequenceNode* current_node);
     void ExecuteEndSequenceNode(const SequenceNode* current_node);
@@ -115,6 +116,8 @@ private:
 
     void HandleInterruptionRecovery();
     void AttemptActionResumption();
+    bool ValidateResumptionContext(const std::shared_ptr<Action>& action, int32_t target_entity_id);
+    void ResumeActionWithSavedContext(const std::shared_ptr<Action>& action, const InterruptionMemory* interruption_memory);
 
     bool CompletedCurrentAction(int32_t action_id, int64_t action_token) const;
 };

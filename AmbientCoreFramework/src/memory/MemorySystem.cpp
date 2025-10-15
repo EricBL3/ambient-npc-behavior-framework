@@ -265,6 +265,19 @@ bool MemorySystem::RemoveInterruptionMemory(int32_t action_id, int32_t sequence_
     return false;
 }
 
+bool MemorySystem::RemoveInterruptionMemory(const InterruptionMemory* memory)
+{
+    if (!memory) {
+        return false;
+    }
+
+    return RemoveInterruptionMemory(
+        memory->GetInterruptedActionId(),
+        memory->GetInterruptedSequenceId(),
+        memory->GetInterruptedSequenceNodeId()
+    );
+}
+
 void MemorySystem::ClearAllMemories()
 {
     transition_memories.clear();

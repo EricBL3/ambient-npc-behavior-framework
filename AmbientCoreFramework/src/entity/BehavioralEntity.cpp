@@ -301,12 +301,20 @@ void BehavioralEntity::ExecuteActionNode(const SequenceNode* current_node)
 }
 
 void BehavioralEntity::InitiateActionExecution(const std::shared_ptr<Action>& action, FrameworkEntity* target_entity,
-    void* target_entity_handle)
+    void* target_entity_handle, bool apply_immediate_effects)
 {
     // Apply immediate effects
-    ApplyActionEffects(action->GetImmediateEffects(), target_entity);
+    if (apply_immediate_effects)
+    {
+        ApplyActionEffects(action->GetImmediateEffects(), target_entity);
+    }
 
     // Start action
+    if (target_entity)
+    {
+        current_action_target_id = target_entity->GetEntityId();
+    }
+
     current_action_id = action->GetActionId();
     current_action_token++;
 
@@ -363,12 +371,6 @@ FrameworkEntity* BehavioralEntity::GetActionTargetEntity(const std::shared_ptr<A
     // Select best entity
     auto selected_entity_id = memory.GetLeastRecentlyUsedEntityIdForAction(action->GetActionId(), entity_ids);
     target_entity = entity_query.GetEntityFromId(selected_entity_id);
-
-    // Set current action target id
-    if (target_entity)
-    {
-        current_action_target_id = target_entity->GetEntityId();
-    }
 
     return target_entity;
 }
@@ -586,17 +588,119 @@ void BehavioralEntity::AttemptActionResumption()
     auto interruption_memory = memory.FindInterruptionMemory(current_action_id, sequences.top()->GetSequenceId(),
                 sequences.top()->GetCurrentNodeId());
 
-    if (interruption_memory)
-    {
-        //todo: Do action resumption check
-    }
-    else
+    if (!interruption_memory)
     {
         logger.LogInfo("No interruption memory exists for action " + std::to_string(current_action_id) +
-            " for entity " + std::to_string(entity_id), "HandleInterruptionRecovery");
+            " for entity " + std::to_string(entity_id), "AttemptActionResumption");
 
         sequences.top()->SetSequenceState(SequenceState::PROCESSING_NODE);
+        return;
     }
+
+    auto action = content_provider.GetActionById(interruption_memory->GetInterruptedActionId());
+    if (!action)
+    {
+        logger.LogError("Could not find interrupted action with id: " +
+            std::to_string(interruption_memory->GetInterruptedActionId()),
+            "AttemptActionResumption");
+
+        memory.RemoveInterruptionMemory(interruption_memory);
+        sequences.top()->SetSequenceState(SequenceState::FAILED);
+        return;
+    }
+
+    if (ValidateResumptionContext(action, interruption_memory->GetInterruptedTargetEntityId()))
+    {
+        logger.LogInfo("Resuming action " + std::to_string(action->GetActionId()) +
+            " with saved target entity " +
+            std::to_string(interruption_memory->GetInterruptedTargetEntityId()),
+            "AttemptActionResumption");
+
+        ResumeActionWithSavedContext(action, interruption_memory);
+
+        memory.RemoveInterruptionMemory(interruption_memory);
+        return;
+    }
+
+    logger.LogInfo("Resumption context invalid for action " + std::to_string(action->GetActionId()) +
+        ", attempting fresh execution", "AttemptActionResumption");
+
+    memory.RemoveInterruptionMemory(interruption_memory);
+    ExecuteActionNode(sequences.top()->FindCurrentNode());
+}
+
+bool BehavioralEntity::ValidateResumptionContext(const std::shared_ptr<Action>& action, int32_t target_entity_id)
+{
+    // If action doesn't require target entity, context is always valid
+    if (!action->GetRequiresTargetEntity())
+    {
+        return true;
+    }
+
+    auto target_entity = entity_query.GetEntityFromId(target_entity_id);
+    if (!target_entity)
+    {
+        logger.LogInfo("Target entity " + std::to_string(target_entity_id) +
+            " no longer exists", "ValidateResumptionContext");
+        return false;
+    }
+
+    if (!target_entity->SupportsAction(action->GetActionId()))
+    {
+        logger.LogInfo("Target entity " + std::to_string(target_entity_id) +
+            " no longer supports action " + std::to_string(action->GetActionId()),
+            "ValidateResumptionContext");
+        return false;
+    }
+
+    for (const auto& precondition : action->GetPreconditions())
+    {
+        FrameworkEntity* precondition_entity = nullptr;
+        switch (precondition.GetTarget())
+        {
+            case StateOperationTarget::SELF:
+                precondition_entity = this;
+                break;
+            case StateOperationTarget::ENTITY:
+                precondition_entity = target_entity;
+                break;
+            default:
+                break;
+        }
+
+        if (!state_operation_evaluator.ProcessStateOperation(precondition, precondition_entity))
+        {
+            logger.LogInfo("Precondition no longer satisfied for action " +
+                std::to_string(action->GetActionId()), "ValidateResumptionContext");
+            return false;
+        }
+    }
+
+    return true;
+}
+
+void BehavioralEntity::ResumeActionWithSavedContext(const std::shared_ptr<Action>& action, const InterruptionMemory* interruption_memory)
+{
+    FrameworkEntity* target_entity = nullptr;
+    void* target_entity_handle = nullptr;
+
+    if (action->GetRequiresTargetEntity())
+    {
+        target_entity = entity_query.GetEntityFromId(
+            interruption_memory->GetInterruptedTargetEntityId());
+
+        if (!target_entity)
+        {
+            logger.LogError("Target entity vanished during resumption",
+                "ResumeActionWithSavedContext");
+            sequences.top()->SetSequenceState(SequenceState::FAILED);
+            return;
+        }
+
+        target_entity_handle = target_entity->GetEntityHandle();
+    }
+
+    InitiateActionExecution(action, target_entity, target_entity_handle, false);
 }
 
 void BehavioralEntity::ProcessInterruption(int32_t interruption_id)
