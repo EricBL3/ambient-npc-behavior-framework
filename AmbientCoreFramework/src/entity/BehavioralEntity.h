@@ -70,6 +70,8 @@ public:
 
     int32_t GetCurrentActionTargetId() const { return current_action_target_id; }
 
+    int32_t GetCurrentActionId() const { return current_action_id; }
+
     bool IsProcessing() const { return is_processing; }
 
     bool CanUpdate() const;

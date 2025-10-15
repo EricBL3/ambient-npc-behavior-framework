@@ -70,6 +70,7 @@ private:
                 {
                     "action_id": 1,
                     "action_name": "test_action",
+                    "requires_target_entity": false,
                     "preconditions": [],
                     "immediate_effects": [],
                     "completion_effects": [],

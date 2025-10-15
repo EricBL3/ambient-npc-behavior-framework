@@ -705,8 +705,6 @@ void BehavioralEntity::ResumeActionWithSavedContext(const std::shared_ptr<Action
 
 void BehavioralEntity::ProcessInterruption(int32_t interruption_id)
 {
-    logger.LogInfo("Processing interruption with id: " + std::to_string(interruption_id),
-        "BehavioralEntity");
     // Check handler exists
     if (!interruption_handlers.contains(interruption_id))
     {
@@ -720,7 +718,8 @@ void BehavioralEntity::ProcessInterruption(int32_t interruption_id)
     auto sequence = interruption_handlers.at(interruption_id);
 
     logger.LogInfo("Will process interruption " + std::to_string(interruption_id) + " with sequence " +
-        std::to_string(sequence->GetSequenceId()) + " for entity: " + std::to_string(entity_id), "BehavioralEntity");
+        std::to_string(sequence->GetSequenceId()) + " for entity: " + std::to_string(entity_id),
+        "ProcessInterruption");
 
     // Context preservation
     if (sequences.top()->GetSequenceState() == SequenceState::WAITING_FOR_ACTION)
