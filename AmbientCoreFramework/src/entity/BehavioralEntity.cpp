@@ -1,7 +1,5 @@
 #include "BehavioralEntity.h"
-
 #include <algorithm>
-
 #include "behavior/ActionSequenceNode.h"
 #include "behavior/NestedSequenceNode.h"
 #include "services/composition/ServiceBuilder.h"
@@ -52,7 +50,7 @@ std::shared_ptr<Sequence> BehavioralEntity::GetFallbackSequenceById(int32_t sequ
     if (iterator == fallback_sequences.end())
     {
         logger.LogWarning("Sequence with id: " + std::to_string(sequence_id) + " is not in the fallback sequences",
-         "BehavioralEntity");
+         "GetFallbackSequenceById");
         return nullptr;
     }
 
@@ -73,7 +71,7 @@ std::shared_ptr<Sequence> BehavioralEntity::FindInterruptionHandler(int32_t inte
     if (iterator == interruption_handlers.end())
     {
         logger.LogWarning("FrameworkEntity[" + std::to_string(entity_id) + "]: Interruption id: " +
-            std::to_string(interruption_id) + " not found", "BehavioralEntity");
+            std::to_string(interruption_id) + " not found", "FindInterruptionHandler");
 
         return nullptr;
     }
@@ -99,7 +97,7 @@ void BehavioralEntity::ExecuteCurrentSequence()
 void BehavioralEntity::ExecuteSequenceStep(SequenceState sequence_state)
 {
     logger.LogInfo("Executing sequence state " + ToString(sequence_state) + " for entity: " +
-        std::to_string(entity_id), "BehavioralEntity");
+        std::to_string(entity_id), "ExecuteSequenceStep");
 
     switch (sequence_state)
     {
@@ -114,7 +112,7 @@ void BehavioralEntity::ExecuteSequenceStep(SequenceState sequence_state)
             break;
         case SequenceState::WAITING_FOR_ACTION:
             logger.LogInfo("Waiting for character '" + std::to_string(entity_id) + "' to complete action with id: " +
-                std::to_string(current_action_id), "BehavioralEntity");
+                std::to_string(current_action_id), "ExecuteSequenceStep");
             break;
         case SequenceState::NODE_EXECUTED:
             HandleNodeExecutionCompletion();
@@ -133,7 +131,7 @@ void BehavioralEntity::HandleEmptySequences()
     if (main_sequence == nullptr)
     {
         logger.LogError("character with id: " + std::to_string(entity_id) + " does not have a valid main sequence.",
-            "BehavioralEntity");
+            "HandleEmptySequences");
 
         // is processing is turned true to prevent the character from receiving future updates in this invalid state.
         is_processing = true;
@@ -149,7 +147,7 @@ void BehavioralEntity::HandleEmptySequences()
 void BehavioralEntity::HandleSequenceStartup()
 {
     logger.LogInfo("Handling sequence startup for entity: " + std::to_string(entity_id),
-        "BehavioralEntity");
+        "HandleSequenceStartup");
 
     sequences.top()->SetSequenceState(SequenceState::PROCESSING_NODE);
     sequences.top()->ResetCurrentNodeToEntry();
@@ -158,23 +156,25 @@ void BehavioralEntity::HandleSequenceStartup()
 void BehavioralEntity::ProcessCurrentNode()
 {
     logger.LogInfo("Processing current node for entity: " + std::to_string(entity_id),
-        "BehavioralEntity");
+        "ProcessCurrentNode");
 
-    if (const auto current_node = TryGetCurrentNode())
+    const auto current_node = TryGetCurrentNode("ProcessCurrentNode");
+    if (!current_node)
     {
-        ExecuteCurrentNode(current_node);
+        MarkSequenceFailed();
+        return;
     }
+
+    ExecuteCurrentNode(current_node);
 }
 
-SequenceNode* BehavioralEntity::TryGetCurrentNode()
+SequenceNode* BehavioralEntity::TryGetCurrentNode(const std::string& context)
 {
     auto current_node = sequences.top()->FindCurrentNode();
     if (!current_node)
     {
         logger.LogError("Could not find the current node with id: " + std::to_string(sequences.top()->GetCurrentNodeId()),
-            "BehavioralEntity");
-
-        sequences.top()->SetSequenceState(SequenceState::FAILED);
+            context);
     }
 
     return current_node;
@@ -186,27 +186,27 @@ void BehavioralEntity::ExecuteCurrentNode(const SequenceNode* current_node)
     if (current_node_type == SequenceNodeType::ACTION_NODE)
     {
         logger.LogInfo("Will execute action node with id: " + std::to_string(sequences.top()->GetCurrentNodeId()) +
-            " for entity with id: " + std::to_string(entity_id), "BehavioralEntity");
+            " for entity with id: " + std::to_string(entity_id), "ExecuteCurrentNode");
 
         ExecuteActionNode(current_node);
     }
     else if (current_node_type == SequenceNodeType::NESTED_SEQUENCE_NODE)
     {
         logger.LogInfo("Will execute nested sequence node with id: " + std::to_string(sequences.top()->GetCurrentNodeId()) +
-            " for entity with id: " + std::to_string(entity_id), "BehavioralEntity");
+            " for entity with id: " + std::to_string(entity_id), "ExecuteCurrentNode");
 
         ExecuteNestedSequenceNode(current_node);
     }
     else if (current_node_type == SequenceNodeType::END_SEQUENCE_NODE)
     {
         logger.LogInfo("Will execute end node with id: " + std::to_string(sequences.top()->GetCurrentNodeId()) +
-            " for entity with id: " + std::to_string(entity_id), "BehavioralEntity");
+            " for entity with id: " + std::to_string(entity_id), "ExecuteCurrentNode");
 
         ExecuteEndSequenceNode(current_node);
     }
     else
     {
-        logger.LogWarning("The current node type is not supported", "BehavioralEntity");
+        logger.LogWarning("The current node type is not supported", "ExecuteCurrentNode");
         sequences.top()->SetSequenceState(SequenceState::FAILED);
     }
 }
@@ -214,7 +214,7 @@ void BehavioralEntity::ExecuteCurrentNode(const SequenceNode* current_node)
 void BehavioralEntity::ExecuteEndSequenceNode(const SequenceNode* current_node)
 {
     logger.LogInfo("Reached end of sequence for entity " + std::to_string(entity_id),
-                   "BehavioralEntity");
+                   "ExecuteEndSequenceNode");
 
     sequences.top()->SetSequenceState(SequenceState::NODE_EXECUTED);
     sequences.pop();
@@ -226,20 +226,19 @@ void BehavioralEntity::ExecuteNestedSequenceNode(const SequenceNode* current_nod
     if (!nested_sequence_node)
     {
         logger.LogError("The current node type is not of type nested sequence node",
-            "BehavioralEntity");
+            "ExecuteNestedSequenceNode");
 
         sequences.top()->SetSequenceState(SequenceState::FAILED);
         return;
     }
 
     sequences.top()->SetSequenceState(SequenceState::IN_SUBSEQUENCE);
-    std::shared_ptr<Sequence> nested_sequence = content_provider.GetSequenceById(nested_sequence_node->GetTargetSequenceId());
+
+    auto nested_sequence = TryGetSequence(nested_sequence_node->GetTargetSequenceId(), "ExecuteNestedSequenceNode");
+
     if (!nested_sequence)
     {
-        logger.LogError("Could not find nested sequence with id: " + std::to_string(nested_sequence_node->GetTargetSequenceId()),
-            "BehavioralEntity");
-
-        sequences.top()->SetSequenceState(SequenceState::FAILED);
+        MarkSequenceFailed();
         return;
     }
 
@@ -249,7 +248,7 @@ void BehavioralEntity::ExecuteNestedSequenceNode(const SequenceNode* current_nod
 void BehavioralEntity::HandleSubsequenceCompletion()
 {
     logger.LogInfo("Finished running subsequence for entity" + std::to_string(entity_id),
-        "BehavioralEntity");
+        "HandleSubsequenceCompletion");
 
     sequences.top()->SetSequenceState(SequenceState::NODE_EXECUTED);
     HandleNodeExecutionCompletion();
@@ -257,30 +256,15 @@ void BehavioralEntity::HandleSubsequenceCompletion()
 
 void BehavioralEntity::ExecuteActionNode(const SequenceNode* current_node)
 {
-    // Lookup action
-    auto action_sequence_node = dynamic_cast<const ActionSequenceNode*>(current_node);
-    if (!action_sequence_node)
-    {
-        logger.LogError("The current node type is not of type action sequence node",
-            "BehavioralEntity");
-
-        sequences.top()->SetSequenceState(SequenceState::FAILED);
-        return;
-    }
-
-    std::shared_ptr<Action> action = content_provider.GetActionById(action_sequence_node->GetTargetActionId());
+    auto action = LookupActionFromCurrentNode(current_node);
     if (!action)
     {
-        logger.LogError("Could not find action with id: " + std::to_string(action_sequence_node->GetTargetActionId()),
-            "BehavioralEntity");
-
-        sequences.top()->SetSequenceState(SequenceState::FAILED);
+        MarkSequenceFailed();
         return;
     }
 
     // Acquire target entity
     FrameworkEntity* target_entity = nullptr;
-    void* target_entity_handle = nullptr;
     if (action->GetRequiresTargetEntity())
     {
         target_entity = GetActionTargetEntity(action);
@@ -288,20 +272,31 @@ void BehavioralEntity::ExecuteActionNode(const SequenceNode* current_node)
         if (!target_entity)
         {
             logger.LogWarning("No valid entities found for action " + std::to_string(action->GetActionId()) +
-                " - triggering sequence failure","BehavioralEntity");
+                " - triggering sequence failure","ExecuteActionNode");
 
             sequences.top()->SetSequenceState(SequenceState::FAILED);
             return;
         }
-
-        target_entity_handle = target_entity->GetEntityHandle();
     }
 
-    InitiateActionExecution(action, target_entity, target_entity_handle);
+    InitiateActionExecution(action, target_entity);
 }
 
-void BehavioralEntity::InitiateActionExecution(const std::shared_ptr<Action>& action, FrameworkEntity* target_entity,
-    void* target_entity_handle, bool apply_immediate_effects)
+std::shared_ptr<Action> BehavioralEntity::LookupActionFromCurrentNode(const SequenceNode* current_node) const
+{
+    auto action_sequence_node = dynamic_cast<const ActionSequenceNode*>(current_node);
+    if (!action_sequence_node)
+    {
+        logger.LogError("The current node type is not of type action sequence node",
+            "ExecuteActionNode");
+
+        return nullptr;
+    }
+
+    return TryGetAction(action_sequence_node->GetTargetActionId(),"ExecuteActionNode");
+}
+
+void BehavioralEntity::InitiateActionExecution(const std::shared_ptr<Action>& action, FrameworkEntity* target_entity, bool apply_immediate_effects)
 {
     // Apply immediate effects
     if (apply_immediate_effects)
@@ -310,16 +305,18 @@ void BehavioralEntity::InitiateActionExecution(const std::shared_ptr<Action>& ac
     }
 
     // Start action
+    void* target_entity_handle = nullptr;
     if (target_entity)
     {
         current_action_target_id = target_entity->GetEntityId();
+        target_entity_handle = target_entity->GetEntityHandle();
     }
 
     current_action_id = action->GetActionId();
     current_action_token++;
 
     logger.LogInfo("Calling start character action for entity: " + std::to_string(entity_id) + " with action id: " +
-        std::to_string(current_action_id) + " and token: " + std::to_string(current_action_token), "BehavioralEntity");
+        std::to_string(current_action_id) + " and token: " + std::to_string(current_action_token), "InitiateActionExecution");
 
     start_character_action_provider.StartCharacterAction(entity_handle, current_action_id, current_action_token,
         action->GetMaxDuration(), target_entity_handle);
@@ -396,7 +393,7 @@ void BehavioralEntity::ApplyActionEffects(const std::vector<StateOperation> & ef
     }
 
     logger.LogInfo("Applied " + std::to_string(effects.size()) + " effects for action processing of " +
-        " entity " + std::to_string(entity_id), "BehavioralEntity");
+        " entity " + std::to_string(entity_id), "ApplyActionEffects");
 }
 
 void BehavioralEntity::CompleteAction(int32_t action_id, int64_t action_token)
@@ -404,30 +401,23 @@ void BehavioralEntity::CompleteAction(int32_t action_id, int64_t action_token)
     if (CompletedCurrentAction(action_id, action_token))
     {
         logger.LogInfo("entity with id: " + std::to_string(entity_id) + " has completed action with id: " +
-            std::to_string(action_id) + " and token: " + std::to_string(action_token) ,"BehavioralEntity");
+            std::to_string(action_id) + " and token: " + std::to_string(action_token) ,"CompleteAction");
 
         // Apply completion effects
-        auto action = content_provider.GetActionById(action_id);
+        auto action = TryGetAction(action_id, "CompleteAction");
         if (!action)
         {
-            logger.LogError("Could not find action with id" + std::to_string(action_id),
-                "BehavioralEntity");
-
-            sequences.top()->SetSequenceState(SequenceState::FAILED);
+            MarkSequenceFailed();
             return;
         }
 
         FrameworkEntity* target_entity = nullptr;
         if (action->GetRequiresTargetEntity())
         {
-            target_entity = entity_query.GetEntityFromId(current_action_target_id);
+            target_entity = TryGetEntity(current_action_target_id, "CompleteAction");
             if (!target_entity)
             {
-                logger.LogError("Could not find target entity with id" + std::to_string(current_action_target_id),
-                    "BehavioralEntity");
-
-                sequences.top()->SetSequenceState(SequenceState::FAILED);
-                is_processing = false;
+                MarkSequenceFailedAndStopProcessing();
                 return;
             }
         }
@@ -444,7 +434,7 @@ void BehavioralEntity::CompleteAction(int32_t action_id, int64_t action_token)
         {
             sequences.top()->SetSequenceState(SequenceState::NODE_EXECUTED);
             logger.LogInfo("entity with id: " + std::to_string(entity_id) + " is now in NODE_EXECUTED step",
-                "BehavioralEntity");
+                "CompleteAction");
         }
         else
         {
@@ -461,7 +451,7 @@ bool BehavioralEntity::CompletedCurrentAction(int32_t action_id, int64_t action_
     {
         logger.LogWarning("The completed action with id: " + std::to_string(action_id) + " and token: " +
             std::to_string(action_token) + " is not the same as the currently executing action for entity with id: " +
-            std::to_string(entity_id),"BehavioralEntity");
+            std::to_string(entity_id),"CompletedCurrentAction");
 
         return false;
     }
@@ -471,13 +461,10 @@ bool BehavioralEntity::CompletedCurrentAction(int32_t action_id, int64_t action_
 
 void BehavioralEntity::HandleNodeExecutionCompletion()
 {
-    auto current_node = sequences.top()->FindCurrentNode();
+    auto current_node = TryGetCurrentNode("HandleNodeExecutionCompletion");
     if (!current_node)
     {
-        logger.LogError("Could not find the current node with id: " + std::to_string(sequences.top()->GetCurrentNodeId()),
-            "BehavioralEntity");
-
-        sequences.top()->SetSequenceState(SequenceState::FAILED);
+        MarkSequenceFailed();
         return;
     }
 
@@ -522,7 +509,7 @@ void BehavioralEntity::HandleNodeExecutionCompletion()
     if (!sequences.top()->TrySetCurrentNode(selected_node_id))
     {
         logger.LogError("Could not set current node with id: " + std::to_string(selected_node_id),
-            "BehavioralEntity");
+            "HandleNodeExecutionCompletion");
 
         sequences.top()->SetSequenceState(SequenceState::FAILED);
         return;
@@ -536,7 +523,7 @@ void BehavioralEntity::HandleNodeExecutionCompletion()
 void BehavioralEntity::HandleSequenceFailure()
 {
     logger.LogInfo("Handling sequence failure for entity: " + std::to_string(entity_id),
-        "BehavioralEntity");
+        "HandleSequenceFailure");
 
     memory.ClearSequenceInterruptionMemories(sequences.top()->GetSequenceId());
     sequences.pop();
@@ -544,29 +531,28 @@ void BehavioralEntity::HandleSequenceFailure()
     if (fallback_sequences.empty())
     {
         logger.LogError("No fallback sequences available for entity " +
-                       std::to_string(entity_id), "BehavioralEntity");
+                       std::to_string(entity_id), "HandleSequenceFailure");
 
         return;
     }
 
     auto fallback_sequence = fallback_sequences[rand() % fallback_sequences.size()];
     logger.LogInfo("Entity with id: " + std::to_string(entity_id) + " will now follow fallback sequence with id: " +
-        std::to_string(fallback_sequence->GetSequenceId()), "BehavioralEntity");
+        std::to_string(fallback_sequence->GetSequenceId()), "HandleSequenceFailure");
 
     sequences.push(fallback_sequence);
 }
 
 void BehavioralEntity::HandleInterruptionRecovery()
 {
+    logger.LogInfo("Handling interruption recovery for entity: " + std::to_string(entity_id),
+        "HandleInterruptionRecovery");
     // Check if sequence was executing action
     if (current_action_id >= 0)
     {
-        auto action = content_provider.GetActionById(current_action_id);
+        auto action = TryGetAction(current_action_id, "HandleInterruptionRecovery");
         if (!action)
         {
-            logger.LogError("Could not find action with id: " + std::to_string(current_action_id),
-                "HandleInterruptionRecovery");
-
             HandleSequenceFailure();
             return;
         }
@@ -585,6 +571,9 @@ void BehavioralEntity::HandleInterruptionRecovery()
 
 void BehavioralEntity::AttemptActionResumption()
 {
+    logger.LogInfo("Attempting to resume action " + std::to_string(current_action_id) + " from interruption for entity" +
+        std::to_string(entity_id), "AttemptActionResumption");
+
     auto interruption_memory = memory.FindInterruptionMemory(current_action_id, sequences.top()->GetSequenceId(),
                 sequences.top()->GetCurrentNodeId());
 
@@ -597,15 +586,11 @@ void BehavioralEntity::AttemptActionResumption()
         return;
     }
 
-    auto action = content_provider.GetActionById(interruption_memory->GetInterruptedActionId());
+    auto action = TryGetAction(interruption_memory->GetInterruptedActionId(),"AttemptActionResumption");
     if (!action)
     {
-        logger.LogError("Could not find interrupted action with id: " +
-            std::to_string(interruption_memory->GetInterruptedActionId()),
-            "AttemptActionResumption");
-
         memory.RemoveInterruptionMemory(interruption_memory);
-        sequences.top()->SetSequenceState(SequenceState::FAILED);
+        MarkSequenceFailed();
         return;
     }
 
@@ -637,11 +622,9 @@ bool BehavioralEntity::ValidateResumptionContext(const std::shared_ptr<Action>& 
         return true;
     }
 
-    auto target_entity = entity_query.GetEntityFromId(target_entity_id);
+    auto target_entity = TryGetEntity(target_entity_id, "ValidateResumptionContext");
     if (!target_entity)
     {
-        logger.LogInfo("Target entity " + std::to_string(target_entity_id) +
-            " no longer exists", "ValidateResumptionContext");
         return false;
     }
 
@@ -682,25 +665,17 @@ bool BehavioralEntity::ValidateResumptionContext(const std::shared_ptr<Action>& 
 void BehavioralEntity::ResumeActionWithSavedContext(const std::shared_ptr<Action>& action, const InterruptionMemory* interruption_memory)
 {
     FrameworkEntity* target_entity = nullptr;
-    void* target_entity_handle = nullptr;
-
     if (action->GetRequiresTargetEntity())
     {
-        target_entity = entity_query.GetEntityFromId(
-            interruption_memory->GetInterruptedTargetEntityId());
-
+        target_entity = TryGetEntity(interruption_memory->GetInterruptedTargetEntityId(), "ResumeActionWithSavedContext");
         if (!target_entity)
         {
-            logger.LogError("Target entity vanished during resumption",
-                "ResumeActionWithSavedContext");
-            sequences.top()->SetSequenceState(SequenceState::FAILED);
+            MarkSequenceFailed();
             return;
         }
-
-        target_entity_handle = target_entity->GetEntityHandle();
     }
 
-    InitiateActionExecution(action, target_entity, target_entity_handle, false);
+    InitiateActionExecution(action, target_entity, false);
 }
 
 void BehavioralEntity::ProcessInterruption(int32_t interruption_id)
@@ -724,12 +699,9 @@ void BehavioralEntity::ProcessInterruption(int32_t interruption_id)
     // Context preservation
     if (sequences.top()->GetSequenceState() == SequenceState::WAITING_FOR_ACTION)
     {
-        auto action = content_provider.GetActionById(current_action_id);
+        auto action = TryGetAction(current_action_id, "ProcessInterruption");
         if (!action)
         {
-            logger.LogError("Could not find action with id: " + std::to_string(current_action_id),
-                "ProcessInterruption");
-
             HandleSequenceFailure();
             return;
         }
@@ -751,4 +723,51 @@ void BehavioralEntity::ProcessInterruption(int32_t interruption_id)
 
     // Response sequence activation
     sequences.push(sequence);
+}
+
+std::shared_ptr<Action> BehavioralEntity::TryGetAction(int32_t action_id, const std::string &context) const
+{
+    auto action = content_provider.GetActionById(action_id);
+    if (!action)
+    {
+        logger.LogError(
+            "Could not find action with id: " + std::to_string(action_id),
+            context);
+    }
+    return action;
+}
+
+FrameworkEntity* BehavioralEntity::TryGetEntity(int32_t entity_id, const std::string& context) const
+{
+    auto entity = entity_query.GetEntityFromId(entity_id);
+    if (!entity)
+    {
+        logger.LogError(
+            "Could not find entity with id: " + std::to_string(entity_id),
+            context);
+    }
+    return entity;
+}
+
+std::shared_ptr<Sequence> BehavioralEntity::TryGetSequence(int32_t sequence_id, const std::string& context) const
+{
+    auto sequence = content_provider.GetSequenceById(sequence_id);
+    if (!sequence)
+    {
+        logger.LogError(
+            "Could not find sequence with id: " + std::to_string(sequence_id),
+            context);
+    }
+    return sequence;
+}
+
+void BehavioralEntity::MarkSequenceFailed()
+{
+    sequences.top()->SetSequenceState(SequenceState::FAILED);
+}
+
+void BehavioralEntity::MarkSequenceFailedAndStopProcessing()
+{
+    sequences.top()->SetSequenceState(SequenceState::FAILED);
+    is_processing = false;
 }

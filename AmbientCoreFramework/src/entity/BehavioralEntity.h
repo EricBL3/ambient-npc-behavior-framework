@@ -98,12 +98,13 @@ private:
 
     void ExecuteSequenceStep(SequenceState sequence_state);
     void ProcessCurrentNode();
-    SequenceNode* TryGetCurrentNode();
+    SequenceNode* TryGetCurrentNode(const std::string& context);
 
     void ExecuteCurrentNode(const SequenceNode* current_node);
 
     void ExecuteActionNode(const SequenceNode* current_node);
-    void InitiateActionExecution(const std::shared_ptr<Action>& action, FrameworkEntity* target_entity, void* target_entity_handle,
+    std::shared_ptr<Action> LookupActionFromCurrentNode(const SequenceNode* current_node) const;
+    void InitiateActionExecution(const std::shared_ptr<Action>& action, FrameworkEntity* target_entity,
         bool apply_immediate_effects = true);
 
     void ExecuteNestedSequenceNode(const SequenceNode* current_node);
@@ -122,5 +123,11 @@ private:
     void ResumeActionWithSavedContext(const std::shared_ptr<Action>& action, const InterruptionMemory* interruption_memory);
 
     bool CompletedCurrentAction(int32_t action_id, int64_t action_token) const;
+
+    std::shared_ptr<Action> TryGetAction(int32_t action_id, const std::string& context) const;
+    FrameworkEntity* TryGetEntity(int32_t entity_id, const std::string& context) const;
+    std::shared_ptr<Sequence> TryGetSequence(int32_t sequence_id, const std::string& context) const;
+    void MarkSequenceFailed();
+    void MarkSequenceFailedAndStopProcessing();
 };
 }

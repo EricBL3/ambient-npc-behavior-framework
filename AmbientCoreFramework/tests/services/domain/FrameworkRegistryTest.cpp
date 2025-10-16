@@ -912,7 +912,7 @@ TEST_F(FrameworkRegistryTest, RegisterEntity_ComplexBehavioralEntity_LogsWarning
 
     EXPECT_CALL(*mock_logger, LogWarning(
      testing::HasSubstr("not found"),
-     "BehavioralEntity"))
+     testing::_))
      .Times(1);
 
     EXPECT_CALL(*mock_schema, GetStateKey("AVAILABLE_SEATS"))
