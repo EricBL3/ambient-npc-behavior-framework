@@ -636,8 +636,8 @@ FrameworkEntity* FrameworkRegistry::GetFrameworkEntityById(int32_t entity_id) co
 {
     if (!HasFrameworkEntity(entity_id))
     {
-        logger.LogWarning("Entity with id: " + std::to_string(entity_id) + " is not in the registry",
-            "FrameworkRegistry");
+        logger.LogWarning("Entity with id: " + std::to_string(entity_id) + " is not registered as a framework entity",
+            "GetFrameworkEntityById");
 
         return nullptr;
     }
@@ -667,8 +667,8 @@ BehavioralEntity * FrameworkRegistry::GetBehavioralEntityById(int32_t entity_id)
 {
     if (!HasBehavioralEntity(entity_id))
     {
-        logger.LogWarning("Entity with id: " + std::to_string(entity_id) + " is not in the registry",
-            "FrameworkRegistry");
+        logger.LogWarning("Entity with id: " + std::to_string(entity_id) + " is not registered as a behavioral entity",
+            "GetBehavioralEntityById");
 
         return nullptr;
     }

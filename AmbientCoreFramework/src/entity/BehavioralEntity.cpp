@@ -526,6 +526,7 @@ void BehavioralEntity::HandleSequenceFailure()
         "HandleSequenceFailure");
 
     memory.ClearSequenceInterruptionMemories(sequences.top()->GetSequenceId());
+    sequences.top()->ResetCurrentNodeToEntry();
     sequences.pop();
 
     if (fallback_sequences.empty())
