@@ -551,7 +551,11 @@ void BehavioralEntity::HandleInterruptionRecovery()
     // Check if sequence was executing action
     if (current_action_id >= 0)
     {
+        logger.LogInfo("Checking if action " + std::to_string(current_action_id) + " is resumable for entity " +
+            std::to_string(entity_id), "HandleInterruptionRecovery");
+
         auto action = TryGetAction(current_action_id, "HandleInterruptionRecovery");
+
         if (!action)
         {
             HandleSequenceFailure();
@@ -566,7 +570,7 @@ void BehavioralEntity::HandleInterruptionRecovery()
     }
 
     logger.LogInfo("The interrupted sequence for entity " + std::to_string(entity_id) + " does not require action resumption",
-        "HandleInterruptionRecovery");
+                   "HandleInterruptionRecovery");
     sequences.top()->SetSequenceState(SequenceState::PROCESSING_NODE);
 }
 
