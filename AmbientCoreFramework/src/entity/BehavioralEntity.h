@@ -118,6 +118,7 @@ private:
     void HandleSequenceFailure();
 
     void HandleInterruptionRecovery();
+    int32_t RecoverCurrentActionId();
     void AttemptActionResumption();
     bool ValidateResumptionContext(const std::shared_ptr<Action>& action, int32_t target_entity_id);
     void ResumeActionWithSavedContext(const std::shared_ptr<Action>& action, const InterruptionMemory* interruption_memory);

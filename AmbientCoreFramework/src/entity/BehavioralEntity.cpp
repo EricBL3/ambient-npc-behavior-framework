@@ -549,6 +549,7 @@ void BehavioralEntity::HandleInterruptionRecovery()
     logger.LogInfo("Handling interruption recovery for entity: " + std::to_string(entity_id),
         "HandleInterruptionRecovery");
     // Check if sequence was executing action
+    current_action_id = RecoverCurrentActionId();
     if (current_action_id >= 0)
     {
         logger.LogInfo("Checking if action " + std::to_string(current_action_id) + " is resumable for entity " +
@@ -574,11 +575,42 @@ void BehavioralEntity::HandleInterruptionRecovery()
     sequences.top()->SetSequenceState(SequenceState::PROCESSING_NODE);
 }
 
+int32_t BehavioralEntity::RecoverCurrentActionId()
+{
+    const auto current_node = TryGetCurrentNode("HandleInterruptionRecovery");
+    if (!current_node)
+    {
+        logger.LogError("Cannot recover action ID - no current node",
+            "RecoverCurrentActionId");
+
+        return -1;
+    }
+
+    const auto action_node = dynamic_cast<ActionSequenceNode*>(current_node);
+    if (!action_node)
+    {
+        logger.LogWarning("Current node is not an ActionSequenceNode (node_id: " +
+            std::to_string(current_node->GetNodeId()) + "), cannot recover action ID",
+            "RecoverCurrentActionId");
+
+        return -1;
+    }
+
+    const auto recovered_action_id = action_node->GetTargetActionId();
+    logger.LogInfo("Recovered action ID " + std::to_string(recovered_action_id) + " from node " +
+        std::to_string(current_node->GetNodeId()),"RecoverCurrentActionId");
+
+    return recovered_action_id;
+}
+
 void BehavioralEntity::AttemptActionResumption()
 {
+
     logger.LogInfo("Attempting to resume action " + std::to_string(current_action_id) + " from interruption for entity" +
         std::to_string(entity_id), "AttemptActionResumption");
 
+    //todo: finding interruption memories could be simplified if I reconsider what is actually necessary when finding them.
+    // This could then be used to recover the memory earlier instead of relying on finding the current_action_id of the interrupted sequence.
     auto interruption_memory = memory.FindInterruptionMemory(current_action_id, sequences.top()->GetSequenceId(),
                 sequences.top()->GetCurrentNodeId());
 
