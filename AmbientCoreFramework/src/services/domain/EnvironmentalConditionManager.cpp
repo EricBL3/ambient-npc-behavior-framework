@@ -105,13 +105,14 @@ void EnvironmentalConditionManager::UpdateEnvironmentalCondition(int32_t conditi
 
     try
     {
-        logger.LogInfo("Updating environment condition: " + std::to_string(condition_key), "EnvironmentalConditionManager");
         auto new_value = provider.QueryEnvironmentalCondition(condition_key);
+        logger.LogInfo("Updating environment condition key: " + std::to_string(condition_key) + " to value: " +
+            std::to_string(new_value), "UpdateEnvironmentalCondition");
 
         if (new_value == CONDITION_QUERY_FAILED)
         {
             logger.LogInfo("Updating environment condition " + std::to_string(condition_key) + " failed.",
-                "EnvironmentalConditionManager");
+                "UpdateEnvironmentalCondition");
 
             return;
         }
@@ -126,7 +127,7 @@ void EnvironmentalConditionManager::UpdateEnvironmentalCondition(int32_t conditi
     }
     catch (const std::exception& e)
     {
-       logger.LogError(e.what(),"EnvironmentalConditionManager" );
+       logger.LogError(e.what(),"UpdateEnvironmentalCondition" );
     }
 }
 
@@ -134,12 +135,19 @@ int32_t const EnvironmentalConditionManager::GetEnvironmentalConditionValue(int3
 {
     auto& condition = environmental_conditions_cache.at(condition_key);
 
-    if (condition.NeedsToBeUpdated())
+    if (NeedsToBeUpdated(condition))
     {
         UpdateEnvironmentalCondition(condition_key);
     }
 
     return condition.GetValue();
+}
+
+bool EnvironmentalConditionManager::NeedsToBeUpdated(const EnvironmentalCondition& condition) const
+{
+
+    return !condition.GetIsInitialized() ||
+        time_manager.GetCurrentTime() - condition.GetLastUpdateMs() >= condition.GetUpdateFrequencyMs();
 }
 
 void EnvironmentalConditionManager::CreateEnvironmentalConditions(

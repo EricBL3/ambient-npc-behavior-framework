@@ -55,5 +55,11 @@ private:
     void CreateEnvironmentalConditions(const std::vector<EnvironmentalConditionDto>& condition_dtos);
     bool IsValidForCreation(const EnvironmentalConditionDto& dto);
     void CreateSingleEnvironmentalCondition(const EnvironmentalConditionDto& dto);
+
+    /**
+     * @brief Determines if the value needs to be updated by checking the current time against the last update and the update frequency.
+     * @return True if the environmental condition value needs to be updated, false if not.
+     */
+    bool NeedsToBeUpdated(const EnvironmentalCondition& condition) const;
 };
 }

@@ -111,16 +111,29 @@ bool StateOperationEvaluator::EvaluateStateOperation(StateOperationType operatio
     const std::vector<int32_t>& parameters, FrameworkEntity* context_entity, int32_t state_key)
 {
     int32_t new_value;
+    bool res = false;
     switch (operation_type)
     {
         case StateOperationType::EQUALS:
-            return state_value == parameters[0];
+            res = state_value == parameters[0];
+            logger.LogInfo("Evaluating state_value: " + std::to_string(state_value) + " == " + std::to_string(parameters[0]),
+                "EvaluateStateOperation");
+            break;
         case StateOperationType::NOT_EQUALS:
-            return state_value != parameters[0];
+            res = state_value != parameters[0];
+            logger.LogInfo("Evaluating state_value: " + std::to_string(state_value) + " != " + std::to_string(parameters[0]),
+                "EvaluateStateOperation");
+            break;
         case StateOperationType::GREATER_THAN:
-            return state_value > parameters[0];
+            res = state_value > parameters[0];
+            logger.LogInfo("Evaluating state_value: " + std::to_string(state_value) + " > " + std::to_string(parameters[0]),
+                "EvaluateStateOperation");
+            break;
         case StateOperationType::LESS_THAN:
-            return state_value < parameters[0];
+            res = state_value < parameters[0];
+            logger.LogInfo("Evaluating state_value: " + std::to_string(state_value) + " < " + std::to_string(parameters[0]),
+                "EvaluateStateOperation");
+            break;
         case StateOperationType::SET:
             new_value = parameters[0];
             break;
@@ -136,7 +149,14 @@ bool StateOperationEvaluator::EvaluateStateOperation(StateOperationType operatio
             return false;
     }
 
+    if (IsComparisonOperation(operation_type))
+    {
+        return res;
+    }
+
     context_entity->SetStateValue(state_key, new_value);
+    logger.LogInfo("Setting state_key: " + std::to_string(state_key) + " to value " + std::to_string(new_value),
+                "EvaluateStateOperation");
 
     return true;
 }

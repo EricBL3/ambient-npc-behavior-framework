@@ -13,7 +13,7 @@ bool BehavioralEntity::CanUpdate() const
         return !is_processing;
     }
 
-    return !is_processing && sequences.top()->GetSequenceState() != SequenceState::WAITING_FOR_ACTION;
+    return !is_processing && sequences.top()->GetSequenceState() != SequenceState::WAITING_FOR_ACTION && !is_halted;
 }
 
 void BehavioralEntity::SetMainSequence(const std::shared_ptr<Sequence> &new_sequence)
@@ -152,6 +152,7 @@ void BehavioralEntity::HandleSequenceStartup()
     sequences.top()->SetSequenceState(SequenceState::PROCESSING_NODE);
     sequences.top()->ResetCurrentNodeToEntry();
     fallback_attempt_count = 0;
+    is_halted = false;
 }
 
 void BehavioralEntity::ProcessCurrentNode()
@@ -531,8 +532,8 @@ void BehavioralEntity::HandleSequenceFailure()
         logger.LogError("Entity " + std::to_string(entity_id) + " exceeded max fallback attempts, halting",
             "HandleSequenceFailure");
 
-        // is processing is turned to true to avoid updating this character
-        is_processing = true;
+        // is halted is turned to true to avoid updating this character
+        is_halted = true;
         return;
     }
 

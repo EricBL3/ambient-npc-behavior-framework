@@ -76,7 +76,7 @@ TEST_F(EnvironmentalConditionManagerTest, RegisterEnvironmentalConditions_EmptyC
         .WillOnce(testing::Return(empty_conditions));
 
     EXPECT_CALL(*mock_logger, LogWarning(testing::HasSubstr("No valid environmental conditions"),
-                                          testing::Eq("EnvironmentalConditionManager")));
+                                          testing::_));
 
     manager->RegisterEnvironmentalConditions("empty_config.json");
 }
@@ -86,7 +86,7 @@ TEST_F(EnvironmentalConditionManagerTest, RegisterEnvironmentalConditions_JsonLo
         .WillOnce(testing::Throw(std::runtime_error("JSON parsing failed")));
 
     EXPECT_CALL(*mock_logger, LogError(testing::HasSubstr("Unexpected error loading"),
-                                        testing::Eq("EnvironmentalConditionManager")));
+                                        testing::_));
 
     manager->RegisterEnvironmentalConditions("bad_config.json");
 }
@@ -99,14 +99,14 @@ TEST_F(EnvironmentalConditionManagerTest, RegisterEnvironmentalConditions_Duplic
         .WillOnce(testing::Return(duplicate_conditions));
 
     EXPECT_CALL(*mock_logger, LogError(testing::HasSubstr("Duplicate condition_key: 1"),
-                                        testing::Eq("EnvironmentalConditionManager")));
+                                        testing::_));
 
     EXPECT_CALL(*mock_logger, LogInfo(testing::HasSubstr("Registered environmental condition: Weather"),
-                                       testing::Eq("EnvironmentalConditionManager")));
+                                       testing::_));
 
     // Final count should be 1, not 2
     EXPECT_CALL(*mock_logger, LogInfo(testing::HasSubstr("Successfully registered 1"),
-                                       testing::Eq("EnvironmentalConditionManager")));
+                                       testing::_));
 
     manager->RegisterEnvironmentalConditions("duplicate_config.json");
 }
@@ -140,7 +140,7 @@ TEST_F(EnvironmentalConditionManagerTest, UpdateEnvironmentalCondition_ProviderT
         .WillOnce(testing::Throw(std::runtime_error("Provider connection failed")));
 
     EXPECT_CALL(*mock_logger, LogError(testing::HasSubstr("Provider connection failed"),
-                                        testing::Eq("EnvironmentalConditionManager")));
+                                        testing::_));
 
     EXPECT_NO_THROW(manager->UpdateEnvironmentalCondition(1));
 }

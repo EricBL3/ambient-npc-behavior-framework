@@ -24,9 +24,3 @@ EnvironmentalCondition::EnvironmentalCondition(int32_t condition_key, std::strin
             std::to_string(update_frequency_ms));
     }
 }
-
-bool EnvironmentalCondition::NeedsToBeUpdated() const
-{
-    //TODO: Use timer when services is available
-    return !is_initialized; //|| TimeManager::GetCurrentTime() - last_update_ms >= update_frequency_ms;
-}

@@ -51,6 +51,7 @@ private:
 
     int32_t fallback_attempt_count;
     const int32_t MAX_FALLBACK_ATTEMPTS = 3;
+    bool is_halted;
 
 public:
     /**
@@ -65,7 +66,7 @@ public:
         state_operation_evaluator(state_operation_evaluator),
         memory(max_transition_memories, max_action_memories, max_interruption_memories, logger),
         main_sequence(nullptr), current_action_target_id(-1), is_processing(false), current_action_token(0), current_action_id(-1),
-        fallback_attempt_count(0) {}
+        fallback_attempt_count(0), is_halted(false) {}
 
     MemorySystem& GetMemorySystem() { return memory; }
     //const MemorySystem& GetMemorySystem() const { return memory; }
