@@ -49,6 +49,9 @@ private:
     int32_t current_action_id;
     int64_t current_action_token;
 
+    int32_t fallback_attempt_count;
+    const int32_t MAX_FALLBACK_ATTEMPTS = 3;
+
 public:
     /**
      * @throw std::invalid_argument if entity_id or current_location_id < 0.
@@ -61,7 +64,8 @@ public:
         start_character_action_provider(action_provider), content_provider(content_provider), entity_query(entity_query),
         state_operation_evaluator(state_operation_evaluator),
         memory(max_transition_memories, max_action_memories, max_interruption_memories, logger),
-        main_sequence(nullptr), current_action_target_id(-1), is_processing(false), current_action_token(0), current_action_id(-1) {}
+        main_sequence(nullptr), current_action_target_id(-1), is_processing(false), current_action_token(0), current_action_id(-1),
+        fallback_attempt_count(0) {}
 
     MemorySystem& GetMemorySystem() { return memory; }
     //const MemorySystem& GetMemorySystem() const { return memory; }

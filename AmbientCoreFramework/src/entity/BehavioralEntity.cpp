@@ -151,6 +151,7 @@ void BehavioralEntity::HandleSequenceStartup()
 
     sequences.top()->SetSequenceState(SequenceState::PROCESSING_NODE);
     sequences.top()->ResetCurrentNodeToEntry();
+    fallback_attempt_count = 0;
 }
 
 void BehavioralEntity::ProcessCurrentNode()
@@ -216,6 +217,7 @@ void BehavioralEntity::ExecuteEndSequenceNode(const SequenceNode* current_node)
     logger.LogInfo("Reached end of sequence for entity " + std::to_string(entity_id),
                    "ExecuteEndSequenceNode");
 
+    fallback_attempt_count = 0;
     sequences.top()->SetSequenceState(SequenceState::NODE_EXECUTED);
     sequences.pop();
 }
@@ -518,10 +520,22 @@ void BehavioralEntity::HandleNodeExecutionCompletion()
     memory.UpdateTransitionMemory(selected_node_id, time_manager.GetCurrentTime());
     sequences.top()->FindCurrentNode()->ResetCompletion();
     sequences.top()->SetSequenceState(SequenceState::PROCESSING_NODE);
+    fallback_attempt_count = 0;
 }
 
 void BehavioralEntity::HandleSequenceFailure()
 {
+    fallback_attempt_count++;
+    if (fallback_attempt_count >= MAX_FALLBACK_ATTEMPTS)
+    {
+        logger.LogError("Entity " + std::to_string(entity_id) + " exceeded max fallback attempts, halting",
+            "HandleSequenceFailure");
+
+        // is processing is turned to true to avoid updating this character
+        is_processing = true;
+        return;
+    }
+
     logger.LogInfo("Handling sequence failure for entity: " + std::to_string(entity_id),
         "HandleSequenceFailure");
 
