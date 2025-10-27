@@ -1,5 +1,7 @@
 #include "BehaviorFramework.h"
 
+#include <tracy/Tracy.hpp>
+
 #include "entity/BehavioralEntity.h"
 
 using namespace AmbientCharacterBehavior;
@@ -105,6 +107,8 @@ bool BehaviorFramework::InitializeRegistry(const std::string& actions_file_path,
 
 void BehaviorFramework::Update(int32_t character_batch_size, int64_t current_time_ms)
 {
+    ZoneScoped;
+
     if (IsFrameworkInitialized())
     {
         app_context->Core().time_manager.SetCurrentTime(current_time_ms);
@@ -176,6 +180,9 @@ bool BehaviorFramework::CanUpdateBehavioralEntities(int32_t character_batch_size
  */
 void BehaviorFramework::UpdateBehavioralEntities(int32_t character_batch_size)
 {
+    ZoneScoped;
+    ZoneName("UpdateBatch", 11);
+
     is_processing_entity_batch = true;
 
     auto total_entities = GetTotalEntitiesCount();

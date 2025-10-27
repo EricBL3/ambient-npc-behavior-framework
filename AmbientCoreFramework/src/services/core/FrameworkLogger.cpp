@@ -40,6 +40,9 @@ bool FrameworkLogger::Initialize(const std::string &log_file_path)
         }
 
         is_logging_enabled = true;
+
+        //todo: pass this as a parameter in the framework init function
+        SetLogLevel(FrameworkLogLevel::WARNING);
     }
     else
     {

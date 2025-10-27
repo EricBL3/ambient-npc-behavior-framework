@@ -44,6 +44,41 @@ target_include_directories(AmbientCoreFramework_Static PUBLIC
     src # Internal headers only for testing
 )
 
+# ============== DEPENDENCIES SETUP ==============
+include(FetchContent)
+
+# Fetch nlohmann_json
+FetchContent_Declare(
+        nlohmann_json
+        GIT_REPOSITORY https://github.com/nlohmann/json.git
+        GIT_TAG v3.12.0
+)
+
+# Fetch Tracy Profiler
+FetchContent_Declare(
+        tracy
+        GIT_REPOSITORY https://github.com/wolfpld/tracy.git
+        GIT_TAG v0.12.2
+        GIT_SHALLOW TRUE
+)
+
+# Configure Tracy options BEFORE making it available
+set(TRACY_ENABLE ON CACHE BOOL "Enable Tracy profiler" FORCE)
+set(TRACY_ON_DEMAND OFF CACHE BOOL "On-demand profiling" FORCE)
+
+FetchContent_MakeAvailable(nlohmann_json tracy)
+
+# Link libraries
+target_link_libraries(AmbientCoreFramework PRIVATE
+        nlohmann_json::nlohmann_json
+        TracyClient
+)
+
+target_link_libraries(AmbientCoreFramework_Static PRIVATE
+        nlohmann_json::nlohmann_json
+        TracyClient
+)
+
 # Google Test setup
 find_package(GTest CONFIG REQUIRED)
 enable_testing()
@@ -66,16 +101,3 @@ target_include_directories(AmbientCoreTests PRIVATE
 
 include (GoogleTest)
 gtest_discover_tests(AmbientCoreTests)
-
-include(FetchContent)
-
-FetchContent_Declare(
-        nlohmann_json
-        GIT_REPOSITORY https://github.com/nlohmann/json.git
-        GIT_TAG v3.12.0
-)
-
-FetchContent_MakeAvailable(nlohmann_json)
-
-target_link_libraries(AmbientCoreFramework PRIVATE nlohmann_json::nlohmann_json)
-target_link_libraries(AmbientCoreFramework_Static PRIVATE nlohmann_json::nlohmann_json)

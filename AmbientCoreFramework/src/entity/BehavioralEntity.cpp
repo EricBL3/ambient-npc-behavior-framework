@@ -1,5 +1,7 @@
 #include "BehavioralEntity.h"
 #include <algorithm>
+#include <tracy/Tracy.hpp>
+
 #include "behavior/ActionSequenceNode.h"
 #include "behavior/NestedSequenceNode.h"
 #include "services/composition/ServiceBuilder.h"
@@ -81,6 +83,8 @@ std::shared_ptr<Sequence> BehavioralEntity::FindInterruptionHandler(int32_t inte
 
 void BehavioralEntity::ExecuteCurrentSequence()
 {
+    ZoneScoped;
+
     is_processing = true;
 
     if (sequences.empty())
@@ -329,6 +333,8 @@ void BehavioralEntity::InitiateActionExecution(const std::shared_ptr<Action>& ac
 
 FrameworkEntity* BehavioralEntity::GetActionTargetEntity(const std::shared_ptr<Action>& action)
 {
+    ZoneScoped;
+
     FrameworkEntity* target_entity = nullptr;
 
     // Evaluate entities
@@ -465,6 +471,8 @@ bool BehavioralEntity::CompletedCurrentAction(int32_t action_id, int64_t action_
 
 void BehavioralEntity::HandleNodeExecutionCompletion()
 {
+    ZoneScoped;
+
     auto current_node = TryGetCurrentNode("HandleNodeExecutionCompletion");
     if (!current_node)
     {
