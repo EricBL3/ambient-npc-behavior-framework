@@ -432,6 +432,7 @@ void BehavioralEntity::CompleteAction(int32_t action_id, int64_t action_token)
         // Reset current_action_target_id and current_action_id to invalid value.
         current_action_target_id = -1;
         current_action_id = -1;
+        fallback_attempt_count = 0;
 
         if (!sequences.empty())
         {
@@ -552,11 +553,13 @@ void BehavioralEntity::HandleSequenceFailure()
         return;
     }
 
-    auto fallback_sequence = fallback_sequences[rand() % fallback_sequences.size()];
-    logger.LogInfo("Entity with id: " + std::to_string(entity_id) + " will now follow fallback sequence with id: " +
-        std::to_string(fallback_sequence->GetSequenceId()), "HandleSequenceFailure");
+    auto fallback_sequence_template = fallback_sequences[rand() % fallback_sequences.size()];
+    auto fallback_instance = fallback_sequence_template->CreateInstance();
 
-    sequences.push(fallback_sequence);
+    logger.LogInfo("Entity with id: " + std::to_string(entity_id) + " will now follow fallback sequence with id: " +
+        std::to_string(fallback_instance->GetSequenceId()), "HandleSequenceFailure");
+
+    sequences.push(fallback_instance);
 }
 
 void BehavioralEntity::HandleInterruptionRecovery()
