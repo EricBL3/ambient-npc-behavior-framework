@@ -60,8 +60,6 @@ extern "C" {
 
     AmbientCoreFramework_API void Update(void* framework_handle, int32_t batch_size, int64_t current_time)
     {
-        ZoneScoped;
-
         if (framework_handle)
         {
             auto framework = static_cast<BehaviorFramework*>(framework_handle);
@@ -72,7 +70,6 @@ extern "C" {
     AmbientCoreFramework_API void ProcessInterruption(void* framework_handle, int32_t interruption_id, void** entity_handles,
         int32_t count)
     {
-        ZoneScoped;
 
         if (framework_handle && entity_handles && count > 0)
         {
@@ -84,8 +81,6 @@ extern "C" {
 
     AmbientCoreFramework_API void RegisterEntity(void* framework_handle, void* entity_handle, const char* config_path)
     {
-        ZoneScoped;
-
         if (framework_handle)
         {
             auto framework = static_cast<BehaviorFramework*>(framework_handle);
@@ -95,8 +90,6 @@ extern "C" {
 
     AmbientCoreFramework_API void UnregisterEntity(void* framework_handle, void* entity_handle)
     {
-        ZoneScoped;
-
         if (framework_handle)
         {
             auto framework = static_cast<BehaviorFramework*>(framework_handle);
@@ -107,8 +100,6 @@ extern "C" {
     AmbientCoreFramework_API void CompleteCharacterAction(void* framework_handle, void *entity_handle, int32_t action_id,
         int64_t action_token)
     {
-        ZoneScoped;
-
         if (framework_handle)
         {
             auto framework = static_cast<BehaviorFramework*>(framework_handle);
@@ -120,7 +111,6 @@ extern "C" {
     {
         FrameMark;
     }
-
 }
 
 

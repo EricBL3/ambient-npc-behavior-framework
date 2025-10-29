@@ -10,6 +10,8 @@ void BehaviorFramework::InitializeFramework(const std::string &schema_file_path,
     const std::string &actions_file_path, const std::string &environmental_conditions_file_path,
     const std::string& log_file_path)
 {
+    ZoneScoped;
+
     if (!is_initialized)
     {
         try
@@ -35,6 +37,8 @@ void BehaviorFramework::InitializeFramework(const std::string &schema_file_path,
 
 bool BehaviorFramework::InitializeCoreServices(const std::string& log_file_path) const
 {
+    ZoneScoped;
+
     try
     {
         if (app_context->Core().logger.Initialize(log_file_path))
@@ -55,6 +59,8 @@ bool BehaviorFramework::InitializeCoreServices(const std::string& log_file_path)
 bool BehaviorFramework::InitializeDomainServices(const std::string& schema_file_path,
     const std::string& environmental_conditions_file_path ) const
 {
+    ZoneScoped;
+
     app_context->Core().logger.LogInfo("Loading framework schema","BehaviorFramework");
 
     if (!app_context->Domain().schema_manager.LoadFrameworkSchema(schema_file_path))
@@ -80,6 +86,8 @@ bool BehaviorFramework::InitializeDomainServices(const std::string& schema_file_
 
 bool BehaviorFramework::InitializeRegistry(const std::string& actions_file_path, const std::string& sequences_file_path) const
 {
+    ZoneScoped;
+
     app_context->Core().logger.LogInfo("Registering actions", "BehaviorFramework");
     if (!app_context->Registry().content_provider.RegisterActions(actions_file_path))
     {
@@ -140,6 +148,8 @@ bool BehaviorFramework::IsFrameworkInitialized() const
 
 void BehaviorFramework::ProcessPendingEntityCommands() const
 {
+    ZoneScoped;
+
     try
     {
         auto processed_count = app_context->Registry().entity_registry.ProcessPendingEntityCommands();
@@ -181,7 +191,8 @@ bool BehaviorFramework::CanUpdateBehavioralEntities(int32_t character_batch_size
 void BehaviorFramework::UpdateBehavioralEntities(int32_t character_batch_size)
 {
     ZoneScoped;
-    ZoneName("UpdateBatch", 11);
+    ZoneText("batch_size", 10);
+    ZoneValue(character_batch_size);
 
     is_processing_entity_batch = true;
 
@@ -194,6 +205,9 @@ void BehaviorFramework::UpdateBehavioralEntities(int32_t character_batch_size)
 
             auto entities_to_process = app_context->Registry().entity_registry.GetBehavioralEntitiesRange(
                 entities_range.start_index, entities_range.count);
+
+            ZoneText("entities_to_process", 19);
+            ZoneValue(entities_to_process.size());
 
             for (BehavioralEntity* entity : entities_to_process)
             {
@@ -252,6 +266,12 @@ void BehaviorFramework::UpdateCurrentBatchStartIndex(int32_t character_batch_siz
 
 void BehaviorFramework::ProcessInterruption(int32_t interruption_id, const std::vector<void *> &affected_entity_handles) const
 {
+    ZoneScoped;
+    ZoneText("interruption_id", 15);
+    ZoneValue(interruption_id);
+    ZoneText("affected_entity_handles", 23);
+    ZoneValue(affected_entity_handles.size());
+
     if (IsFrameworkInitialized())
     {
         int32_t processed_count = 0;
@@ -298,18 +318,28 @@ bool BehaviorFramework::ProcessInterruptionForEntity(int32_t interruption_id, vo
 
 void BehaviorFramework::RegisterEntity(void *entity_handle, const std::string &config_path) const
 {
+    ZoneScoped;
+
     app_context->Registry().entity_registry.QueueEntityRegistration(entity_handle, config_path);
     app_context->Core().logger.LogInfo("Queued entity registration command" ,"BehaviorFramework");
 }
 
 void BehaviorFramework::UnregisterEntity(void *entity_handle) const
 {
+    ZoneScoped;
+
     app_context->Registry().entity_registry.QueueEntityUnregistration(entity_handle);
     app_context->Core().logger.LogInfo("Queued entity unregistration command" ,"BehaviorFramework");
 }
 
 void BehaviorFramework::CompleteCharacterAction(void *entity_handle, int32_t action_id, int64_t action_token) const
 {
+    ZoneScoped;
+    ZoneText("action_id", 9);
+    ZoneValue(action_id);
+    ZoneText("action_token", 12);
+    ZoneValue(action_token);
+
     try
     {
         if (BehavioralEntity* entity = app_context->Registry().entity_registry.GetBehavioralEntityByHandle(entity_handle))

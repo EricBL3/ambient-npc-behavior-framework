@@ -83,7 +83,6 @@ std::shared_ptr<Sequence> BehavioralEntity::FindInterruptionHandler(int32_t inte
 
 void BehavioralEntity::ExecuteCurrentSequence()
 {
-    ZoneScoped;
 
     is_processing = true;
 
@@ -100,6 +99,14 @@ void BehavioralEntity::ExecuteCurrentSequence()
 
 void BehavioralEntity::ExecuteSequenceStep(SequenceState sequence_state)
 {
+    ZoneScoped;
+    ZoneText("entity_id", 9);
+    ZoneValue(entity_id);
+    ZoneText("sequence_id", 11);
+    ZoneValue(sequences.top()->GetSequenceId());
+    ZoneText("sequence_state", 14);
+    ZoneValue(static_cast<uint64_t>(sequence_state));
+
     logger.LogInfo("Executing sequence state " + ToString(sequence_state) + " for entity: " +
         std::to_string(entity_id), "ExecuteSequenceStep");
 
@@ -150,6 +157,8 @@ void BehavioralEntity::HandleEmptySequences()
 
 void BehavioralEntity::HandleSequenceStartup()
 {
+    ZoneScoped;
+
     logger.LogInfo("Handling sequence startup for entity: " + std::to_string(entity_id),
         "HandleSequenceStartup");
 
@@ -161,6 +170,8 @@ void BehavioralEntity::HandleSequenceStartup()
 
 void BehavioralEntity::ProcessCurrentNode()
 {
+    ZoneScoped;
+
     logger.LogInfo("Processing current node for entity: " + std::to_string(entity_id),
         "ProcessCurrentNode");
 
@@ -254,6 +265,8 @@ void BehavioralEntity::ExecuteNestedSequenceNode(const SequenceNode* current_nod
 
 void BehavioralEntity::HandleSubsequenceCompletion()
 {
+    ZoneScoped;
+
     logger.LogInfo("Finished running subsequence for entity" + std::to_string(entity_id),
         "HandleSubsequenceCompletion");
 
@@ -407,6 +420,8 @@ void BehavioralEntity::ApplyActionEffects(const std::vector<StateOperation> & ef
 
 void BehavioralEntity::CompleteAction(int32_t action_id, int64_t action_token)
 {
+    ZoneScopedN("BehavioralEntity::CompleteAction");
+
     if (CompletedCurrentAction(action_id, action_token))
     {
         logger.LogInfo("entity with id: " + std::to_string(entity_id) + " has completed action with id: " +
@@ -535,6 +550,8 @@ void BehavioralEntity::HandleNodeExecutionCompletion()
 
 void BehavioralEntity::HandleSequenceFailure()
 {
+    ZoneScoped;
+
     fallback_attempt_count++;
     if (fallback_attempt_count >= MAX_FALLBACK_ATTEMPTS)
     {
@@ -572,6 +589,8 @@ void BehavioralEntity::HandleSequenceFailure()
 
 void BehavioralEntity::HandleInterruptionRecovery()
 {
+    ZoneScoped;
+
     logger.LogInfo("Handling interruption recovery for entity: " + std::to_string(entity_id),
         "HandleInterruptionRecovery");
     // Check if sequence was executing action
@@ -743,6 +762,8 @@ void BehavioralEntity::ResumeActionWithSavedContext(const std::shared_ptr<Action
 
 void BehavioralEntity::ProcessInterruption(int32_t interruption_id)
 {
+    ZoneScopedN("BehavioralEntity::ProcessInterruption");
+
     // Check handler exists
     if (!interruption_handlers.contains(interruption_id))
     {
