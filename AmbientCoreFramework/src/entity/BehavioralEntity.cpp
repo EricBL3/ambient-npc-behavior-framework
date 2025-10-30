@@ -187,6 +187,8 @@ void BehavioralEntity::ProcessCurrentNode()
 
 SequenceNode* BehavioralEntity::TryGetCurrentNode(const std::string& context)
 {
+    ZoneScoped;
+
     auto current_node = sequences.top()->FindCurrentNode();
     if (!current_node)
     {
@@ -199,6 +201,8 @@ SequenceNode* BehavioralEntity::TryGetCurrentNode(const std::string& context)
 
 void BehavioralEntity::ExecuteCurrentNode(const SequenceNode* current_node)
 {
+    ZoneScoped;
+
     auto current_node_type = current_node->GetNodeType();
     if (current_node_type == SequenceNodeType::ACTION_NODE)
     {
@@ -230,6 +234,8 @@ void BehavioralEntity::ExecuteCurrentNode(const SequenceNode* current_node)
 
 void BehavioralEntity::ExecuteEndSequenceNode(const SequenceNode* current_node)
 {
+    ZoneScoped;
+
     logger.LogInfo("Reached end of sequence for entity " + std::to_string(entity_id),
                    "ExecuteEndSequenceNode");
 
@@ -240,6 +246,8 @@ void BehavioralEntity::ExecuteEndSequenceNode(const SequenceNode* current_node)
 
 void BehavioralEntity::ExecuteNestedSequenceNode(const SequenceNode* current_node)
 {
+    ZoneScoped;
+
     auto nested_sequence_node = dynamic_cast<const NestedSequenceNode*>(current_node);
     if (!nested_sequence_node)
     {
@@ -276,6 +284,8 @@ void BehavioralEntity::HandleSubsequenceCompletion()
 
 void BehavioralEntity::ExecuteActionNode(const SequenceNode* current_node)
 {
+    ZoneScoped;
+
     auto action = LookupActionFromCurrentNode(current_node);
     if (!action)
     {
@@ -304,6 +314,8 @@ void BehavioralEntity::ExecuteActionNode(const SequenceNode* current_node)
 
 std::shared_ptr<Action> BehavioralEntity::LookupActionFromCurrentNode(const SequenceNode* current_node) const
 {
+    ZoneScoped;
+
     auto action_sequence_node = dynamic_cast<const ActionSequenceNode*>(current_node);
     if (!action_sequence_node)
     {
@@ -318,6 +330,8 @@ std::shared_ptr<Action> BehavioralEntity::LookupActionFromCurrentNode(const Sequ
 
 void BehavioralEntity::InitiateActionExecution(const std::shared_ptr<Action>& action, FrameworkEntity* target_entity, bool apply_immediate_effects)
 {
+    ZoneScoped;
+
     // Apply immediate effects
     if (apply_immediate_effects)
     {
@@ -396,6 +410,8 @@ FrameworkEntity* BehavioralEntity::GetActionTargetEntity(const std::shared_ptr<A
 
 void BehavioralEntity::ApplyActionEffects(const std::vector<StateOperation> & effects, FrameworkEntity* target_entity)
 {
+    ZoneScoped;
+
     for (const auto& effect: effects)
     {
         FrameworkEntity* effect_entity = nullptr;
@@ -420,7 +436,6 @@ void BehavioralEntity::ApplyActionEffects(const std::vector<StateOperation> & ef
 
 void BehavioralEntity::CompleteAction(int32_t action_id, int64_t action_token)
 {
-    ZoneScopedN("BehavioralEntity::CompleteAction");
 
     if (CompletedCurrentAction(action_id, action_token))
     {
@@ -762,8 +777,6 @@ void BehavioralEntity::ResumeActionWithSavedContext(const std::shared_ptr<Action
 
 void BehavioralEntity::ProcessInterruption(int32_t interruption_id)
 {
-    ZoneScopedN("BehavioralEntity::ProcessInterruption");
-
     // Check handler exists
     if (!interruption_handlers.contains(interruption_id))
     {

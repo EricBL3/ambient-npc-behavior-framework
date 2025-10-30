@@ -37,7 +37,7 @@ extern "C" {
     AmbientCoreFramework_API void CompleteCharacterAction(void* framework_handle, void* entity_handle, int32_t action_id,
         int64_t action_token);
 
-    AmbientCoreFramework_API void MarkFrame();
+    AmbientCoreFramework_API void TracyFrameMarkWithTime(double engineTimeMs, int engineFrame);
 
 #ifdef __cplusplus
 }

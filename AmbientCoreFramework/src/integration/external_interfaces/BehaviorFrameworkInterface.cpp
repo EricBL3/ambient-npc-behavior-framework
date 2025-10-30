@@ -29,7 +29,6 @@ extern "C" {
         const char* sequences_file_path, const char* actions_file_path,
         const char* environmental_conditions_file_path, const char*  log_file_path)
     {
-        ZoneScoped;
 
         if (const auto framework = static_cast<BehaviorFramework*>(framework_handle))
         {
@@ -70,7 +69,6 @@ extern "C" {
     AmbientCoreFramework_API void ProcessInterruption(void* framework_handle, int32_t interruption_id, void** entity_handles,
         int32_t count)
     {
-
         if (framework_handle && entity_handles && count > 0)
         {
             auto framework = static_cast<BehaviorFramework*>(framework_handle);
@@ -107,9 +105,14 @@ extern "C" {
         }
     }
 
-    AmbientCoreFramework_API void MarkFrame()
+    AmbientCoreFramework_API void TracyFrameMarkWithTime(double engineTimeMs, int engineFrame)
     {
         FrameMark;
+
+        auto msg = "Engine Frame " + std::to_string(engineFrame) +
+                  " at " + std::to_string(engineTimeMs) + " ms";
+
+        TracyMessage(msg.c_str(), static_cast<uint32_t>(msg.size()));
     }
 }
 

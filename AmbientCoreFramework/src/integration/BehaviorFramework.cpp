@@ -115,7 +115,7 @@ bool BehaviorFramework::InitializeRegistry(const std::string& actions_file_path,
 
 void BehaviorFramework::Update(int32_t character_batch_size, int64_t current_time_ms)
 {
-    ZoneScoped;
+    ZoneScopedN("BehaviorFramework::Update");
 
     if (IsFrameworkInitialized())
     {
@@ -297,6 +297,8 @@ void BehaviorFramework::ProcessInterruption(int32_t interruption_id, const std::
 
 bool BehaviorFramework::ProcessInterruptionForEntity(int32_t interruption_id, void* entity_handle) const
 {
+    ZoneScoped;
+
     try
     {
         if (BehavioralEntity* entity = app_context->Registry().entity_registry.GetBehavioralEntityByHandle(entity_handle))
@@ -344,6 +346,9 @@ void BehaviorFramework::CompleteCharacterAction(void *entity_handle, int32_t act
     {
         if (BehavioralEntity* entity = app_context->Registry().entity_registry.GetBehavioralEntityByHandle(entity_handle))
         {
+            ZoneText("entity_id", 9);
+            ZoneValue(entity->GetEntityId());
+
             entity->CompleteAction(action_id, action_token);
         }
         else
