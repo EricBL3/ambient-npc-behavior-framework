@@ -6,8 +6,8 @@
 #include "../mocks/MockEntityQuery.h"
 #include "../mocks/MockStartCharacterActionProvider.h"
 #include "../mocks/MockStateOperationEvaluator.h"
-#include "behavior/ActionSequenceNode.h"
-#include "behavior/EndSequenceNode.h"
+#include "behavior/sequence_nodes/ActionSequenceNode.h"
+#include "../../src/behavior/sequence_nodes/EndSequenceNode.h"
 #include "entity/BehavioralEntity.h"
 
 using namespace AmbientCharacterBehavior;

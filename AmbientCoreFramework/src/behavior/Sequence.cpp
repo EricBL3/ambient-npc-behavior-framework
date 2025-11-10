@@ -2,9 +2,9 @@
 
 #include <algorithm>
 #include <utility>
-#include "ActionSequenceNode.h"
-#include "EndSequenceNode.h"
-#include "NestedSequenceNode.h"
+#include "sequence_nodes/ActionSequenceNode.h"
+#include "sequence_nodes/EndSequenceNode.h"
+#include "sequence_nodes/NestedSequenceNode.h"
 
 using namespace AmbientCharacterBehavior;
 

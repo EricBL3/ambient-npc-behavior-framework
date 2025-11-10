@@ -2,7 +2,7 @@
 #include <stdexcept>
 #include <string>
 
-#include "SequenceNodeType.h"
+#include "../enums/SequenceNodeType.h"
 
 namespace AmbientCharacterBehavior {
 /**

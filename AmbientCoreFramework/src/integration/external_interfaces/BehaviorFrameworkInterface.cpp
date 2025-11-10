@@ -2,7 +2,6 @@
 #include "services/composition/ServiceBuilder.h"
 #include <stdexcept>
 
-#include "utils/PerformanceTracker.h"
 #include <tracy/Tracy.hpp>
 
 

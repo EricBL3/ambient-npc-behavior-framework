@@ -2,7 +2,7 @@
 #include <cstdint>
 #include <vector>
 
-#include "SequenceNode.h"
+#include "sequence_nodes/SequenceNode.h"
 #include "StateOperation.h"
 
 namespace AmbientCharacterBehavior {

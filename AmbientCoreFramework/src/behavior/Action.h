@@ -4,7 +4,7 @@
 #include <vector>
 
 #include "StateOperation.h"
-#include "utils/InterruptionBehaviorType.h"
+#include "enums/InterruptionBehaviorType.h"
 
 namespace AmbientCharacterBehavior {
 

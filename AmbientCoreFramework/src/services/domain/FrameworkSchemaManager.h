@@ -6,7 +6,7 @@
 #include "interfaces/IJsonLoader.h"
 #include "interfaces/ILogger.h"
 #include "interfaces/IFrameworkSchemaManager.h"
-#include "utils/StateOperationType.h"
+#include "../../behavior/enums/StateOperationType.h"
 
 namespace AmbientCharacterBehavior {
 /**

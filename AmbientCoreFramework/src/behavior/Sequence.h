@@ -4,9 +4,9 @@
 #include <unordered_map>
 #include <vector>
 
-#include "SequenceNode.h"
+#include "sequence_nodes/SequenceNode.h"
 #include "Transition.h"
-#include "utils/SequenceState.h"
+#include "enums/SequenceState.h"
 
 namespace AmbientCharacterBehavior {
 /**

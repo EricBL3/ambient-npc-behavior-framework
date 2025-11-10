@@ -2,7 +2,7 @@
 #include <cstdint>
 #include <string>
 
-#include "utils/StateOperationType.h"
+#include "../behavior/enums/StateOperationType.h"
 
 namespace AmbientCharacterBehavior {
 /**

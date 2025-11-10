@@ -1,8 +1,8 @@
 #pragma once
 #include <vector>
 
-#include "utils/StateOperationTarget.h"
-#include "utils/StateOperationType.h"
+#include "enums/StateOperationTarget.h"
+#include "enums/StateOperationType.h"
 
 namespace AmbientCharacterBehavior {
 

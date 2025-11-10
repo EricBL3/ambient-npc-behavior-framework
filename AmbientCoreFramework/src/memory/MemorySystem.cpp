@@ -1,7 +1,6 @@
 #include "MemorySystem.h"
 #include <algorithm>
 #include <iostream>
-#include "utils/PerformanceTracker.h"
 
 using namespace AmbientCharacterBehavior;
 

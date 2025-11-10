@@ -2,8 +2,8 @@
 #include <algorithm>
 #include <tracy/Tracy.hpp>
 
-#include "behavior/ActionSequenceNode.h"
-#include "behavior/NestedSequenceNode.h"
+#include "../behavior/sequence_nodes/ActionSequenceNode.h"
+#include "../behavior/sequence_nodes/NestedSequenceNode.h"
 #include "services/composition/ServiceBuilder.h"
 
 using namespace AmbientCharacterBehavior;

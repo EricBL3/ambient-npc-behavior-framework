@@ -1,6 +1,6 @@
 #pragma once
 #include "SequenceNode.h"
-#include "Action.h"
+#include "../Action.h"
 
 namespace AmbientCharacterBehavior {
 
