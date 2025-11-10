@@ -64,7 +64,7 @@ FetchContent_Declare(
 
 # Configure Tracy options BEFORE making it available
 set(TRACY_ENABLE ON CACHE BOOL "Enable Tracy profiler" FORCE)
-set(TRACY_ON_DEMAND OFF CACHE BOOL "On-demand profiling" FORCE)
+set(TRACY_ON_DEMAND ON CACHE BOOL "On-demand profiling" FORCE)
 
 FetchContent_MakeAvailable(nlohmann_json tracy)
 
