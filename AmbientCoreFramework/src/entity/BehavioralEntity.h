@@ -129,6 +129,11 @@ private:
     void ResumeActionWithSavedContext(const std::shared_ptr<Action>& action, const InterruptionMemory* interruption_memory);
 
     bool CompletedCurrentAction(int32_t action_id, int64_t action_token) const;
+    void ApplyCompletionEffects(int32_t action_id);
+
+    bool EvaluatePreconditions(const std::vector<StateOperation>& preconditions, FrameworkEntity* other);
+    std::vector<int32_t> GetValidEntityIds(const std::vector<FrameworkEntity*>& entities, const std::vector<StateOperation>& preconditions);
+    std::vector<int32_t> GetValidTransitionNodeIds(const std::vector<Transition> &transitions);
 
     std::shared_ptr<Action> TryGetAction(int32_t action_id, const std::string& context) const;
     FrameworkEntity* TryGetEntity(int32_t entity_id, const std::string& context) const;

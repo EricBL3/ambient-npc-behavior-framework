@@ -368,44 +368,54 @@ FrameworkEntity* BehavioralEntity::GetActionTargetEntity(const std::shared_ptr<A
     std::vector<FrameworkEntity*> entities = entity_query.GetEntitiesSupportingAction(action->GetActionId());
 
     // Filter to have only the entities that can be done (precondition satisfaction)
-    std::vector<int32_t> entity_ids;
-    for (auto entity : entities)
-    {
-        auto can_do_action = true;
+    std::vector<int32_t> entity_ids = GetValidEntityIds(entities, action->GetPreconditions());
 
-        for (const auto& precondition : action->GetPreconditions())
-        {
-            FrameworkEntity* precondition_entity = nullptr;
-            switch (precondition.GetTarget())
-            {
-                case StateOperationTarget::SELF:
-                    precondition_entity = this;
-                    break;
-                case StateOperationTarget::ENTITY:
-                    precondition_entity = entity;
-                    break;
-                default:
-                    break;
-            }
-
-            if (!state_operation_evaluator.ProcessStateOperation(precondition, precondition_entity))
-            {
-                can_do_action = false;
-                break;
-            }
-        }
-
-        if (can_do_action)
-        {
-            entity_ids.push_back(entity->GetEntityId());
-        }
-    }
 
     // Select best entity
     auto selected_entity_id = memory.GetLeastRecentlyUsedEntityIdForAction(action->GetActionId(), entity_ids);
     target_entity = entity_query.GetEntityFromId(selected_entity_id);
 
     return target_entity;
+}
+
+std::vector<int32_t> BehavioralEntity::GetValidEntityIds(const std::vector<FrameworkEntity*>& entities, const std::vector<StateOperation>& preconditions)
+{
+    std::vector<int32_t> entity_ids;
+
+    for (auto entity : entities)
+    {
+        if (EvaluatePreconditions(preconditions, entity))
+        {
+            entity_ids.push_back(entity->GetEntityId());
+        }
+    }
+
+    return entity_ids;
+}
+
+bool BehavioralEntity::EvaluatePreconditions(const std::vector<StateOperation>& preconditions, FrameworkEntity* other)
+{
+    for (const auto& precondition : preconditions)
+    {
+        FrameworkEntity* target_entity = nullptr;
+        switch (precondition.GetTarget())
+        {
+            case StateOperationTarget::SELF:
+                target_entity = this;
+                break;
+            case StateOperationTarget::ENTITY:
+                target_entity = other;
+                break;
+            default:
+                break;
+        }
+
+        if (!state_operation_evaluator.ProcessStateOperation(precondition, target_entity))
+        {
+            return false;
+        }
+    }
+    return true;
 }
 
 void BehavioralEntity::ApplyActionEffects(const std::vector<StateOperation> & effects, FrameworkEntity* target_entity)
@@ -442,27 +452,7 @@ void BehavioralEntity::CompleteAction(int32_t action_id, int64_t action_token)
         logger.LogInfo("entity with id: " + std::to_string(entity_id) + " has completed action with id: " +
             std::to_string(action_id) + " and token: " + std::to_string(action_token) ,"CompleteAction");
 
-        // Apply completion effects
-        auto action = TryGetAction(action_id, "CompleteAction");
-        if (!action)
-        {
-            MarkSequenceFailed();
-            return;
-        }
-
-        FrameworkEntity* target_entity = nullptr;
-        if (action->GetRequiresTargetEntity())
-        {
-            target_entity = TryGetEntity(current_action_target_id, "CompleteAction");
-            if (!target_entity)
-            {
-                MarkSequenceFailedAndStopProcessing();
-                return;
-            }
-        }
-
-        ApplyActionEffects(action->GetCompletionEffects(), target_entity);
-
+        ApplyCompletionEffects(action_id);
         memory.UpdateActionMemory(action_id, current_action_target_id, time_manager.GetCurrentTime());
 
         // Reset current_action_target_id and current_action_id to invalid value.
@@ -483,6 +473,29 @@ void BehavioralEntity::CompleteAction(int32_t action_id, int64_t action_token)
 
         is_processing = false;
     }
+}
+
+void BehavioralEntity::ApplyCompletionEffects(int32_t action_id)
+{
+    auto action = TryGetAction(action_id, "CompleteAction");
+    if (!action)
+    {
+        MarkSequenceFailed();
+        return;
+    }
+
+    FrameworkEntity* target_entity = nullptr;
+    if (action->GetRequiresTargetEntity())
+    {
+        target_entity = TryGetEntity(current_action_target_id, "CompleteAction");
+        if (!target_entity)
+        {
+            MarkSequenceFailedAndStopProcessing();
+            return;
+        }
+    }
+
+    ApplyActionEffects(action->GetCompletionEffects(), target_entity);
 }
 
 bool BehavioralEntity::CompletedCurrentAction(int32_t action_id, int64_t action_token) const
@@ -516,35 +529,7 @@ void BehavioralEntity::HandleNodeExecutionCompletion()
     std::vector<Transition> transitions = sequences.top()->GetValidTransitionsFromCurrentNode();
 
     // Filter to have only the nodes that can be transitioned to (precondition satisfaction)
-    std::vector<int32_t> node_ids;
-    for (const auto& transition : transitions)
-    {
-        auto can_do_transition = true;
-
-        for (const auto& precondition : transition.GetPreconditions())
-        {
-            FrameworkEntity* precondition_entity = nullptr;
-            switch (precondition.GetTarget())
-            {
-                case StateOperationTarget::SELF:
-                    precondition_entity = this;
-                    break;
-                default:
-                    break;
-            }
-
-            if (!state_operation_evaluator.ProcessStateOperation(precondition, precondition_entity))
-            {
-                can_do_transition = false;
-                break;
-            }
-        }
-
-        if (can_do_transition)
-        {
-            node_ids.push_back(transition.GetDestinationNodeId());
-        }
-    }
+    std::vector<int32_t> node_ids = GetValidTransitionNodeIds(transitions);
 
     // Select best node to transition to
     auto selected_node_id = memory.GetLeastRecentlyVisitedNodeId(node_ids);
@@ -561,6 +546,21 @@ void BehavioralEntity::HandleNodeExecutionCompletion()
     sequences.top()->FindCurrentNode()->ResetCompletion();
     sequences.top()->SetSequenceState(SequenceState::PROCESSING_NODE);
     fallback_attempt_count = 0;
+}
+
+std::vector<int32_t> BehavioralEntity::GetValidTransitionNodeIds(const std::vector<Transition> &transitions)
+{
+    std::vector<int32_t> node_ids;
+
+    for (const auto& transition : transitions)
+    {
+        if (EvaluatePreconditions(transition.GetPreconditions(), nullptr))
+        {
+            node_ids.push_back(transition.GetDestinationNodeId());
+        }
+    }
+
+    return node_ids;
 }
 
 void BehavioralEntity::HandleSequenceFailure()
@@ -733,27 +733,11 @@ bool BehavioralEntity::ValidateResumptionContext(const std::shared_ptr<Action>& 
         return false;
     }
 
-    for (const auto& precondition : action->GetPreconditions())
+    if (!EvaluatePreconditions(action->GetPreconditions(), target_entity))
     {
-        FrameworkEntity* precondition_entity = nullptr;
-        switch (precondition.GetTarget())
-        {
-            case StateOperationTarget::SELF:
-                precondition_entity = this;
-                break;
-            case StateOperationTarget::ENTITY:
-                precondition_entity = target_entity;
-                break;
-            default:
-                break;
-        }
-
-        if (!state_operation_evaluator.ProcessStateOperation(precondition, precondition_entity))
-        {
-            logger.LogInfo("Precondition no longer satisfied for action " +
+        logger.LogInfo("Precondition no longer satisfied for action " +
                 std::to_string(action->GetActionId()), "ValidateResumptionContext");
-            return false;
-        }
+        return false;
     }
 
     return true;
