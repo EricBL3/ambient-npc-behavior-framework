@@ -2,7 +2,7 @@
 #include <stdexcept>
 
 #include "../../../include/BehaviorFrameworkInterface.h"
-#include "interfaces/IStartCharacterActionProvider.h"
+#include "services/interfaces/IStartCharacterActionProvider.h"
 
 namespace AmbientCharacterBehavior {
 class StartCharacterActionProvider : public IStartCharacterActionProvider {

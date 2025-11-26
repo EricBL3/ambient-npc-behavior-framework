@@ -4,9 +4,9 @@
 #include <vector>
 #include <nlohmann/json.hpp>
 
-#include "json_dtos/BehavioralDtos.h"
-#include "json_dtos/EntityDtos.h"
-#include "json_dtos/EnvironmentalConditionDto.h"
+#include "services/json_dtos/BehavioralDtos.h"
+#include "services/json_dtos/EntityDtos.h"
+#include "services/json_dtos/EnvironmentalConditionDto.h"
 
 namespace AmbientCharacterBehavior {
 /**

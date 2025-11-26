@@ -1,6 +1,6 @@
 #pragma once
 #include <gmock/gmock.h>
-#include "interfaces/IContentProvider.h"
+#include "services/interfaces/IContentProvider.h"
 
 namespace AmbientCharacterBehavior {
 class MockContentProvider : public IContentProvider {

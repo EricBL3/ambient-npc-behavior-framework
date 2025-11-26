@@ -6,7 +6,7 @@
 #include <string>
 
 #include "utils/FrameworkLogLevel.h"
-#include "interfaces/ILogger.h"
+#include "services/interfaces/ILogger.h"
 
 
 namespace AmbientCharacterBehavior {

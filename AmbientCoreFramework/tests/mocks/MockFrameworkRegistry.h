@@ -1,8 +1,8 @@
 #pragma once
 #include <gmock/gmock.h>
 
-#include "interfaces/IContentProvider.h"
-#include "interfaces/IEntityRegistry.h"
+#include "services/interfaces/IContentProvider.h"
+#include "services/interfaces/IEntityRegistry.h"
 
 namespace AmbientCharacterBehavior {
 class MockFrameworkRegistry : public IContentProvider, public IEntityRegistry {

@@ -1,5 +1,5 @@
 #pragma once
-#include "interfaces/ITimeManager.h"
+#include "services/interfaces/ITimeManager.h"
 #include <gmock/gmock.h>
 
 namespace AmbientCharacterBehavior {

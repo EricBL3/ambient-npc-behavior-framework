@@ -6,7 +6,7 @@
 #include "ActionMemory.h"
 #include "InterruptionMemory.h"
 #include "TransitionMemory.h"
-#include "interfaces/ILogger.h"
+#include "services/interfaces/ILogger.h"
 
 namespace AmbientCharacterBehavior {
 /**

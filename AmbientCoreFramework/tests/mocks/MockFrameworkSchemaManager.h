@@ -2,7 +2,7 @@
 
 #include <gmock/gmock.h>
 
-#include "interfaces/IFrameworkSchemaManager.h"
+#include "services/interfaces/IFrameworkSchemaManager.h"
 
 namespace AmbientCharacterBehavior {
 class MockFrameworkSchemaManager : public IFrameworkSchemaManager {

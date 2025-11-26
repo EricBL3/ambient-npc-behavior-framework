@@ -1,5 +1,5 @@
 #pragma once
-#include "interfaces/IStateOperationEvaluator.h"
+#include "services/interfaces/IStateOperationEvaluator.h"
 #include <gmock/gmock.h>
 
 namespace AmbientCharacterBehavior {

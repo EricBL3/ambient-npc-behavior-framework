@@ -1,10 +1,10 @@
 #pragma once
 #include <optional>
 
-#include "interfaces/IEnvironmentalConditionManager.h"
-#include "interfaces/IFrameworkSchemaManager.h"
-#include "interfaces/ILogger.h"
-#include "interfaces/IStateOperationEvaluator.h"
+#include "services/interfaces/IEnvironmentalConditionManager.h"
+#include "services/interfaces/IFrameworkSchemaManager.h"
+#include "services/interfaces/ILogger.h"
+#include "services/interfaces/IStateOperationEvaluator.h"
 
 namespace AmbientCharacterBehavior {
 class StateOperationEvaluator : public IStateOperationEvaluator {

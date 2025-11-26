@@ -1,7 +1,7 @@
 #pragma once
 
 #include <gmock/gmock.h>
-#include "interfaces/IEnvironmentalConditionProvider.h"
+#include "services/interfaces/IEnvironmentalConditionProvider.h"
 
 namespace AmbientCharacterBehavior {
 class MockEnvironmentalConditionProvider : public IEnvironmentalConditionProvider {

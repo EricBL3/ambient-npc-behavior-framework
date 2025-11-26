@@ -1,6 +1,6 @@
 #pragma once
 #include <gmock/gmock.h>
-#include "interfaces/IEntityQuery.h"
+#include "services/interfaces/IEntityQuery.h"
 
 namespace AmbientCharacterBehavior {
 class MockEntityQuery : public IEntityQuery {

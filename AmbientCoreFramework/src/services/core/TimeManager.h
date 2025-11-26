@@ -2,7 +2,7 @@
 #pragma once
 #include <cstdint>
 
-#include "interfaces/ITimeManager.h"
+#include "services/interfaces/ITimeManager.h"
 
 namespace AmbientCharacterBehavior {
 /**

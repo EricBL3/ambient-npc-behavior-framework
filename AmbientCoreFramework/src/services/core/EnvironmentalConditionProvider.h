@@ -3,7 +3,7 @@
 #include <stdexcept>
 
 #include "../../../include/BehaviorFrameworkInterface.h"
-#include "interfaces/IEnvironmentalConditionProvider.h"
+#include "services/interfaces/IEnvironmentalConditionProvider.h"
 
 namespace AmbientCharacterBehavior {
 class EnvironmentalConditionProvider : public IEnvironmentalConditionProvider {

@@ -1,15 +1,15 @@
 #pragma once
-#include "json_dtos/EnvironmentalConditionDto.h"
-#include "json_dtos/BehavioralDtos.h"
-#include "json_dtos/EntityDtos.h"
+#include "services/json_dtos/EnvironmentalConditionDto.h"
+#include "services/json_dtos/BehavioralDtos.h"
+#include "services/json_dtos/EntityDtos.h"
 
 #include <nlohmann/json.hpp>
 #include <optional>
 #include <string>
 #include <vector>
 
-#include "interfaces/IJsonLoader.h"
-#include "interfaces/ILogger.h"
+#include "services/interfaces/IJsonLoader.h"
+#include "services/interfaces/ILogger.h"
 
 
 namespace AmbientCharacterBehavior {

@@ -1,5 +1,5 @@
 #pragma once
-#include "interfaces/IJsonLoader.h"
+#include "services/interfaces/IJsonLoader.h"
 #include <gmock/gmock.h>
 #include <nlohmann/json.hpp>
 

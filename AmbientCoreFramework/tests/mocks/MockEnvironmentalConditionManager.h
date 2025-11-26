@@ -1,5 +1,5 @@
 #pragma once
-#include "interfaces/IEnvironmentalConditionManager.h"
+#include "services/interfaces/IEnvironmentalConditionManager.h"
 #include <gmock/gmock.h>
 
 namespace AmbientCharacterBehavior {

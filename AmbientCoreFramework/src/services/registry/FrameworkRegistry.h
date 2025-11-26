@@ -8,12 +8,12 @@
 #include "behavior/Sequence.h"
 #include "entity/BehavioralEntity.h"
 #include "entity/FrameworkEntity.h"
-#include "interfaces/IContentProvider.h"
-#include "interfaces/IEntityRegistry.h"
-#include "interfaces/IEnvironmentalConditionManager.h"
-#include "interfaces/IJsonLoader.h"
-#include "interfaces/ILogger.h"
-#include "interfaces/IFrameworkSchemaManager.h"
+#include "services/interfaces/IContentProvider.h"
+#include "services/interfaces/IEntityRegistry.h"
+#include "services/interfaces/IEnvironmentalConditionManager.h"
+#include "services/interfaces/IJsonLoader.h"
+#include "services/interfaces/ILogger.h"
+#include "services/interfaces/IFrameworkSchemaManager.h"
 
 namespace AmbientCharacterBehavior {
 class FrameworkRegistry : public IContentProvider, public IEntityRegistry, public IEntityQuery {

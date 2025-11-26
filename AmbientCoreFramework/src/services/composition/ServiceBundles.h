@@ -1,15 +1,15 @@
 #pragma once
-#include "interfaces/IContentProvider.h"
-#include "interfaces/IEntityQuery.h"
-#include "interfaces/IEntityRegistry.h"
-#include "interfaces/IEnvironmentalConditionManager.h"
-#include "interfaces/IEnvironmentalConditionProvider.h"
-#include "interfaces/IFrameworkSchemaManager.h"
-#include "interfaces/IJsonLoader.h"
-#include "interfaces/ILogger.h"
-#include "interfaces/IStartCharacterActionProvider.h"
-#include "interfaces/IStateOperationEvaluator.h"
-#include "interfaces/ITimeManager.h"
+#include "services/interfaces/IContentProvider.h"
+#include "services/interfaces/IEntityQuery.h"
+#include "services/interfaces/IEntityRegistry.h"
+#include "services/interfaces/IEnvironmentalConditionManager.h"
+#include "services/interfaces/IEnvironmentalConditionProvider.h"
+#include "services/interfaces/IFrameworkSchemaManager.h"
+#include "services/interfaces/IJsonLoader.h"
+#include "services/interfaces/ILogger.h"
+#include "services/interfaces/IStartCharacterActionProvider.h"
+#include "services/interfaces/IStateOperationEvaluator.h"
+#include "services/interfaces/ITimeManager.h"
 
 namespace AmbientCharacterBehavior {
 

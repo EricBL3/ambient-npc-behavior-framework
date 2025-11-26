@@ -3,9 +3,9 @@
 #include <string>
 #include <unordered_map>
 
-#include "interfaces/IJsonLoader.h"
-#include "interfaces/ILogger.h"
-#include "interfaces/IFrameworkSchemaManager.h"
+#include "services/interfaces/IJsonLoader.h"
+#include "services/interfaces/ILogger.h"
+#include "services/interfaces/IFrameworkSchemaManager.h"
 #include "../../behavior/enums/StateOperationType.h"
 
 namespace AmbientCharacterBehavior {

@@ -1,13 +1,13 @@
 #pragma once
 #include <memory>
 
-#include "interfaces/IEnvironmentalConditionManager.h"
-#include "interfaces/IEnvironmentalConditionProvider.h"
-#include "interfaces/IFrameworkSchemaManager.h"
-#include "interfaces/IJsonLoader.h"
-#include "interfaces/ILogger.h"
-#include "interfaces/IStateOperationEvaluator.h"
-#include "interfaces/ITimeManager.h"
+#include "../interfaces/IEnvironmentalConditionManager.h"
+#include "../interfaces/IEnvironmentalConditionProvider.h"
+#include "../interfaces/IFrameworkSchemaManager.h"
+#include "../interfaces/IJsonLoader.h"
+#include "../interfaces/ILogger.h"
+#include "../interfaces/IStateOperationEvaluator.h"
+#include "../interfaces/ITimeManager.h"
 #include "ServiceBundles.h"
 #include "services/registry/FrameworkRegistry.h"
 

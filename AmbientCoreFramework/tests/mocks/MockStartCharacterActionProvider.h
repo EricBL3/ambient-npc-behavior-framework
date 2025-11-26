@@ -1,7 +1,7 @@
 #pragma once
 
 #include <gmock/gmock.h>
-#include "interfaces/IStartCharacterActionProvider.h"
+#include "services/interfaces/IStartCharacterActionProvider.h"
 
 namespace AmbientCharacterBehavior {
 class MockStartCharacterActionProvider : public IStartCharacterActionProvider {

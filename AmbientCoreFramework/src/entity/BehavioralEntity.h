@@ -5,12 +5,12 @@
 
 #include "FrameworkEntity.h"
 #include "behavior/Sequence.h"
-#include "interfaces/IContentProvider.h"
-#include "interfaces/IEntityQuery.h"
-#include "interfaces/ILogger.h"
-#include "interfaces/IStartCharacterActionProvider.h"
-#include "interfaces/IStateOperationEvaluator.h"
-#include "interfaces/ITimeManager.h"
+#include "services/interfaces/IContentProvider.h"
+#include "services/interfaces/IEntityQuery.h"
+#include "services/interfaces/ILogger.h"
+#include "services/interfaces/IStartCharacterActionProvider.h"
+#include "services/interfaces/IStateOperationEvaluator.h"
+#include "services/interfaces/ITimeManager.h"
 #include "memory/MemorySystem.h"
 
 

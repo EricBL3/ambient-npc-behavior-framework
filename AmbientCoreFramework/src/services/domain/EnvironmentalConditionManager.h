@@ -1,16 +1,16 @@
 #pragma once
 #include "EnvironmentalCondition.h"
-#include "json_dtos/EnvironmentalConditionDto.h"
+#include "services/json_dtos/EnvironmentalConditionDto.h"
 
 #include <cstdint>
 #include <unordered_map>
 #include <vector>
 
-#include "interfaces/IEnvironmentalConditionManager.h"
-#include "interfaces/IEnvironmentalConditionProvider.h"
-#include "interfaces/IJsonLoader.h"
-#include "interfaces/ILogger.h"
-#include "interfaces/ITimeManager.h"
+#include "services/interfaces/IEnvironmentalConditionManager.h"
+#include "services/interfaces/IEnvironmentalConditionProvider.h"
+#include "services/interfaces/IJsonLoader.h"
+#include "services/interfaces/ILogger.h"
+#include "services/interfaces/ITimeManager.h"
 
 namespace AmbientCharacterBehavior {
 /**
