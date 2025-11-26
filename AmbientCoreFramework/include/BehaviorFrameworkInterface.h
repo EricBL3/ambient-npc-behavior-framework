@@ -24,7 +24,7 @@ extern "C" {
 
     AmbientCoreFramework_API bool InitializeAmbientBehaviorFramework(void* framework_handle, const char* schema_file_path,
         const char* sequences_file_path, const char* actions_file_path,
-        const char* environmental_conditions_file_path, const char*  log_file_path);
+        const char* environmental_conditions_file_path, const char*  log_file_path, int32_t log_level);
 
     AmbientCoreFramework_API void ShutdownAmbientBehaviorFramework(void* framework_handle);
     AmbientCoreFramework_API void Update(void* framework_handle, int32_t batch_size, int64_t current_time);

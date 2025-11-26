@@ -26,13 +26,29 @@ extern "C" {
 
     AmbientCoreFramework_API bool InitializeAmbientBehaviorFramework(void* framework_handle, const char* schema_file_path,
         const char* sequences_file_path, const char* actions_file_path,
-        const char* environmental_conditions_file_path, const char*  log_file_path)
+        const char* environmental_conditions_file_path, const char*  log_file_path, int32_t log_level)
     {
 
         if (const auto framework = static_cast<BehaviorFramework*>(framework_handle))
         {
+
+            FrameworkLogLevel framework_log_level;
+            switch (log_level)
+            {
+                case 0:
+                    framework_log_level = FrameworkLogLevel::INFO;
+                    break;
+                case 1:
+                    framework_log_level = FrameworkLogLevel::WARNING;
+                    break;
+                case 2:
+                default:
+                    framework_log_level = FrameworkLogLevel::ERROR;
+                    break;
+            }
+
             framework->InitializeFramework(schema_file_path, sequences_file_path, actions_file_path,
-            environmental_conditions_file_path, log_file_path);
+            environmental_conditions_file_path, log_file_path, framework_log_level);
 
             return framework->IsInitialized();
         }

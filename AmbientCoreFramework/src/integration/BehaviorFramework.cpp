@@ -8,7 +8,7 @@ using namespace AmbientCharacterBehavior;
 
 void BehaviorFramework::InitializeFramework(const std::string &schema_file_path, const std::string &sequences_file_path,
     const std::string &actions_file_path, const std::string &environmental_conditions_file_path,
-    const std::string& log_file_path)
+    const std::string& log_file_path, FrameworkLogLevel log_level)
 {
     ZoneScoped;
 
@@ -16,7 +16,7 @@ void BehaviorFramework::InitializeFramework(const std::string &schema_file_path,
     {
         try
         {
-            auto success = InitializeCoreServices(log_file_path) &&
+            auto success = InitializeCoreServices(log_file_path, log_level) &&
                 InitializeDomainServices(schema_file_path, environmental_conditions_file_path) &&
                 InitializeRegistry(actions_file_path, sequences_file_path);
             is_initialized = success;
@@ -29,19 +29,19 @@ void BehaviorFramework::InitializeFramework(const std::string &schema_file_path,
         }
         catch (const std::exception &e)
         {
-            app_context->Core().logger.Initialize("framework_error.log");
+            app_context->Core().logger.Initialize("framework_error.log", FrameworkLogLevel::INFO);
             app_context->Core().logger.LogInfo(e.what(), "BehaviorFramework");
         }
     }
 }
 
-bool BehaviorFramework::InitializeCoreServices(const std::string& log_file_path) const
+bool BehaviorFramework::InitializeCoreServices(const std::string& log_file_path, FrameworkLogLevel log_level) const
 {
     ZoneScoped;
 
     try
     {
-        if (app_context->Core().logger.Initialize(log_file_path))
+        if (app_context->Core().logger.Initialize(log_file_path, log_level))
         {
             app_context->Core().logger.LogInfo("Initialized Core Services.","BehaviorFramework");
             return true;
@@ -49,7 +49,7 @@ bool BehaviorFramework::InitializeCoreServices(const std::string& log_file_path)
     }
     catch (const std::exception &e)
     {
-        app_context->Core().logger.Initialize("framework_error.log");
+        app_context->Core().logger.Initialize("framework_error.log", FrameworkLogLevel::INFO);
         app_context->Core().logger.LogInfo(e.what(), "BehaviorFramework");
     }
 

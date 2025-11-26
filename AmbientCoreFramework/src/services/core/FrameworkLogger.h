@@ -27,7 +27,7 @@ public:
     /**
      * @throw std::runtime_error if the log_file_path was provided and the file couldn't be opened.
      */
-    bool Initialize(const std::string& log_file_path) override;
+    bool Initialize(const std::string& log_file_path, FrameworkLogLevel log_level = FrameworkLogLevel::ERROR) override;
 
     void LogError(const std::string& message, const std::string& component_name) override
     { WriteLog(FrameworkLogLevel::ERROR, message, component_name); }

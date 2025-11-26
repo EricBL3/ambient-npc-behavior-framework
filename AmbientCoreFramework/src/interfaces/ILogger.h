@@ -11,7 +11,7 @@ namespace AmbientCharacterBehavior {
 class ILogger {
 public:
     virtual ~ILogger() = default;
-    virtual bool Initialize(const std::string& log_file_path) = 0;
+    virtual bool Initialize(const std::string& log_file_path, FrameworkLogLevel log_level) = 0;
     virtual void LogError(const std::string& message, const std::string& component_name) = 0;
     virtual void LogWarning(const std::string& message, const std::string& component_name) = 0;
     virtual void LogInfo(const std::string& message, const std::string& component_name) = 0;
