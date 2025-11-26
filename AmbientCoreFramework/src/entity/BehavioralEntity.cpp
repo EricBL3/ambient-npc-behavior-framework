@@ -268,7 +268,8 @@ void BehavioralEntity::ExecuteNestedSequenceNode(const SequenceNode* current_nod
         return;
     }
 
-    sequences.emplace(nested_sequence);
+    auto nested_sequence_instance = nested_sequence->CreateInstance();
+    sequences.emplace(nested_sequence_instance);
 }
 
 void BehavioralEntity::HandleSubsequenceCompletion()
