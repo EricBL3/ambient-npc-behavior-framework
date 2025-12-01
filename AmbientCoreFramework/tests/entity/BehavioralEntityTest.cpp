@@ -224,7 +224,7 @@ protected:
             EXPECT_CALL(*mock_entity_query, GetEntityFromId(target->GetEntityId()))
                 .WillRepeatedly(testing::Return(target));
 
-            // Mock all preconditions passing
+            // Mock all preconditions_by_target passing
             EXPECT_CALL(*mock_evaluator, ProcessStateOperation(testing::_, testing::_))
                 .WillRepeatedly(testing::Return(true));
         }
@@ -288,8 +288,11 @@ protected:
             {100}
         );
 
+        std::unordered_map<StateOperationTarget, std::vector<StateOperation>> preconditions_by_target;
+        preconditions_by_target[StateOperationTarget::ENTITY].push_back(precondition);
+
         // Entry node can transition to nodes 2, 3, or 4
-        sequence->TryAddTransition(0, 1, 999, {precondition});
+        sequence->TryAddTransition(0, 1, 999, preconditions_by_target);
 
         return sequence;
     }
@@ -349,7 +352,7 @@ protected:
     std::shared_ptr<Action> CreateActionWithPrecondition(
     int32_t id, const StateOperation& precondition) {
         auto action = CreateActionRequiringEntity(id);
-        action->AddPrecondition(precondition);
+        action->AddPrecondition(precondition.GetTarget(), precondition);
         return action;
     }
 
@@ -361,10 +364,10 @@ protected:
             StateOperationTarget::ENTITY,
             STATE_KEY_CAPACITY,
             StateOperationType::GREATER_THAN,
-            {100}
+            100
         );
 
-        action->AddPrecondition(precondition);
+        action->AddPrecondition(precondition.GetTarget(), precondition);
         return action;
     }
 };
@@ -471,7 +474,7 @@ TEST_F(BehavioralEntityTest, ExecuteActionNode_ValidEntity_AppliesImmediateEffec
 
     SetupEntityQueryToReturn({target_entity});
 
-    // Mock preconditions passing
+    // Mock preconditions_by_target passing
     EXPECT_CALL(*mock_evaluator, ProcessStateOperation(testing::_, testing::_))
         .WillRepeatedly(testing::Return(true));
 
@@ -763,7 +766,7 @@ TEST_F(BehavioralEntityTest, GetActionTargetEntity_AllEntitiesFailPreconditions_
 
     SetupEntityQueryToReturn(entities);
 
-    // All preconditions fail
+    // All preconditions_by_target fail
     EXPECT_CALL(*mock_evaluator, ProcessStateOperation(testing::_, testing::_))
         .WillRepeatedly(testing::Return(false));
 
@@ -784,7 +787,7 @@ TEST_F(BehavioralEntityTest, HandleNodeExecutionCompletion_NoValidTransitions_Fa
     auto sequence = CreateSequenceWithInvalidTransition();
     SetupEntityWithSequenceAtNodeExecuted(sequence);
 
-    // All transition preconditions fail
+    // All transition preconditions_by_target fail
     EXPECT_CALL(*mock_evaluator, ProcessStateOperation(testing::_, testing::_))
         .WillRepeatedly(testing::Return(false));
 

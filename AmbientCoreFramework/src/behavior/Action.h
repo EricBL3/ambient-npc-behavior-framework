@@ -1,6 +1,7 @@
 #pragma once
 #include <cstdint>
 #include <string>
+#include <unordered_map>
 #include <vector>
 
 #include "StateOperation.h"
@@ -18,7 +19,7 @@ private:
     int32_t action_id;
     std::string action_name;
     bool requires_target_entity;
-    std::vector<StateOperation> preconditions;
+    std::unordered_map<StateOperationTarget, std::vector<StateOperation>> preconditions_by_target;
     std::vector<StateOperation> immediate_effects;
     std::vector<StateOperation> completion_effects;
     std::vector<StateOperation> interruption_effects;
@@ -32,10 +33,12 @@ public:
     explicit Action(int32_t action_id, std::string action_name, bool requires_target_entity, int64_t max_duration,
         InterruptionBehaviorType interruption_behavior);
     
-    void AddPrecondition(const StateOperation& precondition);
+    void AddPrecondition(StateOperationTarget target, const StateOperation& precondition);
     void AddImmediateEffect(const StateOperation& effect);
     void AddCompletionEffect(const StateOperation& effect);
     void AddInterruptionEffect(const StateOperation& effect);
+
+    const std::vector<StateOperation>* GetPreconditionsForTarget(StateOperationTarget target) const;
 
     int32_t GetActionId() const { return action_id; }
 
@@ -45,9 +48,9 @@ public:
 
     int64_t GetMaxDuration() const { return max_duration_ms; }
 
-    InterruptionBehaviorType GetInterruptionBehavior() const { return interruption_behavior; }
+    std::unordered_map<StateOperationTarget, std::vector<StateOperation>> GetAllPreconditions() const { return preconditions_by_target; }
 
-    const std::vector<StateOperation>& GetPreconditions() const { return preconditions; }
+    InterruptionBehaviorType GetInterruptionBehavior() const { return interruption_behavior; }
 
     const std::vector<StateOperation>& GetImmediateEffects() const { return immediate_effects; }
 

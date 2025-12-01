@@ -45,9 +45,9 @@ TEST_F(ActionTest, AddPreconditionsWorksCorrectly)
 {
 
     StateOperation stateOperation(StateOperationTarget::ENTITY, 0, StateOperationType::EQUALS, 1);
-    action->AddPrecondition(stateOperation);
+    action->AddPrecondition(StateOperationTarget::ENTITY, stateOperation);
 
-    EXPECT_EQ(1, action->GetPreconditions().size());
+    EXPECT_EQ(1, action->GetPreconditionsForTarget(StateOperationTarget::ENTITY)->size());
 }
 
 // =============================================================================

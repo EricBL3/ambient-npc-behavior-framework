@@ -8,20 +8,18 @@ using namespace AmbientCharacterBehavior;
 // =============================================================================
 TEST(TransitionTest, SimpleConstructorInitializesCorrectly)
 {
-    Transition transition(0,  1, 5);
+    Transition transition(0,  1);
 
     EXPECT_EQ(0, transition.GetTransitionId());
-    EXPECT_EQ(5, transition.GetPreconditions().capacity());
-    EXPECT_EQ(0, transition.GetPreconditions().size());
+    EXPECT_EQ(0, transition.GetAllPreconditions().size());
     EXPECT_EQ(1, transition.GetDestinationNodeId());
 }
 
 TEST(TransitionTest, ConstructorWithToNodeInitializesCorrectly)
 {
-    Transition transition(0, 0 , 5);
+    Transition transition(0, 0 );
 
     EXPECT_EQ(0, transition.GetTransitionId());
-    EXPECT_EQ(5, transition.GetPreconditions().capacity());
     EXPECT_EQ(0, transition.GetDestinationNodeId());
 }
 
@@ -40,10 +38,10 @@ TEST(TransitionTest, AddPreconditionWorksCorrectly)
 {
     Transition transition(0, 5);
 
-    EXPECT_EQ(0, transition.GetPreconditions().size());
+    EXPECT_EQ(0, transition.GetAllPreconditions().size());
 
-    StateOperation stateOperation(StateOperationTarget::ENTITY, 0, StateOperationType::EQUALS, {1});
-    transition.AddPrecondition(stateOperation);
+    StateOperation stateOperation(StateOperationTarget::ENTITY, 0, StateOperationType::EQUALS, 1);
+    transition.AddPrecondition(StateOperationTarget::ENTITY, stateOperation);
 
-    EXPECT_EQ(1, transition.GetPreconditions().size());
+    EXPECT_EQ(1, transition.GetPreconditionsForTarget(StateOperationTarget::ENTITY)->size());
 }

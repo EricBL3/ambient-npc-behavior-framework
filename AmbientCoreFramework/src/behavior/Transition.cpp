@@ -2,7 +2,7 @@
 
 using namespace AmbientCharacterBehavior;
 
-Transition::Transition(int32_t transition_id, int32_t to_node_index, size_t initial_preconditions_count) :
+Transition::Transition(int32_t transition_id, int32_t to_node_index) :
     transition_id(transition_id), destination_node_id(to_node_index)
 {
     if (transition_id < 0)
@@ -14,17 +14,23 @@ Transition::Transition(int32_t transition_id, int32_t to_node_index, size_t init
     {
         throw std::invalid_argument("Transition: destination_node_id cannot be negative");
     }
-
-    preconditions.reserve(initial_preconditions_count);
 }
 
-Transition::Transition(int32_t transition_id, int32_t to_node_index, std::vector<StateOperation> preconditions) :
-    Transition(transition_id, to_node_index, preconditions.size())
+Transition::Transition(int32_t transition_id, int32_t to_node_index, std::unordered_map<StateOperationTarget,
+    std::vector<StateOperation>> preconditions_by_target) :
+    Transition(transition_id, to_node_index)
 {
-    this->preconditions = std::move(preconditions);
+    this->preconditions_by_target = std::move(preconditions_by_target);
 }
 
-void Transition::AddPrecondition(const StateOperation& precondition)
+void Transition::AddPrecondition(StateOperationTarget target, const StateOperation& precondition)
 {
-    preconditions.emplace_back(precondition);
+    preconditions_by_target[target].emplace_back(precondition);
+}
+
+const std::vector<StateOperation> * Transition::GetPreconditionsForTarget(StateOperationTarget target) const
+{
+    auto iterator = preconditions_by_target.find(target);
+
+    return iterator == preconditions_by_target.end() ? nullptr : &iterator->second;
 }

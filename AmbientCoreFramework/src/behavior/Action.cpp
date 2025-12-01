@@ -19,9 +19,9 @@ Action::Action(int32_t action_id, std::string action_name, bool requires_target_
     }
 }
 
-void Action::AddPrecondition(const StateOperation &precondition)
+void Action::AddPrecondition(StateOperationTarget target, const StateOperation &precondition)
 {
-    preconditions.emplace_back(precondition);
+    preconditions_by_target[target].emplace_back(precondition);
 }
 
 void Action::AddImmediateEffect(const StateOperation &effect)
@@ -37,4 +37,11 @@ void Action::AddCompletionEffect(const StateOperation &effect)
 void Action::AddInterruptionEffect(const StateOperation &effect)
 {
     interruption_effects.emplace_back(effect);
+}
+
+const std::vector<StateOperation> * Action::GetPreconditionsForTarget(StateOperationTarget target) const
+{
+    auto iterator = preconditions_by_target.find(target);
+
+    return iterator == preconditions_by_target.end() ? nullptr : &iterator->second;
 }

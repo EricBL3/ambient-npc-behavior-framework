@@ -130,7 +130,7 @@ bool FrameworkRegistry::GenerateSequenceNodeFromDto(const std::shared_ptr<Sequen
 bool FrameworkRegistry::GenerateTransitionFromDto(const std::shared_ptr<Sequence> &new_sequence,
     const TransitionDto &dto_transition) const
 {
-    auto preconditions = GenerateStateOperationVectorFromDto(dto_transition.preconditions);
+    auto preconditions = GenerateStateOperationHashTableFromDto(dto_transition.preconditions);
 
     if (!new_sequence->TryAddTransition(dto_transition.transition_id, dto_transition.from_node_id,
         dto_transition.to_node_id, preconditions))
@@ -145,17 +145,47 @@ bool FrameworkRegistry::GenerateTransitionFromDto(const std::shared_ptr<Sequence
     return true;
 }
 
-std::vector<StateOperation> FrameworkRegistry::GenerateStateOperationVectorFromDto(
+std::unordered_map<StateOperationTarget, std::vector<StateOperation>> FrameworkRegistry::GenerateStateOperationHashTableFromDto(
     const std::vector<StateOperationDto> &dto_state_operations) const
 {
-    std::vector<StateOperation> state_operations;
-    state_operations.reserve(dto_state_operations.size());
+    std::unordered_map<StateOperationTarget, std::vector<StateOperation>> state_operations;
     for (const auto & dto_state_operation : dto_state_operations)
     {
-        state_operations.emplace_back(GenerateStateOperationFromDto(dto_state_operation));
+        auto target = ParseStateOperationTargetName(dto_state_operation.target_id_name);
+
+        if (target.has_value())
+        {
+            state_operations[target.value()].emplace_back(GenerateStateOperationFromDto(dto_state_operation));
+        }
+        else
+        {
+            logger.LogWarning("State operation target " + dto_state_operation.target_id_name + " does not exist. "
+                "The precondition will be skipped.", "GenerateStateOperationHashTableFromDto");
+        }
     }
 
     return state_operations;
+}
+
+std::optional<StateOperationTarget> FrameworkRegistry::ParseStateOperationTargetName(const std::string &target_name) const
+{
+    if (target_name == "ENVIRONMENT")
+    {
+        return StateOperationTarget::ENVIRONMENT;
+    }
+
+    if (target_name == "SELF")
+    {
+        return StateOperationTarget::SELF;
+    }
+
+    if (target_name == "ENTITY")
+    {
+        return StateOperationTarget::ENTITY;
+    }
+
+
+    return std::nullopt;
 }
 
 StateOperation FrameworkRegistry::GenerateStateOperationFromDto(const StateOperationDto &dto_state_operation) const
@@ -252,7 +282,17 @@ bool FrameworkRegistry::ConfigureActionWithDto(const std::shared_ptr<Action> &ne
 {
     for (const auto& precondition_dto : action_dto.preconditions)
     {
-        new_action->AddPrecondition(GenerateStateOperationFromDto(precondition_dto));
+        auto target = ParseStateOperationTargetName(precondition_dto.target_id_name);
+
+        if (target.has_value())
+        {
+            new_action->AddPrecondition(target.value(), GenerateStateOperationFromDto(precondition_dto));
+        }
+        else
+        {
+            logger.LogWarning("State operation target " + precondition_dto.target_id_name + " does not exist. "
+                "The precondition will be skipped.", "ConfigureActionWithDto");
+        }
     }
 
     for (const auto& immediate_effect_dto : action_dto.immediate_effects)

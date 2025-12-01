@@ -277,12 +277,12 @@ TEST_F(FrameworkRegistryTest, RegisterSequences_StateReference_CallsStateSchema)
     auto transitions = sequence->FindTransitionsFrom(10);
     EXPECT_EQ(1, transitions.size());
 
-    auto preconditions = transitions[0].GetPreconditions();
-    EXPECT_EQ(1, preconditions.size());
-    EXPECT_EQ(StateOperationTarget::SELF, preconditions[0].GetTarget());
-    EXPECT_EQ(42, preconditions[0].GetStateKey());  // From StateSchema
-    EXPECT_EQ(StateOperationType::EQUALS, preconditions[0].GetOperationType());
-    EXPECT_EQ(100, preconditions[0].GetValue());
+    auto preconditions = transitions[0].GetPreconditionsForTarget(StateOperationTarget::SELF);
+    EXPECT_EQ(1, preconditions->size());
+    EXPECT_EQ(StateOperationTarget::SELF, preconditions->at(0).GetTarget());
+    EXPECT_EQ(42, preconditions->at(0).GetStateKey());  // From StateSchema
+    EXPECT_EQ(StateOperationType::EQUALS, preconditions->at(0).GetOperationType());
+    EXPECT_EQ(100, preconditions->at(0).GetValue());
 }
 
 // REGISTER ACTIONS TESTS
@@ -366,12 +366,12 @@ TEST_F(FrameworkRegistryTest, RegisterActions_StateReference_CallsStateSchema) {
     registry->RegisterActions("test.json");
 
     auto action = registry->GetActionById(1);
-    auto preconditions = action->GetPreconditions();
-    EXPECT_EQ(1, preconditions.size());
-    EXPECT_EQ(StateOperationTarget::ENTITY, preconditions[0].GetTarget());
-    EXPECT_EQ(3, preconditions[0].GetStateKey());  // From StateSchema
-    EXPECT_EQ(StateOperationType::GREATER_THAN, preconditions[0].GetOperationType());
-    EXPECT_EQ(0, preconditions[0].GetValue());
+    auto preconditions = action->GetPreconditionsForTarget(StateOperationTarget::ENTITY);
+    EXPECT_EQ(1, preconditions->size());
+    EXPECT_EQ(StateOperationTarget::ENTITY, preconditions->at(0).GetTarget());
+    EXPECT_EQ(3, preconditions->at(0).GetStateKey());  // From StateSchema
+    EXPECT_EQ(StateOperationType::GREATER_THAN, preconditions->at(0).GetOperationType());
+    EXPECT_EQ(0, preconditions->at(0).GetValue());
 }
 
 TEST_F(FrameworkRegistryTest, RegisterActions_EnvironmentReference_CallsEnvironmentSchema) {
@@ -392,12 +392,12 @@ TEST_F(FrameworkRegistryTest, RegisterActions_EnvironmentReference_CallsEnvironm
     registry->RegisterActions("test.json");
 
     auto action = registry->GetActionById(1);
-    auto preconditions = action->GetPreconditions();
-    EXPECT_EQ(1, preconditions.size());
-    EXPECT_EQ(StateOperationTarget::ENVIRONMENT, preconditions[0].GetTarget());
-    EXPECT_EQ(3, preconditions[0].GetStateKey());  // From StateSchema
-    EXPECT_EQ(StateOperationType::EQUALS, preconditions[0].GetOperationType());
-    EXPECT_EQ(0, preconditions[0].GetValue());
+    auto preconditions = action->GetPreconditionsForTarget(StateOperationTarget::ENVIRONMENT);
+    EXPECT_EQ(1, preconditions->size());
+    EXPECT_EQ(StateOperationTarget::ENVIRONMENT, preconditions->at(0).GetTarget());
+    EXPECT_EQ(3, preconditions->at(0).GetStateKey());  // From StateSchema
+    EXPECT_EQ(StateOperationType::EQUALS, preconditions->at(0).GetOperationType());
+    EXPECT_EQ(0, preconditions->at(0).GetValue());
 }
 
 // REGISTER ENTITY TESTS

@@ -115,14 +115,16 @@ private:
     bool ConfigureSequenceWithDto(const std::shared_ptr<Sequence> &new_sequence, const SequenceDto &sequence_dto) const;
     bool GenerateSequenceNodeFromDto(const std::shared_ptr<Sequence> &new_sequence, const SequenceNodeDto & dto_node) const;
     bool GenerateTransitionFromDto(const std::shared_ptr<Sequence> &new_sequence, const TransitionDto &dto_transition) const;
-    std::vector<StateOperation> GenerateStateOperationVectorFromDto(const std::vector<StateOperationDto> &dto_state_operations) const;
+    std::unordered_map<StateOperationTarget, std::vector<StateOperation>> GenerateStateOperationHashTableFromDto(
+        const std::vector<StateOperationDto> &dto_state_operations) const;
+
     StateOperation GenerateStateOperationFromDto(const StateOperationDto &dto_state_operation) const;
 
     bool GenerateActionFromDto(const ActionDto &action_dto);
     InterruptionBehaviorType ParseInterruptionBehavior(const std::string& behavior_name) const;
     bool ConfigureActionWithDto(const std::shared_ptr<Action> &new_action, const ActionDto &action_dto) const;
 
-
+    std::optional<StateOperationTarget> ParseStateOperationTargetName(const std::string &target_name) const;
 
     FrameworkEntity* GenerateFrameworkEntityFromDto(void* entity_handle, std::optional<FrameworkEntityDto> entity_dto);
     bool IsEntityDuplicate(void* entity_handle, int32_t entity_id) const;

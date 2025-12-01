@@ -44,7 +44,7 @@ Sequence::Sequence(const Sequence &other) : sequence_id(other.sequence_id), sequ
         std::vector<Transition> copied_transitions;
         for (const auto& transition: transition_list)
         {
-            copied_transitions.emplace_back(transition.GetTransitionId(), transition.GetDestinationNodeId(), transition.GetPreconditions());
+            copied_transitions.emplace_back(transition.GetTransitionId(), transition.GetDestinationNodeId(), transition.GetAllPreconditions());
         }
 
         transitions[from_node] = copied_transitions;
@@ -82,11 +82,12 @@ SequenceNode * Sequence::FindNodeById(int32_t node_id) const
     return it != nodes.end() ? it->second.get() : nullptr;
 }
 
-bool Sequence::TryAddTransition(int32_t transition_id, int32_t from_node_id, int32_t to_node_id, std::vector<StateOperation> preconditions)
+bool Sequence::TryAddTransition(int32_t transition_id, int32_t from_node_id, int32_t to_node_id,
+    std::unordered_map<StateOperationTarget, std::vector<StateOperation>> preconditions_by_target)
 {
     if (HasNode(from_node_id) && HasNode(to_node_id))
     {
-        transitions[from_node_id].emplace_back(transition_id, to_node_id, std::move(preconditions));
+        transitions[from_node_id].emplace_back(transition_id, to_node_id, std::move(preconditions_by_target));
         return true;
     }
 

@@ -369,7 +369,7 @@ FrameworkEntity* BehavioralEntity::GetActionTargetEntity(const std::shared_ptr<A
     std::vector<FrameworkEntity*> entities = entity_query.GetEntitiesSupportingAction(action->GetActionId());
 
     // Filter to have only the entities that can be done (precondition satisfaction)
-    std::vector<int32_t> entity_ids = GetValidEntityIds(entities, action->GetPreconditions());
+    std::vector<int32_t> entity_ids = GetValidEntityIds(entities, action->GetPreconditionsForTarget(StateOperationTarget::ENTITY));
 
 
     // Select best entity
@@ -379,7 +379,7 @@ FrameworkEntity* BehavioralEntity::GetActionTargetEntity(const std::shared_ptr<A
     return target_entity;
 }
 
-std::vector<int32_t> BehavioralEntity::GetValidEntityIds(const std::vector<FrameworkEntity*>& entities, const std::vector<StateOperation>& preconditions)
+std::vector<int32_t> BehavioralEntity::GetValidEntityIds(const std::vector<FrameworkEntity*>& entities, const std::vector<StateOperation>* preconditions)
 {
     std::vector<int32_t> entity_ids;
 
@@ -394,9 +394,14 @@ std::vector<int32_t> BehavioralEntity::GetValidEntityIds(const std::vector<Frame
     return entity_ids;
 }
 
-bool BehavioralEntity::EvaluatePreconditions(const std::vector<StateOperation>& preconditions, FrameworkEntity* other)
+bool BehavioralEntity::EvaluatePreconditions(const std::vector<StateOperation>* preconditions, FrameworkEntity* other)
 {
-    for (const auto& precondition : preconditions)
+    if (!preconditions || preconditions->empty())
+    {
+        return true;
+    }
+
+    for (const auto& precondition : *preconditions)
     {
         FrameworkEntity* target_entity = nullptr;
         switch (precondition.GetTarget())
@@ -555,7 +560,8 @@ std::vector<int32_t> BehavioralEntity::GetValidTransitionNodeIds(const std::vect
 
     for (const auto& transition : transitions)
     {
-        if (EvaluatePreconditions(transition.GetPreconditions(), nullptr))
+        if (EvaluatePreconditions(transition.GetPreconditionsForTarget(StateOperationTarget::SELF), nullptr) &&
+            EvaluatePreconditions(transition.GetPreconditionsForTarget(StateOperationTarget::ENVIRONMENT), nullptr))
         {
             node_ids.push_back(transition.GetDestinationNodeId());
         }
@@ -734,7 +740,7 @@ bool BehavioralEntity::ValidateResumptionContext(const std::shared_ptr<Action>& 
         return false;
     }
 
-    if (!EvaluatePreconditions(action->GetPreconditions(), target_entity))
+    if (!EvaluatePreconditions(action->GetPreconditionsForTarget(StateOperationTarget::ENTITY), target_entity))
     {
         logger.LogInfo("Precondition no longer satisfied for action " +
                 std::to_string(action->GetActionId()), "ValidateResumptionContext");
