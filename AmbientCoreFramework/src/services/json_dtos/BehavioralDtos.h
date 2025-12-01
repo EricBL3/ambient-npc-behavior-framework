@@ -41,7 +41,6 @@ struct SequenceDto {
 struct ActionDto {
     int32_t action_id;
     std::string action_name;
-    bool requires_target_entity;
     std::vector<StateOperationDto> preconditions;
     std::vector<StateOperationDto> immediate_effects;
     std::vector<StateOperationDto> completion_effects;

@@ -18,7 +18,6 @@ private:
 
     int32_t action_id;
     std::string action_name;
-    bool requires_target_entity;
     std::unordered_map<StateOperationTarget, std::vector<StateOperation>> preconditions_by_target;
     std::vector<StateOperation> immediate_effects;
     std::vector<StateOperation> completion_effects;
@@ -30,7 +29,7 @@ public:
     /**
      * @throws std::invalid_argument if action_id or max_duration < 0.
      */
-    explicit Action(int32_t action_id, std::string action_name, bool requires_target_entity, int64_t max_duration,
+    explicit Action(int32_t action_id, std::string action_name, int64_t max_duration,
         InterruptionBehaviorType interruption_behavior);
     
     void AddPrecondition(StateOperationTarget target, const StateOperation& precondition);
@@ -44,7 +43,7 @@ public:
 
     std::string GetActionName() const { return action_name; }
 
-    bool GetRequiresTargetEntity() const { return requires_target_entity; }
+    bool GetRequiresTargetEntity() const;
 
     int64_t GetMaxDuration() const { return max_duration_ms; }
 

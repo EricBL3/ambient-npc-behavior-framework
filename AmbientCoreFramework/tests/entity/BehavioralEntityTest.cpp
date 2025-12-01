@@ -109,30 +109,13 @@ protected:
         return std::make_shared<Action>(
             id,
             "TestAction_" + std::to_string(id),
-            false, // Doesn't require test_entity
             5000,   // 5 second max duration
             InterruptionBehaviorType::RESUMABLE
         );
     }
 
-    std::shared_ptr<Action> CreateActionRequiringEntity(int32_t id,
-        InterruptionBehaviorType interruptionBehavior = InterruptionBehaviorType::RESUMABLE)
-    {
-        return std::make_shared<Action>(
-            id,
-            "EntityAction_" + std::to_string(id),
-            true,  // Requires test_entity
-            5000,
-            interruptionBehavior
-        );
-    }
-
-    std::shared_ptr<Action> CreateActionWithoutEntity(int32_t id) {
-        return CreateAction(id); // Same as base action
-    }
-
     std::shared_ptr<Action> CreateActionWithImmediateEffects(int32_t id) {
-        auto action = CreateActionRequiringEntity(id);
+        auto action = CreateAction(id);
 
         // Add some immediate effects
         StateOperation effect1(
@@ -156,7 +139,7 @@ protected:
     }
 
     std::shared_ptr<Action> CreateActionWithCompletionEffects(int32_t id) {
-        auto action = CreateActionRequiringEntity(id);
+        auto action = CreateAction(id);
 
         StateOperation effect1(
             StateOperationTarget::SELF,
@@ -351,13 +334,13 @@ protected:
 
     std::shared_ptr<Action> CreateActionWithPrecondition(
     int32_t id, const StateOperation& precondition) {
-        auto action = CreateActionRequiringEntity(id);
+        auto action = CreateAction(id);
         action->AddPrecondition(precondition.GetTarget(), precondition);
         return action;
     }
 
     std::shared_ptr<Action> CreateActionWithStrictPrecondition(int32_t id) {
-        auto action = CreateActionRequiringEntity(id);
+        auto action = CreateAction(id);
 
         // Precondition unlikely to pass without setup
         StateOperation precondition(
@@ -444,7 +427,8 @@ TEST_F(BehavioralEntityTest, ExecuteCurrentSequence_WaitingForAction_DoesNothing
 // ACTION EXECUTION TESTS
 
 TEST_F(BehavioralEntityTest, ExecuteActionNode_RequiresEntity_NoValidEntities_FailsSequence) {
-    auto action = CreateActionRequiringEntity(5);
+    auto precondition = StateOperation(StateOperationTarget::ENTITY, STATE_KEY_OCCUPIED, StateOperationType::EQUALS, 0);
+    auto action = CreateActionWithPrecondition(5, precondition);
     auto sequence = CreateSequenceWithActionNode(1, action);
     SetupEntityWithSequenceOnStack(sequence);
 
@@ -464,7 +448,8 @@ TEST_F(BehavioralEntityTest, ExecuteActionNode_RequiresEntity_NoValidEntities_Fa
 }
 
 TEST_F(BehavioralEntityTest, ExecuteActionNode_ValidEntity_AppliesImmediateEffects) {
-    auto action = CreateActionWithImmediateEffects(5);
+    auto precondition = StateOperation(StateOperationTarget::ENTITY, STATE_KEY_OCCUPIED, StateOperationType::EQUALS, 0);
+    auto action = CreateActionWithPrecondition(5, precondition);
     auto sequence = CreateSequenceWithActionNode(1, action);
     auto target_entity = CreateMockEntity(100);
 
@@ -507,7 +492,7 @@ TEST_F(BehavioralEntityTest, ExecuteActionNode_ValidEntity_AppliesImmediateEffec
 }
 
 TEST_F(BehavioralEntityTest, ExecuteActionNode_NoEntityRequired_UsesCharacterAsSelf) {
-    auto action = CreateActionWithoutEntity(5);
+    auto action = CreateAction(5);
     auto sequence = CreateSequenceWithActionNode(1, action);
 
     // Mock content provider
@@ -528,7 +513,8 @@ TEST_F(BehavioralEntityTest, ExecuteActionNode_NoEntityRequired_UsesCharacterAsS
 // ACTION COMPLETION TESTS
 
 TEST_F(BehavioralEntityTest, CompleteAction_ValidToken_AppliesCompletionEffects) {
-    auto action = CreateActionWithCompletionEffects(5);
+    auto precondition = StateOperation(StateOperationTarget::ENTITY, STATE_KEY_OCCUPIED, StateOperationType::EQUALS, 0);
+    auto action = CreateActionWithPrecondition(5, precondition);
     auto target_entity = CreateMockEntity(100);
 
     // Start action first
@@ -560,7 +546,7 @@ TEST_F(BehavioralEntityTest, CompleteAction_InvalidToken_IgnoresCompletion) {
 }
 
 TEST_F(BehavioralEntityTest, CompleteAction_ActionNotRequiringEntity_HandlesNullTarget) {
-    auto action = CreateActionWithoutEntity(5);
+    auto action = CreateAction(5);
     SetupAndStartAction(test_entity.get(), action, nullptr);
 
     // Should not crash when target_entity is null
@@ -599,7 +585,8 @@ TEST_F(BehavioralEntityTest, TransitionSelection_MultipleValid_PrioritizesUnvisi
 }
 
 TEST_F(BehavioralEntityTest, EntitySelection_MultipleValid_PrioritizesLeastRecentlyUsed) {
-    auto action = CreateActionRequiringEntity(5);
+    auto precondition = StateOperation(StateOperationTarget::ENTITY, STATE_KEY_OCCUPIED, StateOperationType::EQUALS, 0);
+    auto action = CreateActionWithPrecondition(5, precondition);
     auto sequence = CreateSequenceWithActionNode(1, action);
 
     EXPECT_CALL(*mock_content, GetActionById(5))
@@ -701,7 +688,7 @@ TEST_F(BehavioralEntityTest, ActionPrecondition_SelfTarget_UsesCharacterState) {
         StateOperationTarget::SELF,
         STATE_KEY_ENERGY,
         StateOperationType::GREATER_THAN,
-        {50}
+        50
     );
 
     auto action = CreateActionWithPrecondition(5, precondition);
@@ -730,7 +717,7 @@ TEST_F(BehavioralEntityTest, ActionPrecondition_EntityTarget_UsesTargetState) {
         StateOperationTarget::ENTITY,
         STATE_KEY_OCCUPIED,
         StateOperationType::EQUALS,
-        {0}
+        0
     );
 
     auto action = CreateActionWithPrecondition(5, precondition);
