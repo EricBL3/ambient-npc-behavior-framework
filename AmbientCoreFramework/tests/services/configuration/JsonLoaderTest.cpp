@@ -74,6 +74,7 @@ private:
                     "preconditions": [],
                     "immediate_effects": [],
                     "completion_effects": [],
+                    "interruption_effects": [],
                     "max_duration_ms": 5000,
                     "interruption_behavior_name": "NON_RESUMABLE"
                 }

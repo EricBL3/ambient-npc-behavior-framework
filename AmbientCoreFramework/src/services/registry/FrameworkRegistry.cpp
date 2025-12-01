@@ -265,6 +265,11 @@ bool FrameworkRegistry::ConfigureActionWithDto(const std::shared_ptr<Action> &ne
         new_action->AddCompletionEffect(GenerateStateOperationFromDto(completion_effect_dto));
     }
 
+    for (const auto& interruption_effect_dto : action_dto.interruption_effects)
+    {
+        new_action->AddInterruptionEffect(GenerateStateOperationFromDto(interruption_effect_dto));
+    }
+
     logger.LogInfo("Action '" + action_dto.action_name + " ' has been configured.",
             "FrameworkRegistry");
 

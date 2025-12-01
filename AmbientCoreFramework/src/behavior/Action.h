@@ -21,6 +21,7 @@ private:
     std::vector<StateOperation> preconditions;
     std::vector<StateOperation> immediate_effects;
     std::vector<StateOperation> completion_effects;
+    std::vector<StateOperation> interruption_effects;
     int64_t max_duration_ms;
     InterruptionBehaviorType interruption_behavior;
 
@@ -34,6 +35,7 @@ public:
     void AddPrecondition(const StateOperation& precondition);
     void AddImmediateEffect(const StateOperation& effect);
     void AddCompletionEffect(const StateOperation& effect);
+    void AddInterruptionEffect(const StateOperation& effect);
 
     int32_t GetActionId() const { return action_id; }
 
@@ -50,6 +52,8 @@ public:
     const std::vector<StateOperation>& GetImmediateEffects() const { return immediate_effects; }
 
     const std::vector<StateOperation>& GetCompletionEffects() const { return completion_effects; }
+
+    const std::vector<StateOperation>& GetInterruptionEffects() const { return interruption_effects; }
 
 };
 

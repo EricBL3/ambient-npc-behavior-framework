@@ -33,3 +33,8 @@ void Action::AddCompletionEffect(const StateOperation &effect)
 {
     completion_effects.emplace_back(effect);
 }
+
+void Action::AddInterruptionEffect(const StateOperation &effect)
+{
+    interruption_effects.emplace_back(effect);
+}

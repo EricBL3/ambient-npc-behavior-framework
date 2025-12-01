@@ -12,7 +12,7 @@ NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(StateOperationDto, target_id_name, state_key_
 NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(TransitionDto, transition_id, from_node_id, to_node_id, preconditions);
 NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(SequenceDto, sequence_id, sequence_name, entry_point_node_id, transitions);
 NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(ActionDto, action_id, action_name, requires_target_entity, preconditions, immediate_effects,
-    completion_effects, max_duration_ms, interruption_behavior_name);
+    completion_effects, interruption_effects, max_duration_ms, interruption_behavior_name);
 
 NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(FrameworkEntityDto, entity_id, entity_name, accepted_actions_ids, initial_state);
 NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(MemoryLimitsDto, max_transition_memories, max_action_memories, max_interruption_memories);
