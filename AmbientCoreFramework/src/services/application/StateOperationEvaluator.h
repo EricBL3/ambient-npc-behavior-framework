@@ -24,7 +24,7 @@ public:
     bool ProcessStateOperation(StateOperation state_operation, FrameworkEntity* context_entity = nullptr) override;
 
 private:
-    bool IsValidStateOperation(StateOperationTarget target, StateOperationType operation_type, const std::vector<int32_t>& parameters,
+    bool IsValidStateOperation(StateOperationTarget target, StateOperationType operation_type,
         const FrameworkEntity* context_entity) const;
 
     bool IsComparisonOperation(StateOperationType operation) const;
@@ -33,7 +33,7 @@ private:
 
     std::optional<int32_t> GetStateOperationValue(StateOperationTarget target, int32_t state_key, FrameworkEntity* context_entity) const;
 
-    bool EvaluateStateOperation(StateOperationType operation_type, int32_t state_value, const std::vector<int32_t>& parameters,
+    bool EvaluateStateOperation(StateOperationType operation_type, int32_t state_value, int32_t value,
         FrameworkEntity* context_entity, int32_t state_key);
 
     int32_t SafeAdd(int32_t a, int32_t b);

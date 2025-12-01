@@ -9,9 +9,9 @@ bool StateOperationEvaluator::ProcessStateOperation(StateOperation state_operati
     auto state_key = state_operation.GetStateKey();
     auto target = state_operation.GetTarget();
     auto operation_type = state_operation.GetOperationType();
-    auto parameters = state_operation.GetParameters();
+    auto value = state_operation.GetValue();
 
-    if (!IsValidStateOperation(target, operation_type, parameters, context_entity))
+    if (!IsValidStateOperation(target, operation_type, context_entity))
     {
         return false;
     }
@@ -25,25 +25,17 @@ bool StateOperationEvaluator::ProcessStateOperation(StateOperation state_operati
     }
 
     // Evaluate operation
-    return EvaluateStateOperation(operation_type, state_value.value(), parameters, context_entity, state_key);
+    return EvaluateStateOperation(operation_type, state_value.value(), value, context_entity, state_key);
 }
 
 bool StateOperationEvaluator::IsValidStateOperation(StateOperationTarget target, StateOperationType operation_type,
-    const std::vector<int32_t>& parameters, const FrameworkEntity* context_entity) const
+    const FrameworkEntity* context_entity) const
 {
     if (target == StateOperationTarget::ENVIRONMENT && IsModificationOperation(operation_type))
     {
         logger.LogWarning("Environment State operations can only be of comparison. The state operation will not be processed. "
                           "Attempted operation_type: " + schema_manager.GetStateOperationTypeName(operation_type),
                           "StateOperationEvaluator");
-
-        return false;
-    }
-
-    if (parameters.empty())
-    {
-        logger.LogWarning("There are no parameters to evaluate. The state operation will not be processed",
-            "StateOperationEvaluator");
 
         return false;
     }
@@ -108,40 +100,40 @@ std::optional<int32_t> StateOperationEvaluator::GetStateOperationValue(StateOper
 }
 
 bool StateOperationEvaluator::EvaluateStateOperation(StateOperationType operation_type, int32_t state_value,
-    const std::vector<int32_t>& parameters, FrameworkEntity* context_entity, int32_t state_key)
+    int32_t value, FrameworkEntity* context_entity, int32_t state_key)
 {
     int32_t new_value;
     bool res = false;
     switch (operation_type)
     {
         case StateOperationType::EQUALS:
-            res = state_value == parameters[0];
-            logger.LogInfo("Evaluating state_value: " + std::to_string(state_value) + " == " + std::to_string(parameters[0]),
+            res = state_value == value;
+            logger.LogInfo("Evaluating state_value: " + std::to_string(state_value) + " == " + std::to_string(value),
                 "EvaluateStateOperation");
             break;
         case StateOperationType::NOT_EQUALS:
-            res = state_value != parameters[0];
-            logger.LogInfo("Evaluating state_value: " + std::to_string(state_value) + " != " + std::to_string(parameters[0]),
+            res = state_value != value;
+            logger.LogInfo("Evaluating state_value: " + std::to_string(state_value) + " != " + std::to_string(value),
                 "EvaluateStateOperation");
             break;
         case StateOperationType::GREATER_THAN:
-            res = state_value > parameters[0];
-            logger.LogInfo("Evaluating state_value: " + std::to_string(state_value) + " > " + std::to_string(parameters[0]),
+            res = state_value > value;
+            logger.LogInfo("Evaluating state_value: " + std::to_string(state_value) + " > " + std::to_string(value),
                 "EvaluateStateOperation");
             break;
         case StateOperationType::LESS_THAN:
-            res = state_value < parameters[0];
-            logger.LogInfo("Evaluating state_value: " + std::to_string(state_value) + " < " + std::to_string(parameters[0]),
+            res = state_value < value;
+            logger.LogInfo("Evaluating state_value: " + std::to_string(state_value) + " < " + std::to_string(value),
                 "EvaluateStateOperation");
             break;
         case StateOperationType::SET:
-            new_value = parameters[0];
+            new_value = value;
             break;
         case StateOperationType::INCREMENT:
-            new_value = SafeAdd(state_value, parameters[0]);
+            new_value = SafeAdd(state_value, value);
             break;
         case StateOperationType::DECREMENT:
-            new_value = SafeSubtract(state_value, parameters[0]);
+            new_value = SafeSubtract(state_value, value);
             break;
         default:
             logger.LogWarning("The operation type: " + schema_manager.GetStateOperationTypeName(operation_type) + " is "

@@ -181,7 +181,7 @@ StateOperation FrameworkRegistry::GenerateStateOperationFromDto(const StateOpera
 
     auto operation_type = schema_manager.GetStateOperationTypeId(dto_state_operation.operation_name);
 
-    return StateOperation(target_id, state_key, operation_type, dto_state_operation.parameters);
+    return StateOperation(target_id, state_key, operation_type, dto_state_operation.value);
 }
 
 bool FrameworkRegistry::RegisterActions(const std::string &config_file_path)

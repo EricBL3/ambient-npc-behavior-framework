@@ -52,18 +52,6 @@ TEST_F(StateOperationEvaluatorTest, ProcessStateOperation_InvalidEnvironmentOper
     EXPECT_FALSE(decrement_res);
 }
 
-TEST_F(StateOperationEvaluatorTest, ProcessStateOperation_EmptyParameters_LogsWarningAndReturnsFalse) {
-    StateOperation state_operation(StateOperationTarget::ENVIRONMENT, 0, StateOperationType::EQUALS, {});
-
-    EXPECT_CALL(*mock_logger, LogWarning(
-        testing::HasSubstr("There are no parameters to evaluate"),
-        "StateOperationEvaluator"))
-        .Times(1);
-
-    auto res = state_operation_evaluator->ProcessStateOperation(state_operation);
-    EXPECT_FALSE(res);
-}
-
 TEST_F(StateOperationEvaluatorTest, ProcessStateOperation_RequiredEntityTargetIsNull_LogsWarningAndReturnsFalse) {
     StateOperation entity_state_operation(StateOperationTarget::ENTITY, 0, StateOperationType::EQUALS, {1});
     StateOperation self_state_operation(StateOperationTarget::SELF, 0, StateOperationType::EQUALS, {1});

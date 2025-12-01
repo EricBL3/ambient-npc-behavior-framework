@@ -72,7 +72,7 @@ protected:
         precondition.target_id_name = "SELF";
         precondition.state_key_name = "ENERGY";
         precondition.operation_name = "EQUALS";
-        precondition.parameters = {100};
+        precondition.value = 100;
 
         transition.preconditions.push_back(precondition);
         sequence_dto.transitions.push_back(transition);
@@ -100,7 +100,7 @@ protected:
         precondition.target_id_name = "ENTITY";
         precondition.state_key_name = "AVAILABLE_SEATS";
         precondition.operation_name = "GREATER_THAN";
-        precondition.parameters = {0};
+        precondition.value = 0;
 
         action_dto.preconditions.push_back(precondition);
 
@@ -115,7 +115,7 @@ protected:
         precondition.target_id_name = "ENVIRONMENT";
         precondition.state_key_name = "WEATHER";
         precondition.operation_name = "EQUALS";
-        precondition.parameters = {0};
+        precondition.value = 0;
 
         action_dto.preconditions.push_back(precondition);
 
@@ -282,7 +282,7 @@ TEST_F(FrameworkRegistryTest, RegisterSequences_StateReference_CallsStateSchema)
     EXPECT_EQ(StateOperationTarget::SELF, preconditions[0].GetTarget());
     EXPECT_EQ(42, preconditions[0].GetStateKey());  // From StateSchema
     EXPECT_EQ(StateOperationType::EQUALS, preconditions[0].GetOperationType());
-    EXPECT_EQ(100, preconditions[0].GetParameters().front());
+    EXPECT_EQ(100, preconditions[0].GetValue());
 }
 
 // REGISTER ACTIONS TESTS
@@ -371,7 +371,7 @@ TEST_F(FrameworkRegistryTest, RegisterActions_StateReference_CallsStateSchema) {
     EXPECT_EQ(StateOperationTarget::ENTITY, preconditions[0].GetTarget());
     EXPECT_EQ(3, preconditions[0].GetStateKey());  // From StateSchema
     EXPECT_EQ(StateOperationType::GREATER_THAN, preconditions[0].GetOperationType());
-    EXPECT_EQ(0, preconditions[0].GetParameters().front());
+    EXPECT_EQ(0, preconditions[0].GetValue());
 }
 
 TEST_F(FrameworkRegistryTest, RegisterActions_EnvironmentReference_CallsEnvironmentSchema) {
@@ -397,7 +397,7 @@ TEST_F(FrameworkRegistryTest, RegisterActions_EnvironmentReference_CallsEnvironm
     EXPECT_EQ(StateOperationTarget::ENVIRONMENT, preconditions[0].GetTarget());
     EXPECT_EQ(3, preconditions[0].GetStateKey());  // From StateSchema
     EXPECT_EQ(StateOperationType::EQUALS, preconditions[0].GetOperationType());
-    EXPECT_EQ(0, preconditions[0].GetParameters().front());
+    EXPECT_EQ(0, preconditions[0].GetValue());
 }
 
 // REGISTER ENTITY TESTS
