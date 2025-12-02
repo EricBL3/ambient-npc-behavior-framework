@@ -178,7 +178,12 @@ void BehavioralEntity::ProcessCurrentNode()
     const auto current_node = TryGetCurrentNode("ProcessCurrentNode");
     if (!current_node)
     {
-        MarkSequenceFailed();
+        HandleRuntimeFailure({
+            .reason = RuntimeFailureReason::NODE_NOT_FOUND,
+            .node_id = sequences.top()->GetCurrentNodeId(),
+            .additional_info = "ProcessCurrentNode"
+        });
+
         return;
     }
 
@@ -190,6 +195,8 @@ SequenceNode* BehavioralEntity::TryGetCurrentNode(const std::string& context)
     ZoneScoped;
 
     auto current_node = sequences.top()->FindCurrentNode();
+
+    //todo: check if I can remove with new failure handling
     if (!current_node)
     {
         logger.LogError("Could not find the current node with id: " + std::to_string(sequences.top()->GetCurrentNodeId()),
@@ -228,7 +235,10 @@ void BehavioralEntity::ExecuteCurrentNode(const SequenceNode* current_node)
     else
     {
         logger.LogWarning("The current node type is not supported", "ExecuteCurrentNode");
-        sequences.top()->SetSequenceState(SequenceState::FAILED);
+        HandleRuntimeFailure({
+            .reason = RuntimeFailureReason::INVALID_NODE_TYPE,
+            .additional_info = "The node type is not supported. ExecuteCurrentNode"
+        });
     }
 }
 
@@ -251,10 +261,11 @@ void BehavioralEntity::ExecuteNestedSequenceNode(const SequenceNode* current_nod
     auto nested_sequence_node = dynamic_cast<const NestedSequenceNode*>(current_node);
     if (!nested_sequence_node)
     {
-        logger.LogError("The current node type is not of type nested sequence node",
-            "ExecuteNestedSequenceNode");
+        HandleRuntimeFailure({
+            .reason = RuntimeFailureReason::INVALID_NODE_TYPE,
+            .additional_info = "ExecuteNestedSequenceNode"
+        });
 
-        sequences.top()->SetSequenceState(SequenceState::FAILED);
         return;
     }
 
@@ -264,7 +275,12 @@ void BehavioralEntity::ExecuteNestedSequenceNode(const SequenceNode* current_nod
 
     if (!nested_sequence)
     {
-        MarkSequenceFailed();
+        HandleRuntimeFailure({
+            .reason = RuntimeFailureReason::SEQUENCE_NOT_FOUND,
+            .sequence_id = nested_sequence_node->GetTargetSequenceId(),
+            .additional_info = "ExecuteNestedSequenceNode"
+        });
+
         return;
     }
 
@@ -290,7 +306,10 @@ void BehavioralEntity::ExecuteActionNode(const SequenceNode* current_node)
     auto action = LookupActionFromCurrentNode(current_node);
     if (!action)
     {
-        MarkSequenceFailed();
+        HandleRuntimeFailure({
+            .reason = RuntimeFailureReason::ACTION_NOT_FOUND,
+            .additional_info = "ExecuteActionNode"
+        });
         return;
     }
 
@@ -302,10 +321,12 @@ void BehavioralEntity::ExecuteActionNode(const SequenceNode* current_node)
 
         if (!target_entity)
         {
-            logger.LogWarning("No valid entities found for action " + std::to_string(action->GetActionId()) +
-                " - triggering sequence failure","ExecuteActionNode");
+            HandleRuntimeFailure({
+                .reason = RuntimeFailureReason::NO_VALID_ENTITIES,
+                .action_id = action->GetActionId(),
+                .additional_info = "ExecuteActionNode"
+            });
 
-            sequences.top()->SetSequenceState(SequenceState::FAILED);
             return;
         }
     }
@@ -483,20 +504,32 @@ void BehavioralEntity::CompleteAction(int32_t action_id, int64_t action_token)
 
 void BehavioralEntity::ApplyCompletionEffects(int32_t action_id)
 {
-    auto action = TryGetAction(action_id, "CompleteAction");
+    auto action = TryGetAction(action_id, "ApplyCompletionEffects");
     if (!action)
     {
-        MarkSequenceFailed();
+        HandleRuntimeFailure({
+            .reason = RuntimeFailureReason::ACTION_NOT_FOUND,
+            .action_id = action_id,
+            .additional_info = "ApplyCompletionEffects"
+        });
+
         return;
     }
 
     FrameworkEntity* target_entity = nullptr;
     if (action->GetRequiresTargetEntity())
     {
-        target_entity = TryGetEntity(current_action_target_id, "CompleteAction");
+        target_entity = TryGetEntity(current_action_target_id, "ApplyCompletionEffects");
         if (!target_entity)
         {
-            MarkSequenceFailedAndStopProcessing();
+            HandleRuntimeFailure({
+                .reason = RuntimeFailureReason::ENTITY_NOT_FOUND,
+                .action_id = action_id,
+                .entity_id = current_action_target_id,
+                .additional_info = "ApplyCompletionEffects",
+                .should_stop_processing = true
+            });
+
             return;
         }
     }
@@ -525,7 +558,12 @@ void BehavioralEntity::HandleNodeExecutionCompletion()
     auto current_node = TryGetCurrentNode("HandleNodeExecutionCompletion");
     if (!current_node)
     {
-        MarkSequenceFailed();
+        HandleRuntimeFailure({
+            .reason = RuntimeFailureReason::NODE_NOT_FOUND,
+            .node_id = sequences.top()->GetCurrentNodeId(),
+            .additional_info = "HandleNodeExecutionCompletion",
+        });
+
         return;
     }
 
@@ -541,10 +579,12 @@ void BehavioralEntity::HandleNodeExecutionCompletion()
     auto selected_node_id = memory.GetLeastRecentlyVisitedNodeId(node_ids);
     if (!sequences.top()->TrySetCurrentNode(selected_node_id))
     {
-        logger.LogError("Could not set current node with id: " + std::to_string(selected_node_id),
-            "HandleNodeExecutionCompletion");
+        HandleRuntimeFailure({
+            .reason = RuntimeFailureReason::NODE_NOT_FOUND,
+            .node_id = selected_node_id,
+            .additional_info = "HandleNodeExecutionCompletion",
+        });
 
-        sequences.top()->SetSequenceState(SequenceState::FAILED);
         return;
     }
 
@@ -694,7 +734,12 @@ void BehavioralEntity::AttemptActionResumption()
     if (!action)
     {
         memory.RemoveInterruptionMemory(interruption_memory);
-        MarkSequenceFailed();
+        HandleRuntimeFailure({
+            .reason = RuntimeFailureReason::ACTION_NOT_FOUND,
+            .action_id = interruption_memory->GetInterruptedActionId(),
+            .additional_info = "AttemptActionResumption"
+        });
+
         return;
     }
 
@@ -750,7 +795,12 @@ void BehavioralEntity::ResumeActionWithSavedContext(const std::shared_ptr<Action
         target_entity = TryGetEntity(interruption_memory->GetInterruptedTargetEntityId(), "ResumeActionWithSavedContext");
         if (!target_entity)
         {
-            MarkSequenceFailed();
+            HandleRuntimeFailure({
+                .reason = RuntimeFailureReason::ENTITY_NOT_FOUND,
+                .entity_id = interruption_memory->GetInterruptedTargetEntityId(),
+                .additional_info = "ResumeActionWithSavedContext"
+            });
+
             return;
         }
     }
@@ -810,6 +860,7 @@ std::shared_ptr<Action> BehavioralEntity::TryGetAction(int32_t action_id, const 
     auto action = content_provider.GetActionById(action_id);
     if (!action)
     {
+        //todo: check if I can remove with new failure handling
         logger.LogError(
             "Could not find action with id: " + std::to_string(action_id),
             context);
@@ -822,6 +873,7 @@ FrameworkEntity* BehavioralEntity::TryGetEntity(int32_t entity_id, const std::st
     auto entity = entity_query.GetEntityFromId(entity_id);
     if (!entity)
     {
+        //todo: check if I can remove with new failure handling
         logger.LogError(
             "Could not find entity with id: " + std::to_string(entity_id),
             context);
@@ -834,6 +886,7 @@ std::shared_ptr<Sequence> BehavioralEntity::TryGetSequence(int32_t sequence_id, 
     auto sequence = content_provider.GetSequenceById(sequence_id);
     if (!sequence)
     {
+        //todo: check if I can remove with new failure handling
         logger.LogError(
             "Could not find sequence with id: " + std::to_string(sequence_id),
             context);
@@ -841,13 +894,49 @@ std::shared_ptr<Sequence> BehavioralEntity::TryGetSequence(int32_t sequence_id, 
     return sequence;
 }
 
-void BehavioralEntity::MarkSequenceFailed()
+void BehavioralEntity::HandleRuntimeFailure(const RuntimeFailureContext &context)
 {
-    sequences.top()->SetSequenceState(SequenceState::FAILED);
-}
+    std::string reason_str;
+    switch (context.reason)
+    {
+        case RuntimeFailureReason::NODE_NOT_FOUND:
+            reason_str = "Node not found " + (context.node_id > -1 ? " (ID: " + std::to_string(context.node_id) + ")"
+                : "");
 
-void BehavioralEntity::MarkSequenceFailedAndStopProcessing()
-{
+            break;
+        case RuntimeFailureReason::ACTION_NOT_FOUND:
+            reason_str = "Action not found " + (context.action_id > -1 ? " (ID: " + std::to_string(context.action_id) + ")"
+                : "");
+            break;
+        case RuntimeFailureReason::ENTITY_NOT_FOUND:
+            reason_str = "Entity not found " + (context.entity_id > -1 ? " (ID: " + std::to_string(context.entity_id) + ")"
+                : "");
+            break;
+        case RuntimeFailureReason::SEQUENCE_NOT_FOUND:
+            reason_str = "Sequence not found " + (context.sequence_id > -1 ? " (ID: " + std::to_string(context.sequence_id) + ")"
+                : "");
+            break;
+        case RuntimeFailureReason::NO_VALID_ENTITIES:
+            reason_str = "No valid entities for action (ID: " + std::to_string(context.action_id) + ")";
+            break;
+        case RuntimeFailureReason::PRECONDITIONS_FAILED:
+            reason_str = "Preconditions failed";
+            break;
+        case RuntimeFailureReason::INVALID_NODE_TYPE:
+            reason_str = "Invalid node type";
+            break;
+        case RuntimeFailureReason::INVALID_RESUMPTION_CONTEXT:
+            reason_str = "Cannot resume action in current context";
+            break;
+    }
+
+    logger.LogError("Action execution failed for entity " + std::to_string(entity_id) + ": " + reason_str +
+        (context.additional_info.empty() ? "" : " - " + context.additional_info), "HandleRuntimeFailure");
+
     sequences.top()->SetSequenceState(SequenceState::FAILED);
-    is_processing = false;
+
+    // Stop processing if context indicates we should
+    if (context.should_stop_processing) {
+        is_processing = false;
+    }
 }

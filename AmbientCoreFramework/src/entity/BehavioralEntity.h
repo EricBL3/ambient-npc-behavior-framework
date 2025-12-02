@@ -3,6 +3,7 @@
 #include <stack>
 #include <unordered_map>
 
+#include "RuntimeFailureReason.h"
 #include "FrameworkEntity.h"
 #include "behavior/Sequence.h"
 #include "services/interfaces/IContentProvider.h"
@@ -138,7 +139,7 @@ private:
     std::shared_ptr<Action> TryGetAction(int32_t action_id, const std::string& context) const;
     FrameworkEntity* TryGetEntity(int32_t entity_id, const std::string& context) const;
     std::shared_ptr<Sequence> TryGetSequence(int32_t sequence_id, const std::string& context) const;
-    void MarkSequenceFailed();
-    void MarkSequenceFailedAndStopProcessing();
+
+    void HandleRuntimeFailure(const RuntimeFailureContext& context);
 };
 }
