@@ -19,16 +19,6 @@ FrameworkEntity::FrameworkEntity(void* entity_handle, int32_t entity_id, std::st
     }
 }
 
-void FrameworkEntity::AddSupportedAction(int32_t action_id)
-{
-    if (action_id < 0)
-    {
-        throw std::invalid_argument("FrameworkEntity: action_id cannot be negative");
-    }
-
-    supported_actions_ids.insert(action_id);
-}
-
 int32_t FrameworkEntity::GetStateValue(int32_t state_key)
 {
     auto state_iterator = state.find(state_key);

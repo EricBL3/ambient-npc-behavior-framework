@@ -144,10 +144,6 @@ private:
     bool UnregisterFrameworkEntity(void* entity_handle);
     bool UnregisterBehavioralEntity(void* entity_handle);
 
-    void RegisterActionForEntity(int32_t entity_id, int32_t action_id);
-    void UnregisterActionForEntity(int32_t entity_id, int32_t action_id);
-    void UnregisterAllActionsForEntity(int32_t entity_id);
-
     template<std::derived_from<FrameworkEntity> T>
     void RegisterActionsForEntity(const std::vector<int32_t> &action_ids, const std::unique_ptr<T> & entity)
     {
@@ -158,7 +154,10 @@ private:
         {
             if (HasAction(action_id))
             {
-                RegisterActionForEntity(entity_id, action_id);
+                action_to_entities_index[action_id].insert(entity_id);
+
+                logger.LogInfo("Registered action " + std::to_string(action_id) + " for entity " + std::to_string(entity_id),
+                              "RegisterActionForEntity");
             }
             else
             {

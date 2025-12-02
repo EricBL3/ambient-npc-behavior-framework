@@ -639,19 +639,6 @@ bool FrameworkRegistry::UnregisterBehavioralEntity(void* entity_handle)
     return false;
 }
 
-void FrameworkRegistry::RegisterActionForEntity(int32_t entity_id, int32_t action_id)
-{
-    auto& entities = action_to_entities_index[action_id];
-    if (std::find(entities.begin(), entities.end(), entity_id) == entities.end())
-    {
-        entities.emplace(entity_id);
-    }
-
-    logger.LogInfo("Registered action " + std::to_string(action_id) + " for entity " + std::to_string(entity_id),
-                  "RegisterActionForEntity");
-}
-
-
 bool FrameworkRegistry::HasSequence(int32_t sequence_id) const
 {
     return sequences.find(sequence_id) != sequences.end();

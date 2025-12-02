@@ -732,14 +732,6 @@ bool BehavioralEntity::ValidateResumptionContext(const std::shared_ptr<Action>& 
         return false;
     }
 
-    if (!target_entity->SupportsAction(action->GetActionId()))
-    {
-        logger.LogInfo("Target entity " + std::to_string(target_entity_id) +
-            " no longer supports action " + std::to_string(action->GetActionId()),
-            "ValidateResumptionContext");
-        return false;
-    }
-
     if (!EvaluatePreconditions(action->GetPreconditionsForTarget(StateOperationTarget::ENTITY), target_entity))
     {
         logger.LogInfo("Precondition no longer satisfied for action " +
