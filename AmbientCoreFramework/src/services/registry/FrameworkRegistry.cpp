@@ -615,6 +615,7 @@ bool FrameworkRegistry::UnregisterFrameworkEntity(void* entity_handle)
 {
     auto framework_id = GetFrameworkIdFromHandle(entity_handle);
     if (framework_id != -1) {
+        RemoveEntityFromActionIndex(framework_id);
         handle_to_framework_id.erase(entity_handle);
         framework_id_to_handle.erase(framework_id);
         framework_entities.erase(framework_id);
@@ -629,6 +630,7 @@ bool FrameworkRegistry::UnregisterBehavioralEntity(void* entity_handle)
 {
     auto behavioral_id = GetBehavioralIdFromHandle(entity_handle);
     if (behavioral_id != -1) {
+        RemoveEntityFromActionIndex(behavioral_id);
         handle_to_behavioral_id.erase(entity_handle);
         behavioral_id_to_handle.erase(behavioral_id);
         behavioral_entities.erase(behavioral_id);
@@ -637,6 +639,39 @@ bool FrameworkRegistry::UnregisterBehavioralEntity(void* entity_handle)
     }
 
     return false;
+}
+
+void FrameworkRegistry::RemoveEntityFromActionIndex(int32_t entity_id)
+{
+    auto entity_actions_it = entity_to_actions_index.find(entity_id);
+    if (entity_actions_it == entity_to_actions_index.end())
+    {
+        // early exit if entity id didn't support any action.
+        return;
+    }
+
+    const auto& actions = entity_actions_it->second;
+    for (int32_t action_id : actions)
+    {
+        auto action_entities_it = action_to_entities_index.find(action_id);
+        if (action_entities_it != action_to_entities_index.end())
+        {
+            // erase entity reference from action-entity mapping
+            action_entities_it->second.erase(entity_id);
+
+            // if action bucket becomes empty, remove bucket
+            if (action_entities_it->second.empty())
+            {
+                action_to_entities_index.erase(action_entities_it);
+            }
+        }
+    }
+
+    // erase entity reference from entity-action mapping
+    entity_to_actions_index.erase(entity_actions_it);
+
+    logger.LogInfo("Removed entity " + std::to_string(entity_id) + " from action index",
+    "RemoveEntityFromActionIndex");
 }
 
 bool FrameworkRegistry::HasSequence(int32_t sequence_id) const

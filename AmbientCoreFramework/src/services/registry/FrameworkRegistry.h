@@ -31,6 +31,7 @@ private:
     std::unordered_map<int32_t, void*> behavioral_id_to_handle;
 
     std::unordered_map<int32_t, std::unordered_set<int32_t>> action_to_entities_index;
+    std::unordered_map<int32_t, std::unordered_set<int32_t>> entity_to_actions_index;
 
     ILogger& logger;
     ITimeManager& time_manager;
@@ -144,6 +145,8 @@ private:
     bool UnregisterFrameworkEntity(void* entity_handle);
     bool UnregisterBehavioralEntity(void* entity_handle);
 
+    void RemoveEntityFromActionIndex(int32_t entity_id);
+
     template<std::derived_from<FrameworkEntity> T>
     void RegisterActionsForEntity(const std::vector<int32_t> &action_ids, const std::unique_ptr<T> & entity)
     {
@@ -155,6 +158,7 @@ private:
             if (HasAction(action_id))
             {
                 action_to_entities_index[action_id].insert(entity_id);
+                entity_to_actions_index[entity_id].insert(action_id);
 
                 logger.LogInfo("Registered action " + std::to_string(action_id) + " for entity " + std::to_string(entity_id),
                               "RegisterActionForEntity");
