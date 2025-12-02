@@ -398,6 +398,8 @@ void FrameworkRegistry::RegisterEntity(void *entity_handle, const std::string &c
         auto entity = GenerateFrameworkEntityFromDto(entity_handle, entity_dto->framework_entity);
         GenerateFrameworkEntityIdAndHandleMapping(entity);
 
+
+
         logger.LogInfo("Registered Framework Entity: " + entity_dto->framework_entity->entity_name,
             "FrameworkRegistry");
     }
@@ -483,9 +485,9 @@ void FrameworkRegistry::GenerateFrameworkEntityIdAndHandleMapping(const Framewor
 }
 
 void FrameworkRegistry::ConfigureFrameworkEntityWithDto(const std::unique_ptr<FrameworkEntity> &new_entity,
-    const FrameworkEntityDto &entity_dto) const
+    const FrameworkEntityDto &entity_dto)
 {
-    AddAcceptedActionsToEntity(entity_dto.accepted_actions_ids, new_entity);
+    RegisterActionsForEntity(entity_dto.accepted_actions_ids, new_entity);
     AddInitialStateMapToEntity(entity_dto.initial_state, new_entity);
 }
 
@@ -551,9 +553,9 @@ void FrameworkRegistry::GenerateBehavioralEntityIdAndHandleMapping(const Behavio
 }
 
 void FrameworkRegistry::ConfigureBehavioralEntityWithDto(const std::unique_ptr<BehavioralEntity> &new_entity,
-    const BehavioralEntityDto &entity_dto) const
+    const BehavioralEntityDto &entity_dto)
 {
-    AddAcceptedActionsToEntity(entity_dto.base_properties.accepted_actions_ids, new_entity);
+    RegisterActionsForEntity(entity_dto.base_properties.accepted_actions_ids, new_entity);
     AddInitialStateMapToEntity(entity_dto.base_properties.initial_state, new_entity);
 
     new_entity->SetMainSequence(GetSequenceById(entity_dto.main_sequence_id));
@@ -636,6 +638,19 @@ bool FrameworkRegistry::UnregisterBehavioralEntity(void* entity_handle)
 
     return false;
 }
+
+void FrameworkRegistry::RegisterActionForEntity(int32_t entity_id, int32_t action_id)
+{
+    auto& entities = action_to_entities_index[action_id];
+    if (std::find(entities.begin(), entities.end(), entity_id) == entities.end())
+    {
+        entities.emplace(entity_id);
+    }
+
+    logger.LogInfo("Registered action " + std::to_string(action_id) + " for entity " + std::to_string(entity_id),
+                  "RegisterActionForEntity");
+}
+
 
 bool FrameworkRegistry::HasSequence(int32_t sequence_id) const
 {
@@ -772,24 +787,30 @@ std::vector<FrameworkEntity *> FrameworkRegistry::GetEntitiesSupportingAction(in
 {
     std::vector<FrameworkEntity *> result;
 
-    for (const auto& [id, entity]: framework_entities)
+    auto it = action_to_entities_index.find(action_id);
+    if (it == action_to_entities_index.end())
     {
-        if (entity->SupportsAction(action_id))
-        {
-            result.push_back(entity.get());
-        }
+        logger.LogInfo("Action " + std::to_string(action_id) + " not in index (no entities support it)",
+        "GetEntitiesSupportingAction");
+        return result;
     }
 
-    for (const auto& [id, entity]: behavioral_entities)
+    const auto& entity_ids = it->second;
+    result.reserve(entity_ids.size());
+
+    for (int32_t entity_id : entity_ids)
     {
-        if (entity->SupportsAction(action_id))
+        FrameworkEntity* entity = GetEntityFromId(entity_id);
+        if (entity)
         {
-            result.push_back(entity.get());
+            result.push_back(entity);
+        }
+        else
+        {
+            logger.LogWarning("Entity " + std::to_string(entity_id) + " listed in action " +
+                std::to_string(action_id) + " index but not found in registry", "GetEntitiesSupportingAction");
         }
     }
-
-    logger.LogInfo("Found " + std::to_string(result.size()) + " entities that support action " + std::to_string(action_id),
-        "FrameworkRegistry");
 
     return result;
 }

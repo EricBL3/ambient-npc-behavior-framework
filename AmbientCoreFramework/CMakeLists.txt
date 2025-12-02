@@ -95,6 +95,11 @@ target_link_libraries(AmbientCoreTests
     nlohmann_json::nlohmann_json
 )
 
+set_target_properties(AmbientCoreTests PROPERTIES
+        CXX_STANDARD 20
+        CXX_STANDARD_REQUIRED YES
+)
+
 target_include_directories(AmbientCoreTests PRIVATE
         src  # Tests need access to internal headers
 )

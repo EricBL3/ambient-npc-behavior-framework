@@ -3,6 +3,7 @@
 #include <memory>
 #include <queue>
 #include <unordered_map>
+#include <concepts>
 
 #include "behavior/Action.h"
 #include "behavior/Sequence.h"
@@ -28,6 +29,8 @@ private:
     std::unordered_map<void*, int32_t> handle_to_behavioral_id;
     std::unordered_map<int32_t, void*> framework_id_to_handle;
     std::unordered_map<int32_t, void*> behavioral_id_to_handle;
+
+    std::unordered_map<int32_t, std::unordered_set<int32_t>> action_to_entities_index;
 
     ILogger& logger;
     ITimeManager& time_manager;
@@ -129,11 +132,11 @@ private:
     FrameworkEntity* GenerateFrameworkEntityFromDto(void* entity_handle, std::optional<FrameworkEntityDto> entity_dto);
     bool IsEntityDuplicate(void* entity_handle, int32_t entity_id) const;
     void GenerateFrameworkEntityIdAndHandleMapping(const FrameworkEntity* framework_entity);
-    void ConfigureFrameworkEntityWithDto(const std::unique_ptr<FrameworkEntity> &new_entity, const FrameworkEntityDto &entity_dto) const;
+    void ConfigureFrameworkEntityWithDto(const std::unique_ptr<FrameworkEntity> &new_entity, const FrameworkEntityDto &entity_dto);
 
     BehavioralEntity* GenerateBehavioralEntityFromDto(void* entity_handle, std::optional<BehavioralEntityDto> entity_dto);
     void GenerateBehavioralEntityIdAndHandleMapping(const BehavioralEntity* behavioral_entity);
-    void ConfigureBehavioralEntityWithDto(const std::unique_ptr<BehavioralEntity> &new_entity, const BehavioralEntityDto &entity_dto) const;
+    void ConfigureBehavioralEntityWithDto(const std::unique_ptr<BehavioralEntity> &new_entity, const BehavioralEntityDto &entity_dto);
 
     void AddFallbackSequencesToEntity(const std::vector<int32_t> &fallback_sequences, const std::unique_ptr<BehavioralEntity> &new_entity) const;
     void AddInterruptionHandlersToEntity(const std::unordered_map<std::string, int32_t> &interruption_handlers, const std::unique_ptr<BehavioralEntity> &new_entity) const;
@@ -141,21 +144,26 @@ private:
     bool UnregisterFrameworkEntity(void* entity_handle);
     bool UnregisterBehavioralEntity(void* entity_handle);
 
-    template<typename T>
-    void AddAcceptedActionsToEntity(const std::vector<int32_t> &accepted_actions_ids, const std::unique_ptr<T> &new_entity) const
+    void RegisterActionForEntity(int32_t entity_id, int32_t action_id);
+    void UnregisterActionForEntity(int32_t entity_id, int32_t action_id);
+    void UnregisterAllActionsForEntity(int32_t entity_id);
+
+    template<std::derived_from<FrameworkEntity> T>
+    void RegisterActionsForEntity(const std::vector<int32_t> &action_ids, const std::unique_ptr<T> & entity)
     {
+
+        auto entity_id = entity->GetEntityId();
+
+        for (const auto& action_id : action_ids)
         {
-            for (const auto& action_id : accepted_actions_ids)
+            if (HasAction(action_id))
             {
-                if (HasAction(action_id))
-                {
-                    new_entity->AddSupportedAction(action_id);
-                }
-                else
-                {
-                    logger.LogWarning("Action with id: " + std::to_string(action_id) + " does not exist.",
-                        "FrameworkRegistry");
-                }
+                RegisterActionForEntity(entity_id, action_id);
+            }
+            else
+            {
+                logger.LogWarning("Action with id: " + std::to_string(action_id) + " does not exist.",
+                    "FrameworkRegistry");
             }
         }
     }

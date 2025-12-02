@@ -696,7 +696,7 @@ TEST_F(FrameworkRegistryTest, RegisterEntity_ComplexFrameworkEntity_RegistersVal
 
     EXPECT_EQ(1, registry->GetFrameworkEntitiesCount());
     EXPECT_EQ(0, registry->GetBehavioralEntitiesCount());
-    EXPECT_EQ(1, framework_entity->GetSupportedActionsIds().size());
+    EXPECT_EQ(1, registry->GetEntitiesSupportingAction(0).size());
     EXPECT_EQ(3, framework_entity->GetStateValue(0));
 }
 
@@ -722,7 +722,6 @@ TEST_F(FrameworkRegistryTest, RegisterEntity_ComplexFrameworkEntity_LogsWarningA
 
     EXPECT_EQ(1, registry->GetFrameworkEntitiesCount());
     EXPECT_EQ(0, registry->GetBehavioralEntitiesCount());
-    EXPECT_EQ(0, framework_entity->GetSupportedActionsIds().size());
     EXPECT_EQ(3, framework_entity->GetStateValue(0));
 }
 
@@ -764,7 +763,6 @@ TEST_F(FrameworkRegistryTest, RegisterEntity_ComplexBehavioralEntity_ConfiguresC
 
     EXPECT_EQ(0, registry->GetFrameworkEntitiesCount());
     EXPECT_EQ(1, registry->GetBehavioralEntitiesCount());
-    EXPECT_EQ(1, framework_entity->GetSupportedActionsIds().size());
     EXPECT_EQ(3, framework_entity->GetStateValue(0));
     EXPECT_EQ(0, framework_entity->GetMainSequence()->GetSequenceId());
     EXPECT_EQ(true, framework_entity->HasFallbackSequence(1));
@@ -801,7 +799,6 @@ TEST_F(FrameworkRegistryTest, RegisterEntity_ComplexBehavioralEntity_LogsWarning
 
     EXPECT_EQ(0, registry->GetFrameworkEntitiesCount());
     EXPECT_EQ(1, registry->GetBehavioralEntitiesCount());
-    EXPECT_EQ(0, framework_entity->GetSupportedActionsIds().size());
     EXPECT_EQ(3, framework_entity->GetStateValue(0));
 }
 
@@ -839,7 +836,6 @@ TEST_F(FrameworkRegistryTest, RegisterEntity_ComplexBehavioralEntity_LogsWarning
 
     EXPECT_EQ(0, registry->GetFrameworkEntitiesCount());
     EXPECT_EQ(1, registry->GetBehavioralEntitiesCount());
-    EXPECT_EQ(1, framework_entity->GetSupportedActionsIds().size());
     EXPECT_EQ(3, framework_entity->GetStateValue(0));
     EXPECT_EQ(nullptr, framework_entity->GetMainSequence());
 }
@@ -878,7 +874,6 @@ TEST_F(FrameworkRegistryTest, RegisterEntity_ComplexBehavioralEntity_LogsWarning
 
     EXPECT_EQ(0, registry->GetFrameworkEntitiesCount());
     EXPECT_EQ(1, registry->GetBehavioralEntitiesCount());
-    EXPECT_EQ(1, framework_entity->GetSupportedActionsIds().size());
     EXPECT_EQ(3, framework_entity->GetStateValue(0));
     EXPECT_EQ(false, framework_entity->HasFallbackSequence(1));
 }
@@ -922,7 +917,6 @@ TEST_F(FrameworkRegistryTest, RegisterEntity_ComplexBehavioralEntity_LogsWarning
 
     EXPECT_EQ(0, registry->GetFrameworkEntitiesCount());
     EXPECT_EQ(1, registry->GetBehavioralEntitiesCount());
-    EXPECT_EQ(1, framework_entity->GetSupportedActionsIds().size());
     EXPECT_EQ(3, framework_entity->GetStateValue(0));
     EXPECT_EQ(true, framework_entity->HasFallbackSequence(1));
     EXPECT_EQ(nullptr, framework_entity->FindInterruptionHandler(0));
