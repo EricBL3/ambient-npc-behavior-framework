@@ -190,46 +190,51 @@ const InterruptionMemory * MemorySystem::FindInterruptionMemory(int32_t action_i
 
 }
 
-int32_t MemorySystem::GetLeastRecentlyVisitedNodeId(const std::vector<int32_t> &node_ids) const
+std::vector<int32_t> MemorySystem::GetLeastRecentlyVisitedNodeIds(const std::vector<int32_t> &node_ids) const
 {
     if (node_ids.empty())
     {
         logger.LogError("GetLeastRecentlyVisitedNode: There are no node_ids to search through",
             "MemorySystem");
 
-        return -1;
+        return {};
     }
 
     if (node_ids.size() == 1) {
-        return node_ids[0];
+        return node_ids;
     }
 
     std::vector<int32_t> unused {FindUnusedTransitionNodeIds(node_ids)};
     if (!unused.empty())
     {
-        return SelectRandomFromVector(unused);
+        return unused;
     }
 
-    return FindOldestTransitionNodeId(node_ids);
+    return FindOldestTransitionNodeIds(node_ids);
 }
 
-int32_t MemorySystem::GetLeastRecentlyUsedEntityIdForAction(int32_t action_id, const std::vector<int32_t> &entity_ids) const
+std::vector<int32_t> MemorySystem::GetLeastRecentlyUsedEntityIdsForAction(int32_t action_id, const std::vector<int32_t> &entity_ids) const
 {
     if (entity_ids.empty())
     {
         logger.LogError("GetLeastRecentlyUsedEntityForAction: There are no entity_ids to search through",
             "MemorySystem");
 
-        return -1;
+        return {};
+    }
+
+    if (entity_ids.size() == 1)
+    {
+        return entity_ids;
     }
 
     std::vector<int32_t> unused {FindUnusedActionEntityIds(action_id, entity_ids)};
     if (!unused.empty())
     {
-        return SelectRandomFromVector(unused);
+        return unused;
     }
 
-    return FindOldestActionEntityId(action_id, entity_ids);
+    return FindOldestActionEntityIds(action_id, entity_ids);
 }
 
 void MemorySystem::ClearSequenceInterruptionMemories(int32_t sequence_id)
@@ -282,21 +287,6 @@ void MemorySystem::ClearAllMemories()
     transition_memories.clear();
     action_memories.clear();
     interruption_memories.clear();
-}
-
-
-int32_t MemorySystem::SelectRandomFromVector(const std::vector<int32_t> &options) const
-{
-    if (options.empty())
-    {
-        logger.LogError("SelectRandomFromVector: There are no options to search through",
-            "MemorySystem");
-
-        return -1;
-    }
-
-    //TODO: Modify to use c++11 random
-    return options[rand() % options.size()];
 }
 
 void MemorySystem::EnforceMaxTransitionMemories()
@@ -365,14 +355,14 @@ void MemorySystem::RemoveExistingActionMemory(int32_t action_id, int32_t target_
     }
 }
 
-int32_t MemorySystem::FindOldestTransitionNodeId(const std::vector<int32_t> &node_ids) const
+std::vector<int32_t> MemorySystem::FindOldestTransitionNodeIds(const std::vector<int32_t> &node_ids) const
 {
     if (node_ids.empty())
     {
         logger.LogError("FindOldestTransitionNode: There are no node_ids to search through",
             "MemorySystem");
 
-        return -1;
+        return {};
     }
 
     std::vector<int32_t> oldest_nodes;
@@ -408,34 +398,24 @@ int32_t MemorySystem::FindOldestTransitionNodeId(const std::vector<int32_t> &nod
     if (oldest_nodes.empty())
     {
         logger.LogError("FindOldestTransitionNode: No valid memories found", "MemorySystem");
-        return -1;
     }
 
-    // Random selection among tied options prevents deterministic patterns
-    return SelectRandomFromVector(oldest_nodes);
+    return oldest_nodes;
 }
 
-int32_t MemorySystem::FindOldestActionEntityId(int32_t action_id, const std::vector<int32_t> &entity_ids) const
+std::vector<int32_t> MemorySystem::FindOldestActionEntityIds(int32_t action_id, const std::vector<int32_t> &entity_ids) const
 {
     if (entity_ids.empty())
     {
         logger.LogError("FindOldestActionEntity: There are no entity_ids to search through",
             "MemorySystem");
-        return -1;
+        return {-1};
     }
 
-    logger.LogInfo("FindOldestActionEntityId: Searching for action " + std::to_string(action_id) +
+    logger.LogInfo("FindOldestActionEntityIds: Searching for action " + std::to_string(action_id) +
                    " among " + std::to_string(entity_ids.size()) + " entities", "MemorySystem");
 
     logger.LogInfo("Total action memories: " + std::to_string(action_memories.size()), "MemorySystem");
-
-    // Log all action memories
-    for (const auto& mem : action_memories)
-    {
-        logger.LogInfo("  Memory: action=" + std::to_string(mem.GetActionId()) +
-                       ", entity=" + std::to_string(mem.GetTargetEntityId()) +
-                       ", time=" + std::to_string(mem.GetLastUsedTime()), "MemorySystem");
-    }
 
     std::vector<int32_t> oldest_nodes;
     oldest_nodes.reserve(entity_ids.size());
@@ -473,11 +453,9 @@ int32_t MemorySystem::FindOldestActionEntityId(int32_t action_id, const std::vec
     if (oldest_nodes.empty())
     {
         logger.LogError("FindOldestActionEntity: No valid memories found", "MemorySystem");
-        return -1;
     }
 
-    // Random selection among tied options prevents deterministic patterns
-    return SelectRandomFromVector(oldest_nodes);
+    return oldest_nodes;
 }
 
 std::vector<int32_t> MemorySystem::FindUnusedTransitionNodeIds(const std::vector<int32_t> &node_ids) const

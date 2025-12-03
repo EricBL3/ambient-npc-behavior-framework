@@ -1,5 +1,6 @@
 
 #pragma once
+#include <random>
 #include <stack>
 #include <unordered_map>
 
@@ -54,6 +55,8 @@ private:
     const int32_t MAX_FALLBACK_ATTEMPTS = 3;
     bool is_halted;
 
+    std::mt19937 rng;
+
 public:
     /**
      * @throw std::invalid_argument if entity_id or current_location_id < 0.
@@ -67,10 +70,9 @@ public:
         state_operation_evaluator(state_operation_evaluator),
         memory(max_transition_memories, max_action_memories, max_interruption_memories, logger),
         main_sequence(nullptr), current_action_target_id(-1), is_processing(false), current_action_token(0), current_action_id(-1),
-        fallback_attempt_count(0), is_halted(false) {}
+        fallback_attempt_count(0), is_halted(false), rng(std::random_device{}()) {}
 
     MemorySystem& GetMemorySystem() { return memory; }
-    //const MemorySystem& GetMemorySystem() const { return memory; }
 
     int64_t GetCurrentActionToken() const { return current_action_token; }
 
@@ -145,5 +147,7 @@ private:
     std::optional<int32_t> GetNodeIdForNextTransition();
 
     void HandleRuntimeFailure(const RuntimeFailureContext& context);
+
+    int32_t GetRandomIndex(int32_t max_exclusive);
 };
 }

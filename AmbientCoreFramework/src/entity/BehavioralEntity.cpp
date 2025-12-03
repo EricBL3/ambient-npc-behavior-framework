@@ -387,8 +387,8 @@ FrameworkEntity* BehavioralEntity::GetActionTargetEntity(const std::shared_ptr<A
 {
     ZoneScoped;
 
-    // Check if current target entity is valid first
-    if(current_action_target_id >= 0 &&
+    // Context Persistence by checking if current target entity is still valid
+    if( current_action_target_id >= 0 &&
         entity_query.EntitySupportsAction(current_action_target_id, action->GetActionId()))
     {
         auto* current_entity = entity_query.GetEntityFromId(current_action_target_id);
@@ -402,32 +402,60 @@ FrameworkEntity* BehavioralEntity::GetActionTargetEntity(const std::shared_ptr<A
 
     std::vector<FrameworkEntity*> entities = entity_query.GetEntitiesSupportingAction(action->GetActionId());
     auto preconditions = action->GetPreconditionsForTarget(StateOperationTarget::ENTITY);
+
+    std::vector<int32_t> unused_entities;
+    unused_entities.reserve(entities.size());
     std::vector<int32_t> previously_used_entities;
     previously_used_entities.reserve(entities.size());
 
-    // Explore unused entities
+    // Separate unused from used entities
     for (auto* entity : entities)
     {
+        // skip current entity if we checked it above
+        if (entity->GetEntityId() == current_action_target_id)
+        {
+            continue;
+        }
+
         if (!EvaluatePreconditions(preconditions, entity))
         {
             // skip invalid entities
             continue;
         }
 
-        // Perfect match is an entity that doesn't exist in the action memory of the character
+        // Check if entity has been used for this action before
         if (!memory.HasActionMemory(action->GetActionId(), entity->GetEntityId()))
         {
-            return entity;
+            unused_entities.push_back(entity->GetEntityId());
         }
-
-        previously_used_entities.push_back(entity->GetEntityId());
+        else
+        {
+            previously_used_entities.push_back(entity->GetEntityId());
+        }
     }
+
+    // Exploration by choosing randomly an unused entity
+    if (!unused_entities.empty())
+    {
+        auto random_index = GetRandomIndex(unused_entities.size());
+
+        return entity_query.GetEntityFromId(unused_entities[random_index]);
+    }
+
+    // Exploitation by using least recently used among used entities
     if (previously_used_entities.empty())
     {
         return nullptr;
     }
 
-    auto selected_entity_id = memory.GetLeastRecentlyUsedEntityIdForAction(action->GetActionId(), previously_used_entities);
+    auto lru_options = memory.GetLeastRecentlyUsedEntityIdsForAction(action->GetActionId(), previously_used_entities);
+    if (lru_options.empty())
+    {
+        return nullptr;
+    }
+
+    auto random_index = GetRandomIndex(lru_options.size());
+    auto selected_entity_id = lru_options[random_index];
 
     return entity_query.GetEntityFromId(selected_entity_id);
 }
@@ -645,10 +673,12 @@ std::optional<int32_t> BehavioralEntity::GetNodeIdForNextTransition()
 
     std::vector<Transition> transitions = sequences.top()->GetValidTransitionsFromCurrentNode();
 
+    std::vector<int32_t> unused_transitions;
+    unused_transitions.reserve(transitions.size());
     std::vector<int32_t> previously_used_transitions;
     previously_used_transitions.reserve(transitions.size());
 
-    // Explore unused transitions first
+    // Separate unused from used transitions
     for (const auto& transition : transitions)
     {
         if (!EvaluatePreconditions(transition.GetPreconditionsForTarget(StateOperationTarget::SELF), nullptr) ||
@@ -658,21 +688,39 @@ std::optional<int32_t> BehavioralEntity::GetNodeIdForNextTransition()
             continue;
         }
 
-        // Perfect match is a transition that doesn't exist in the transition memory of the character
+        // Check if the transition has been used before
         if (!memory.HasTransitionMemory(transition.GetDestinationNodeId()))
         {
-            return transition.GetDestinationNodeId();
+            unused_transitions.push_back(transition.GetDestinationNodeId());
         }
-
-        previously_used_transitions.push_back(transition.GetDestinationNodeId());
+        else
+        {
+            previously_used_transitions.push_back(transition.GetDestinationNodeId());
+        }
     }
 
+    // Exploration phase choosing randomly between unused transitions
+    if (!unused_transitions.empty())
+    {
+        auto random_index = GetRandomIndex(unused_transitions.size());
+
+        return unused_transitions[random_index];
+    }
+
+    // Exploitation phase using least recently used
     if (previously_used_transitions.empty())
     {
         return std::nullopt;
     }
 
-    return memory.GetLeastRecentlyVisitedNodeId(previously_used_transitions);
+    auto lru_options = memory.GetLeastRecentlyVisitedNodeIds(previously_used_transitions);
+    if (lru_options.empty())
+    {
+        return std::nullopt;
+    }
+
+    auto random_index = GetRandomIndex(lru_options.size());
+    return lru_options[random_index];
 }
 
 void BehavioralEntity::HandleSequenceFailure()
@@ -979,4 +1027,15 @@ void BehavioralEntity::HandleRuntimeFailure(const RuntimeFailureContext &context
     if (context.should_stop_processing) {
         is_processing = false;
     }
+}
+
+int32_t BehavioralEntity::GetRandomIndex(int32_t max_exclusive)
+{
+    if (max_exclusive <= 1 )
+    {
+        return 0;
+    }
+
+    std::uniform_int_distribution<int32_t> dist(0, max_exclusive - 1);
+    return dist(rng);
 }

@@ -349,7 +349,7 @@ TEST_F(MemorySystemTest, GetLeastRecentlyVisitedNodePrefersNeverUsed) {
    [[maybe_unused]] auto res1 =  memory_system->UpdateTransitionMemory(7, 200);
 
     std::vector<int> node_ids = {5, 7, 9};  // 9 never used
-    int selected = memory_system->GetLeastRecentlyVisitedNodeId(node_ids);
+    int selected = memory_system->GetLeastRecentlyVisitedNodeIds(node_ids).front();
 
     EXPECT_EQ(9, selected);
 }
@@ -359,16 +359,16 @@ TEST_F(MemorySystemTest, GetLeastRecentlyVisitedNodeSelectsOldestTimestamp) {
    [[maybe_unused]] auto res1 =  memory_system->UpdateTransitionMemory(7, 200);  // Newer
 
     std::vector<int> node_ids = {5, 7};
-    int selected = memory_system->GetLeastRecentlyVisitedNodeId(node_ids);
+    int selected = memory_system->GetLeastRecentlyVisitedNodeIds(node_ids).front();
 
     EXPECT_EQ(5, selected);
 }
 
-TEST_F(MemorySystemTest, GetLeastRecentlyVisitedNodeReturnsMinusOneForEmptyInput) {
+TEST_F(MemorySystemTest, GetLeastRecentlyVisitedNodeReturnsEmptyForEmptyInput) {
     std::vector<int> empty_list;
-    int selected = memory_system->GetLeastRecentlyVisitedNodeId(empty_list);
+    auto selected = memory_system->GetLeastRecentlyVisitedNodeIds(empty_list);
 
-    EXPECT_EQ(-1, selected);
+    EXPECT_TRUE(selected.empty());
 }
 
 TEST_F(MemorySystemTest, GetLeastRecentlyVisitedNodeHandlesEqualTimestamps) {
@@ -376,7 +376,7 @@ TEST_F(MemorySystemTest, GetLeastRecentlyVisitedNodeHandlesEqualTimestamps) {
    [[maybe_unused]] auto res1 =  memory_system->UpdateTransitionMemory(7, 100);  // Same timestamp so should pick randomly
 
     std::vector<int> node_ids = {5, 7};
-    int selected = memory_system->GetLeastRecentlyVisitedNodeId(node_ids);
+    int selected = memory_system->GetLeastRecentlyVisitedNodeIds(node_ids).front();
 
     EXPECT_TRUE(selected == 5 || selected == 7);
 }
@@ -387,7 +387,7 @@ TEST_F(MemorySystemTest, GetLeastRecentlyUsedEntityPrefersNeverUsed) {
    [[maybe_unused]] auto res1 =  memory_system->UpdateActionMemory(3, 11, 200);
 
     std::vector<int> entity_ids = {10, 11, 12};  // 12 never used
-    int selected = memory_system->GetLeastRecentlyUsedEntityIdForAction(3, entity_ids);
+    int selected = memory_system->GetLeastRecentlyUsedEntityIdsForAction(3, entity_ids).front();
 
     EXPECT_EQ(12, selected);
 }
@@ -397,16 +397,16 @@ TEST_F(MemorySystemTest, GetLeastRecentlyUsedEntitySelectsOldestTimestamp) {
    [[maybe_unused]] auto res1 =  memory_system->UpdateActionMemory(3, 11, 200);  // Newer
 
     std::vector<int> entity_ids = {10, 11};
-    int selected = memory_system->GetLeastRecentlyUsedEntityIdForAction(3, entity_ids);
+    int selected = memory_system->GetLeastRecentlyUsedEntityIdsForAction(3, entity_ids).front();
 
     EXPECT_EQ(10, selected);
 }
 
 TEST_F(MemorySystemTest, GetLeastRecentlyUsedEntityReturnsMinusOneForEmptyInput) {
     std::vector<int> empty_list;
-    int selected = memory_system->GetLeastRecentlyUsedEntityIdForAction(3, empty_list);
+    auto selected = memory_system->GetLeastRecentlyUsedEntityIdsForAction(3, empty_list);
 
-    EXPECT_EQ(-1, selected);
+    EXPECT_TRUE(selected.empty());
 }
 
 TEST_F(MemorySystemTest, GetLeastRecentlyUsedEntityHandlesEqualTimestamps) {
@@ -414,7 +414,7 @@ TEST_F(MemorySystemTest, GetLeastRecentlyUsedEntityHandlesEqualTimestamps) {
    [[maybe_unused]] auto res1 =  memory_system->UpdateActionMemory(3, 11, 100); // Same timestamp so should pick randomly
 
     std::vector<int> entity_ids = {10, 11};
-    int selected = memory_system->GetLeastRecentlyUsedEntityIdForAction(3, entity_ids);
+    int selected = memory_system->GetLeastRecentlyUsedEntityIdsForAction(3, entity_ids).front();
 
     EXPECT_TRUE(selected == 10 || selected == 11);
 }

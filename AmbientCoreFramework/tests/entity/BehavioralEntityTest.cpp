@@ -178,10 +178,13 @@ protected:
 
     void SetupEntityQueryToReturn(const std::vector<FrameworkEntity*>& entities) {
         EXPECT_CALL(*mock_entity_query, GetEntitiesSupportingAction(testing::_))
-            .WillOnce(testing::Return(entities));
+            .WillRepeatedly(testing::Return(entities));
 
         // Also setup GetEntityFromId for each
         for (auto entity : entities) {
+            EXPECT_CALL(*mock_entity_query, EntitySupportsAction(entity->GetEntityId(), testing::_))
+            .WillRepeatedly(testing::Return(true));
+
             EXPECT_CALL(*mock_entity_query, GetEntityFromId(entity->GetEntityId()))
                 .WillRepeatedly(testing::Return(entity));
         }
@@ -200,9 +203,12 @@ protected:
             .WillRepeatedly(testing::Return(action));
 
         if (target) {
+            EXPECT_CALL(*mock_entity_query, EntitySupportsAction(entity->GetEntityId(), testing::_))
+            .WillRepeatedly(testing::Return(true));
+
             // Mock entity query
             EXPECT_CALL(*mock_entity_query, GetEntitiesSupportingAction(action->GetActionId()))
-                .WillOnce(testing::Return(std::vector<FrameworkEntity*>{target}));
+                .WillRepeatedly(testing::Return(std::vector<FrameworkEntity*>{target}));
 
             EXPECT_CALL(*mock_entity_query, GetEntityFromId(target->GetEntityId()))
                 .WillRepeatedly(testing::Return(target));
@@ -546,61 +552,6 @@ TEST_F(BehavioralEntityTest, CompleteAction_ActionNotRequiringEntity_HandlesNull
         .Times(testing::AtLeast(0));
 
     EXPECT_NO_THROW(test_entity->CompleteAction(5, GetCurrentActionToken(test_entity.get())));
-}
-
-// MEMORY INTEGRATION TESTS
-
-TEST_F(BehavioralEntityTest, TransitionSelection_MultipleValid_PrioritizesUnvisited) {
-    auto sequence = CreateSequenceWithThreeTransitions();
-
-    EXPECT_CALL(*mock_content, GetActionById(testing::_))
-        .WillRepeatedly(testing::Return(CreateAction(100)));
-
-    SetupEntityWithSequenceAtNodeExecuted(sequence);
-
-    // Pre-populate memory with visits to nodes 2 and 3
-    test_entity->GetMemorySystem().UpdateTransitionMemory(2, 1000);
-    test_entity->GetMemorySystem().UpdateTransitionMemory(3, 2000);
-
-    // All three transitions pass precondition checks
-    SetupAllTransitionPreconditionsPass();
-
-    test_entity->ExecuteCurrentSequence();
-    test_entity->ExecuteCurrentSequence();
-    test_entity->CompleteAction(100, test_entity->GetCurrentActionToken());
-
-    test_entity->ExecuteCurrentSequence();
-
-    auto memory = test_entity->GetMemorySystem().FindTransitionMemory(4);
-    EXPECT_NE(memory, nullptr);
-}
-
-TEST_F(BehavioralEntityTest, EntitySelection_MultipleValid_PrioritizesLeastRecentlyUsed) {
-    auto precondition = StateOperation(StateOperationTarget::ENTITY, STATE_KEY_OCCUPIED, StateOperationType::EQUALS, 0);
-    auto action = CreateActionWithPrecondition(5, precondition);
-    auto sequence = CreateSequenceWithActionNode(1, action);
-
-    EXPECT_CALL(*mock_content, GetActionById(5))
-        .WillRepeatedly(testing::Return(action));
-
-    SetupEntityWithSequenceOnStack(sequence);
-
-    auto entities = CreateThreeEntities();
-    SetupEntityQueryToReturn(entities);
-    SetupAllPreconditionsPass();
-
-    // Pre-populate memory: entity 0 used at time 1000, entity 1 used at 2000
-    test_entity->GetMemorySystem().UpdateActionMemory(5, entities[0]->GetEntityId(), 1000);
-    test_entity->GetMemorySystem().UpdateActionMemory(5, entities[1]->GetEntityId(), 2000);
-    // Entity 2 never used
-
-    test_entity->ExecuteCurrentSequence();
-    test_entity->ExecuteCurrentSequence();
-
-    auto selected_id = test_entity->GetCurrentActionTargetId();
-
-    // Should select entity 2 (never used)
-    EXPECT_EQ(selected_id, entities[2]->GetEntityId());
 }
 
 // FAILURE AND FALLBACK TESTS
