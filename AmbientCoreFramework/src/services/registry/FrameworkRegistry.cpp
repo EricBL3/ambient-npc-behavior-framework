@@ -851,3 +851,14 @@ FrameworkEntity * FrameworkRegistry::GetEntityFromId(int32_t entity_id) const
 
     return result;
 }
+
+bool FrameworkRegistry::EntitySupportsAction(int32_t entity_id, int32_t action_id) const
+{
+    auto iterator = entity_to_actions_index.find(entity_id);
+    if (iterator == entity_to_actions_index.end())
+    {
+        return false;
+    }
+
+    return iterator->second.contains(action_id);
+}

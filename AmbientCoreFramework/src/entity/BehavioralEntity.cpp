@@ -366,6 +366,10 @@ void BehavioralEntity::InitiateActionExecution(const std::shared_ptr<Action>& ac
         current_action_target_id = target_entity->GetEntityId();
         target_entity_handle = target_entity->GetEntityHandle();
     }
+    else
+    {
+        current_action_target_id = -1;
+    }
 
     current_action_id = action->GetActionId();
     current_action_token++;
@@ -383,13 +387,25 @@ FrameworkEntity* BehavioralEntity::GetActionTargetEntity(const std::shared_ptr<A
 {
     ZoneScoped;
 
-    std::vector<FrameworkEntity*> entities = entity_query.GetEntitiesSupportingAction(action->GetActionId());
+    // Check if current target entity is valid first
+    if(current_action_target_id >= 0 &&
+        entity_query.EntitySupportsAction(current_action_target_id, action->GetActionId()))
+    {
+        auto* current_entity = entity_query.GetEntityFromId(current_action_target_id);
 
+        if (current_entity &&
+            EvaluatePreconditions(action->GetPreconditionsForTarget(StateOperationTarget::ENTITY), current_entity))
+        {
+            return current_entity;
+        }
+    }
+
+    std::vector<FrameworkEntity*> entities = entity_query.GetEntitiesSupportingAction(action->GetActionId());
     auto preconditions = action->GetPreconditionsForTarget(StateOperationTarget::ENTITY);
     std::vector<int32_t> previously_used_entities;
     previously_used_entities.reserve(entities.size());
 
-    // Explore unused entities first
+    // Explore unused entities
     for (auto* entity : entities)
     {
         if (!EvaluatePreconditions(preconditions, entity))
@@ -509,8 +525,7 @@ void BehavioralEntity::CompleteAction(int32_t action_id, int64_t action_token)
         ApplyCompletionEffects(action_id);
         memory.UpdateActionMemory(action_id, current_action_target_id, time_manager.GetCurrentTime());
 
-        // Reset current_action_target_id and current_action_id to invalid value.
-        current_action_target_id = -1;
+        // Reset and current_action_id to invalid value.
         current_action_id = -1;
         fallback_attempt_count = 0;
 
@@ -626,6 +641,7 @@ void BehavioralEntity::HandleNodeExecutionCompletion()
 
 std::optional<int32_t> BehavioralEntity::GetNodeIdForNextTransition()
 {
+    ZoneScoped;
 
     std::vector<Transition> transitions = sequences.top()->GetValidTransitionsFromCurrentNode();
 

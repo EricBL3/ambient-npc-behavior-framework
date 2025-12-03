@@ -94,6 +94,7 @@ public:
 
     std::vector<FrameworkEntity*> GetEntitiesSupportingAction(int32_t action_id) const override;
     FrameworkEntity* GetEntityFromId(int32_t entity_id) const override;
+    bool EntitySupportsAction(int32_t entity_id, int32_t action_id) const override;
 
     size_t GetSequencesCount() const
     { return sequences.size(); }
