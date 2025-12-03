@@ -1,4 +1,7 @@
 #pragma once
+#include <cstdint>
+#include <string>
+
 namespace AmbientCharacterBehavior {
 enum class RuntimeFailureReason {
     NODE_NOT_FOUND,
@@ -6,6 +9,7 @@ enum class RuntimeFailureReason {
     ENTITY_NOT_FOUND,
     SEQUENCE_NOT_FOUND,
     NO_VALID_ENTITIES,
+    NO_VALID_TRANSITIONS,
     PRECONDITIONS_FAILED,
     INVALID_NODE_TYPE,
     INTERRUPTION_NOT_FOUND,

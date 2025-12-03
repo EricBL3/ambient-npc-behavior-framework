@@ -142,11 +142,8 @@ private:
         FrameworkEntity* target_entity = nullptr);
 
     bool EvaluatePreconditions(const std::vector<StateOperation>* preconditions, FrameworkEntity* other);
-    std::vector<int32_t> GetValidEntityIds(const std::vector<FrameworkEntity*>& entities, const std::vector<StateOperation>* preconditions);
-    std::vector<int32_t> GetValidTransitionNodeIds(const std::vector<Transition> &transitions);
+    std::optional<int32_t> GetNodeIdForNextTransition();
 
     void HandleRuntimeFailure(const RuntimeFailureContext& context);
-
-    FrameworkEntity* SelectRandomEntity(const std::vector<FrameworkEntity*>& entities) const;
 };
 }

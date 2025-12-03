@@ -79,6 +79,9 @@ public:
     [[nodiscard]]
     bool HasActionMemory(int32_t action_id, int32_t target_entity_id) const { return FindActionMemory(action_id, target_entity_id) != nullptr; }
 
+    [[nodiscard]]
+    bool HasTransitionMemory(int32_t target_node_id) const { return FindTransitionMemory(target_node_id) != nullptr; }
+
 private:
 
     [[nodiscard]]

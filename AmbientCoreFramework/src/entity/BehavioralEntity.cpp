@@ -386,9 +386,10 @@ FrameworkEntity* BehavioralEntity::GetActionTargetEntity(const std::shared_ptr<A
     std::vector<FrameworkEntity*> entities = entity_query.GetEntitiesSupportingAction(action->GetActionId());
 
     auto preconditions = action->GetPreconditionsForTarget(StateOperationTarget::ENTITY);
-    std::vector<FrameworkEntity*> previously_used_entities;
+    std::vector<int32_t> previously_used_entities;
     previously_used_entities.reserve(entities.size());
 
+    // Explore unused entities first
     for (auto* entity : entities)
     {
         if (!EvaluatePreconditions(preconditions, entity))
@@ -403,29 +404,16 @@ FrameworkEntity* BehavioralEntity::GetActionTargetEntity(const std::shared_ptr<A
             return entity;
         }
 
-        previously_used_entities.push_back(entity);
+        previously_used_entities.push_back(entity->GetEntityId());
     }
     if (previously_used_entities.empty())
     {
         return nullptr;
     }
 
-    return SelectRandomEntity(previously_used_entities);
-}
+    auto selected_entity_id = memory.GetLeastRecentlyUsedEntityIdForAction(action->GetActionId(), previously_used_entities);
 
-std::vector<int32_t> BehavioralEntity::GetValidEntityIds(const std::vector<FrameworkEntity*>& entities, const std::vector<StateOperation>* preconditions)
-{
-    std::vector<int32_t> entity_ids;
-
-    for (auto entity : entities)
-    {
-        if (EvaluatePreconditions(preconditions, entity))
-        {
-            entity_ids.push_back(entity->GetEntityId());
-        }
-    }
-
-    return entity_ids;
+    return entity_query.GetEntityFromId(selected_entity_id);
 }
 
 BehavioralEntity::PreconditionValidation BehavioralEntity::ValidateActionPreconditions(
@@ -606,47 +594,69 @@ void BehavioralEntity::HandleNodeExecutionCompletion()
         return;
     }
 
-    current_node->MarkAsCompleted();
-
-    // Evaluate transitions
-    std::vector<Transition> transitions = sequences.top()->GetValidTransitionsFromCurrentNode();
-
-    // Filter to have only the nodes that can be transitioned to (precondition satisfaction)
-    std::vector<int32_t> node_ids = GetValidTransitionNodeIds(transitions);
-
-    // Select best node to transition to
-    auto selected_node_id = memory.GetLeastRecentlyVisitedNodeId(node_ids);
-    if (!sequences.top()->TrySetCurrentNode(selected_node_id))
+    auto selected_node_id = GetNodeIdForNextTransition();
+    if (!selected_node_id.has_value())
     {
         HandleRuntimeFailure({
-            .reason = RuntimeFailureReason::NODE_NOT_FOUND,
-            .node_id = selected_node_id,
+            .reason = RuntimeFailureReason::NO_VALID_TRANSITIONS,
+            .node_id = sequences.top()->GetCurrentNodeId(),
             .additional_info = "HandleNodeExecutionCompletion",
         });
 
         return;
     }
 
-    memory.UpdateTransitionMemory(selected_node_id, time_manager.GetCurrentTime());
+    if (!sequences.top()->TrySetCurrentNode(selected_node_id.value()))
+    {
+        HandleRuntimeFailure({
+            .reason = RuntimeFailureReason::NODE_NOT_FOUND,
+            .node_id = selected_node_id.value(),
+            .additional_info = "HandleNodeExecutionCompletion",
+        });
+
+        return;
+    }
+
+    current_node->MarkAsCompleted();
+    memory.UpdateTransitionMemory(selected_node_id.value(), time_manager.GetCurrentTime());
     sequences.top()->FindCurrentNode()->ResetCompletion();
     sequences.top()->SetSequenceState(SequenceState::PROCESSING_NODE);
     fallback_attempt_count = 0;
 }
 
-std::vector<int32_t> BehavioralEntity::GetValidTransitionNodeIds(const std::vector<Transition> &transitions)
+std::optional<int32_t> BehavioralEntity::GetNodeIdForNextTransition()
 {
-    std::vector<int32_t> node_ids;
 
+    std::vector<Transition> transitions = sequences.top()->GetValidTransitionsFromCurrentNode();
+
+    std::vector<int32_t> previously_used_transitions;
+    previously_used_transitions.reserve(transitions.size());
+
+    // Explore unused transitions first
     for (const auto& transition : transitions)
     {
-        if (EvaluatePreconditions(transition.GetPreconditionsForTarget(StateOperationTarget::SELF), nullptr) &&
-            EvaluatePreconditions(transition.GetPreconditionsForTarget(StateOperationTarget::ENVIRONMENT), nullptr))
+        if (!EvaluatePreconditions(transition.GetPreconditionsForTarget(StateOperationTarget::SELF), nullptr) ||
+            !EvaluatePreconditions(transition.GetPreconditionsForTarget(StateOperationTarget::ENVIRONMENT), nullptr))
         {
-            node_ids.push_back(transition.GetDestinationNodeId());
+            // skip invalid transitions
+            continue;
         }
+
+        // Perfect match is a transition that doesn't exist in the transition memory of the character
+        if (!memory.HasTransitionMemory(transition.GetDestinationNodeId()))
+        {
+            return transition.GetDestinationNodeId();
+        }
+
+        previously_used_transitions.push_back(transition.GetDestinationNodeId());
     }
 
-    return node_ids;
+    if (previously_used_transitions.empty())
+    {
+        return std::nullopt;
+    }
+
+    return memory.GetLeastRecentlyVisitedNodeId(previously_used_transitions);
 }
 
 void BehavioralEntity::HandleSequenceFailure()
@@ -929,6 +939,9 @@ void BehavioralEntity::HandleRuntimeFailure(const RuntimeFailureContext &context
         case RuntimeFailureReason::NO_VALID_ENTITIES:
             reason_str = "No valid entities for action (ID: " + std::to_string(context.action_id) + ")";
             break;
+        case RuntimeFailureReason::NO_VALID_TRANSITIONS:
+            reason_str = "No valid transitions found from node " + std::to_string(context.node_id);
+            break;
         case RuntimeFailureReason::PRECONDITIONS_FAILED:
             reason_str = "Preconditions failed";
             break;
@@ -950,14 +963,4 @@ void BehavioralEntity::HandleRuntimeFailure(const RuntimeFailureContext &context
     if (context.should_stop_processing) {
         is_processing = false;
     }
-}
-
-FrameworkEntity * BehavioralEntity::SelectRandomEntity(const std::vector<FrameworkEntity *> &entities) const
-{
-    if (entities.empty())
-    {
-        return nullptr;
-    }
-
-    return entities[rand() % entities.size()];
 }
