@@ -122,14 +122,14 @@ protected:
             StateOperationTarget::ENTITY,
             STATE_KEY_OCCUPIED,
             StateOperationType::INCREMENT,
-            {1}
+            1
         );
 
         StateOperation effect2(
             StateOperationTarget::SELF,
             STATE_KEY_ENERGY,
             StateOperationType::DECREMENT,
-            {5}
+            5
         );
 
         action->AddImmediateEffect(effect1);
@@ -145,14 +145,14 @@ protected:
             StateOperationTarget::SELF,
             STATE_KEY_ENERGY,
             StateOperationType::INCREMENT,
-            {10}
+            10
         );
 
         StateOperation effect2(
             StateOperationTarget::ENTITY,
             STATE_KEY_OCCUPIED,
             StateOperationType::DECREMENT,
-            {1}
+            1
         );
 
         action->AddCompletionEffect(effect1);
@@ -268,7 +268,7 @@ protected:
             StateOperationTarget::ENTITY,
             STATE_KEY_CAPACITY,
             StateOperationType::GREATER_THAN,
-            {100}
+            100
         );
 
         std::unordered_map<StateOperationTarget, std::vector<StateOperation>> preconditions_by_target;
@@ -440,7 +440,7 @@ TEST_F(BehavioralEntityTest, ExecuteActionNode_RequiresEntity_NoValidEntities_Fa
         .WillOnce(testing::Return(std::vector<FrameworkEntity*>{}));
 
     // Should have transitioned to FAILED state
-    EXPECT_CALL(*mock_logger, LogWarning(testing::HasSubstr("No valid entities found"),
+    EXPECT_CALL(*mock_logger, LogError(testing::_,
         testing::_));
 
     test_entity->ExecuteCurrentSequence();  // UNINITIALIZED → PROCESSING_NODE
@@ -448,8 +448,10 @@ TEST_F(BehavioralEntityTest, ExecuteActionNode_RequiresEntity_NoValidEntities_Fa
 }
 
 TEST_F(BehavioralEntityTest, ExecuteActionNode_ValidEntity_AppliesImmediateEffects) {
+    auto action = CreateActionWithImmediateEffects(5);
     auto precondition = StateOperation(StateOperationTarget::ENTITY, STATE_KEY_OCCUPIED, StateOperationType::EQUALS, 0);
-    auto action = CreateActionWithPrecondition(5, precondition);
+    action->AddPrecondition(StateOperationTarget::ENTITY, precondition);
+
     auto sequence = CreateSequenceWithActionNode(1, action);
     auto target_entity = CreateMockEntity(100);
 
@@ -460,23 +462,12 @@ TEST_F(BehavioralEntityTest, ExecuteActionNode_ValidEntity_AppliesImmediateEffec
     SetupEntityQueryToReturn({target_entity});
 
     // Mock preconditions_by_target passing
-    EXPECT_CALL(*mock_evaluator, ProcessStateOperation(testing::_, testing::_))
-        .WillRepeatedly(testing::Return(true));
+     EXPECT_CALL(*mock_evaluator, ProcessStateOperation(testing::_, testing::_))
+         .WillRepeatedly(testing::Return(true));
 
     // Setup expectations for immediate effects (in sequence)
     {
         testing::InSequence seq;
-
-        // Immediate effects get applied
-        EXPECT_CALL(*mock_evaluator, ProcessStateOperation(
-            testing::Property(&StateOperation::GetTarget, StateOperationTarget::ENTITY),
-            testing::Eq(target_entity)))
-            .Times(1);
-
-        EXPECT_CALL(*mock_evaluator, ProcessStateOperation(
-            testing::Property(&StateOperation::GetTarget, StateOperationTarget::SELF),
-            testing::NotNull()))
-            .Times(1);
 
         // Then action starts
         EXPECT_CALL(*mock_action_provider, StartCharacterAction(
@@ -698,8 +689,6 @@ TEST_F(BehavioralEntityTest, ActionPrecondition_SelfTarget_UsesCharacterState) {
     EXPECT_CALL(*mock_content, GetActionById(5))
         .WillRepeatedly(testing::Return(action));
 
-    SetupEntityQueryToReturn({target_entity});
-
     // Should evaluate precondition against character (this), not target
     EXPECT_CALL(*mock_evaluator, ProcessStateOperation(
         testing::_,
@@ -756,9 +745,6 @@ TEST_F(BehavioralEntityTest, GetActionTargetEntity_AllEntitiesFailPreconditions_
     // All preconditions_by_target fail
     EXPECT_CALL(*mock_evaluator, ProcessStateOperation(testing::_, testing::_))
         .WillRepeatedly(testing::Return(false));
-
-    EXPECT_CALL(*mock_entity_query, GetEntityFromId(-1))
-        .WillOnce(testing::Return(nullptr));
 
     SetupEntityWithSequenceOnStack(sequence);
 

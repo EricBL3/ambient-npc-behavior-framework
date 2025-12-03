@@ -175,7 +175,7 @@ void BehavioralEntity::ProcessCurrentNode()
     logger.LogInfo("Processing current node for entity: " + std::to_string(entity_id),
         "ProcessCurrentNode");
 
-    const auto current_node = TryGetCurrentNode("ProcessCurrentNode");
+    const auto current_node = sequences.top()->FindCurrentNode();
     if (!current_node)
     {
         HandleRuntimeFailure({
@@ -188,22 +188,6 @@ void BehavioralEntity::ProcessCurrentNode()
     }
 
     ExecuteCurrentNode(current_node);
-}
-
-SequenceNode* BehavioralEntity::TryGetCurrentNode(const std::string& context)
-{
-    ZoneScoped;
-
-    auto current_node = sequences.top()->FindCurrentNode();
-
-    //todo: check if I can remove with new failure handling
-    if (!current_node)
-    {
-        logger.LogError("Could not find the current node with id: " + std::to_string(sequences.top()->GetCurrentNodeId()),
-            context);
-    }
-
-    return current_node;
 }
 
 void BehavioralEntity::ExecuteCurrentNode(const SequenceNode* current_node)
@@ -271,8 +255,7 @@ void BehavioralEntity::ExecuteNestedSequenceNode(const SequenceNode* current_nod
 
     sequences.top()->SetSequenceState(SequenceState::IN_SUBSEQUENCE);
 
-    auto nested_sequence = TryGetSequence(nested_sequence_node->GetTargetSequenceId(), "ExecuteNestedSequenceNode");
-
+    auto nested_sequence = content_provider.GetSequenceById(nested_sequence_node->GetTargetSequenceId());
     if (!nested_sequence)
     {
         HandleRuntimeFailure({
@@ -303,6 +286,7 @@ void BehavioralEntity::ExecuteActionNode(const SequenceNode* current_node)
 {
     ZoneScoped;
 
+    // 1. Find action
     auto action = LookupActionFromCurrentNode(current_node);
     if (!action)
     {
@@ -313,7 +297,21 @@ void BehavioralEntity::ExecuteActionNode(const SequenceNode* current_node)
         return;
     }
 
-    // Acquire target entity
+    // 2. Check SELF and ENVIRONMENT preconditions
+    auto validation = ValidateActionPreconditions(action);
+    if (!validation.Passed())
+    {
+        HandleRuntimeFailure({
+            .reason = RuntimeFailureReason::PRECONDITIONS_FAILED,
+            .action_id = action->GetActionId(),
+            .additional_info = validation.failed_target.has_value() ?
+                "Failed " + ToString(validation.failed_target.value()) + " preconditions" : ""
+        });
+
+        return;
+    }
+
+    // 3. Acquire target entity
     FrameworkEntity* target_entity = nullptr;
     if (action->GetRequiresTargetEntity())
     {
@@ -331,6 +329,7 @@ void BehavioralEntity::ExecuteActionNode(const SequenceNode* current_node)
         }
     }
 
+    // 4. Execute action
     InitiateActionExecution(action, target_entity);
 }
 
@@ -347,7 +346,7 @@ std::shared_ptr<Action> BehavioralEntity::LookupActionFromCurrentNode(const Sequ
         return nullptr;
     }
 
-    return TryGetAction(action_sequence_node->GetTargetActionId(),"ExecuteActionNode");
+    return content_provider.GetActionById(action_sequence_node->GetTargetActionId());
 }
 
 void BehavioralEntity::InitiateActionExecution(const std::shared_ptr<Action>& action, FrameworkEntity* target_entity, bool apply_immediate_effects)
@@ -384,20 +383,20 @@ FrameworkEntity* BehavioralEntity::GetActionTargetEntity(const std::shared_ptr<A
 {
     ZoneScoped;
 
-    FrameworkEntity* target_entity = nullptr;
-
     // Evaluate entities
     std::vector<FrameworkEntity*> entities = entity_query.GetEntitiesSupportingAction(action->GetActionId());
 
     // Filter to have only the entities that can be done (precondition satisfaction)
     std::vector<int32_t> entity_ids = GetValidEntityIds(entities, action->GetPreconditionsForTarget(StateOperationTarget::ENTITY));
 
+    if (entity_ids.empty())
+    {
+        return nullptr;
+    }
 
     // Select best entity
     auto selected_entity_id = memory.GetLeastRecentlyUsedEntityIdForAction(action->GetActionId(), entity_ids);
-    target_entity = entity_query.GetEntityFromId(selected_entity_id);
-
-    return target_entity;
+    return entity_query.GetEntityFromId(selected_entity_id);
 }
 
 std::vector<int32_t> BehavioralEntity::GetValidEntityIds(const std::vector<FrameworkEntity*>& entities, const std::vector<StateOperation>* preconditions)
@@ -413,6 +412,32 @@ std::vector<int32_t> BehavioralEntity::GetValidEntityIds(const std::vector<Frame
     }
 
     return entity_ids;
+}
+
+BehavioralEntity::PreconditionValidation BehavioralEntity::ValidateActionPreconditions(
+    const std::shared_ptr<Action> &action, FrameworkEntity *target_entity)
+{
+    ZoneScoped;
+
+    if (!EvaluatePreconditions(action->GetPreconditionsForTarget(StateOperationTarget::SELF), nullptr))
+    {
+        return { false, StateOperationTarget::SELF};
+    }
+
+    if (!EvaluatePreconditions(action->GetPreconditionsForTarget(StateOperationTarget::ENVIRONMENT), nullptr))
+    {
+        return { false, StateOperationTarget::ENVIRONMENT};
+    }
+
+    if (target_entity)
+    {
+        if (!EvaluatePreconditions(action->GetPreconditionsForTarget(StateOperationTarget::ENTITY), target_entity))
+        {
+            return { false, StateOperationTarget::ENTITY};
+        }
+    }
+
+    return { true, StateOperationTarget::SELF };
 }
 
 bool BehavioralEntity::EvaluatePreconditions(const std::vector<StateOperation>* preconditions, FrameworkEntity* other)
@@ -504,7 +529,7 @@ void BehavioralEntity::CompleteAction(int32_t action_id, int64_t action_token)
 
 void BehavioralEntity::ApplyCompletionEffects(int32_t action_id)
 {
-    auto action = TryGetAction(action_id, "ApplyCompletionEffects");
+    auto action = content_provider.GetActionById(action_id);
     if (!action)
     {
         HandleRuntimeFailure({
@@ -519,7 +544,7 @@ void BehavioralEntity::ApplyCompletionEffects(int32_t action_id)
     FrameworkEntity* target_entity = nullptr;
     if (action->GetRequiresTargetEntity())
     {
-        target_entity = TryGetEntity(current_action_target_id, "ApplyCompletionEffects");
+        target_entity = entity_query.GetEntityFromId(current_action_target_id);
         if (!target_entity)
         {
             HandleRuntimeFailure({
@@ -555,7 +580,7 @@ void BehavioralEntity::HandleNodeExecutionCompletion()
 {
     ZoneScoped;
 
-    auto current_node = TryGetCurrentNode("HandleNodeExecutionCompletion");
+    auto current_node = sequences.top()->FindCurrentNode();
     if (!current_node)
     {
         HandleRuntimeFailure({
@@ -662,11 +687,14 @@ void BehavioralEntity::HandleInterruptionRecovery()
         logger.LogInfo("Checking if action " + std::to_string(current_action_id) + " is resumable for entity " +
             std::to_string(entity_id), "HandleInterruptionRecovery");
 
-        auto action = TryGetAction(current_action_id, "HandleInterruptionRecovery");
-
+        auto action = content_provider.GetActionById(current_action_id);
         if (!action)
         {
-            HandleSequenceFailure();
+            HandleRuntimeFailure({
+                .reason = RuntimeFailureReason::ACTION_NOT_FOUND,
+                .action_id = current_action_id,
+                .additional_info = "HandleInterruptionRecovery",
+            });
             return;
         }
 
@@ -684,7 +712,7 @@ void BehavioralEntity::HandleInterruptionRecovery()
 
 int32_t BehavioralEntity::RecoverCurrentActionId()
 {
-    const auto current_node = TryGetCurrentNode("HandleInterruptionRecovery");
+    const auto current_node = sequences.top()->FindCurrentNode();
     if (!current_node)
     {
         logger.LogError("Cannot recover action ID - no current node",
@@ -730,7 +758,7 @@ void BehavioralEntity::AttemptActionResumption()
         return;
     }
 
-    auto action = TryGetAction(interruption_memory->GetInterruptedActionId(),"AttemptActionResumption");
+    auto action = content_provider.GetActionById(interruption_memory->GetInterruptedActionId());
     if (!action)
     {
         memory.RemoveInterruptionMemory(interruption_memory);
@@ -771,7 +799,7 @@ bool BehavioralEntity::ValidateResumptionContext(const std::shared_ptr<Action>& 
         return true;
     }
 
-    auto target_entity = TryGetEntity(target_entity_id, "ValidateResumptionContext");
+    auto target_entity = entity_query.GetEntityFromId(target_entity_id);
     if (!target_entity)
     {
         return false;
@@ -792,7 +820,7 @@ void BehavioralEntity::ResumeActionWithSavedContext(const std::shared_ptr<Action
     FrameworkEntity* target_entity = nullptr;
     if (action->GetRequiresTargetEntity())
     {
-        target_entity = TryGetEntity(interruption_memory->GetInterruptedTargetEntityId(), "ResumeActionWithSavedContext");
+        target_entity = entity_query.GetEntityFromId(interruption_memory->GetInterruptedTargetEntityId());
         if (!target_entity)
         {
             HandleRuntimeFailure({
@@ -813,10 +841,12 @@ void BehavioralEntity::ProcessInterruption(int32_t interruption_id)
     // Check handler exists
     if (!interruption_handlers.contains(interruption_id))
     {
-        logger.LogError("Could not find interruption handler with id: " + std::to_string(interruption_id),
-            "ProcessInterruption");
+        HandleRuntimeFailure({
+            .reason = RuntimeFailureReason::INTERRUPTION_NOT_FOUND,
+            .interruption_id = interruption_id,
+            .additional_info = "ProcessInterruption"
+        });
 
-        HandleSequenceFailure();
         return;
     }
 
@@ -829,10 +859,15 @@ void BehavioralEntity::ProcessInterruption(int32_t interruption_id)
     // Context preservation
     if (sequences.top()->GetSequenceState() == SequenceState::WAITING_FOR_ACTION)
     {
-        auto action = TryGetAction(current_action_id, "ProcessInterruption");
+        auto action = content_provider.GetActionById(current_action_id);
         if (!action)
         {
-            HandleSequenceFailure();
+            HandleRuntimeFailure({
+                .reason = RuntimeFailureReason::ACTION_NOT_FOUND,
+                .action_id = current_action_id,
+                .additional_info = "ProcessInterruption"
+            });
+
             return;
         }
 
@@ -853,45 +888,6 @@ void BehavioralEntity::ProcessInterruption(int32_t interruption_id)
 
     // Response sequence activation
     sequences.push(sequence);
-}
-
-std::shared_ptr<Action> BehavioralEntity::TryGetAction(int32_t action_id, const std::string &context) const
-{
-    auto action = content_provider.GetActionById(action_id);
-    if (!action)
-    {
-        //todo: check if I can remove with new failure handling
-        logger.LogError(
-            "Could not find action with id: " + std::to_string(action_id),
-            context);
-    }
-    return action;
-}
-
-FrameworkEntity* BehavioralEntity::TryGetEntity(int32_t entity_id, const std::string& context) const
-{
-    auto entity = entity_query.GetEntityFromId(entity_id);
-    if (!entity)
-    {
-        //todo: check if I can remove with new failure handling
-        logger.LogError(
-            "Could not find entity with id: " + std::to_string(entity_id),
-            context);
-    }
-    return entity;
-}
-
-std::shared_ptr<Sequence> BehavioralEntity::TryGetSequence(int32_t sequence_id, const std::string& context) const
-{
-    auto sequence = content_provider.GetSequenceById(sequence_id);
-    if (!sequence)
-    {
-        //todo: check if I can remove with new failure handling
-        logger.LogError(
-            "Could not find sequence with id: " + std::to_string(sequence_id),
-            context);
-    }
-    return sequence;
 }
 
 void BehavioralEntity::HandleRuntimeFailure(const RuntimeFailureContext &context)
@@ -925,8 +921,9 @@ void BehavioralEntity::HandleRuntimeFailure(const RuntimeFailureContext &context
         case RuntimeFailureReason::INVALID_NODE_TYPE:
             reason_str = "Invalid node type";
             break;
-        case RuntimeFailureReason::INVALID_RESUMPTION_CONTEXT:
-            reason_str = "Cannot resume action in current context";
+        case RuntimeFailureReason::INTERRUPTION_NOT_FOUND:
+            reason_str = "Interruption not found " + (context.interruption_id > -1 ? " (ID: " + std::to_string(context.interruption_id) + ")"
+                : "");
             break;
     }
 

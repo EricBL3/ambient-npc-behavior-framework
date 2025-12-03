@@ -104,7 +104,6 @@ private:
 
     void ExecuteSequenceStep(SequenceState sequence_state);
     void ProcessCurrentNode();
-    SequenceNode* TryGetCurrentNode(const std::string& context);
 
     void ExecuteCurrentNode(const SequenceNode* current_node);
 
@@ -132,13 +131,19 @@ private:
     bool CompletedCurrentAction(int32_t action_id, int64_t action_token) const;
     void ApplyCompletionEffects(int32_t action_id);
 
+    struct PreconditionValidation {
+        bool precondition_passed;
+        std::optional<StateOperationTarget> failed_target;
+
+        bool Passed() const { return precondition_passed; }
+    };
+
+    PreconditionValidation ValidateActionPreconditions(const std::shared_ptr<Action>& action,
+        FrameworkEntity* target_entity = nullptr);
+
     bool EvaluatePreconditions(const std::vector<StateOperation>* preconditions, FrameworkEntity* other);
     std::vector<int32_t> GetValidEntityIds(const std::vector<FrameworkEntity*>& entities, const std::vector<StateOperation>* preconditions);
     std::vector<int32_t> GetValidTransitionNodeIds(const std::vector<Transition> &transitions);
-
-    std::shared_ptr<Action> TryGetAction(int32_t action_id, const std::string& context) const;
-    FrameworkEntity* TryGetEntity(int32_t entity_id, const std::string& context) const;
-    std::shared_ptr<Sequence> TryGetSequence(int32_t sequence_id, const std::string& context) const;
 
     void HandleRuntimeFailure(const RuntimeFailureContext& context);
 };

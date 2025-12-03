@@ -8,7 +8,7 @@ enum class RuntimeFailureReason {
     NO_VALID_ENTITIES,
     PRECONDITIONS_FAILED,
     INVALID_NODE_TYPE,
-    INVALID_RESUMPTION_CONTEXT
+    INTERRUPTION_NOT_FOUND,
 };
 
 struct RuntimeFailureContext {
@@ -17,6 +17,7 @@ struct RuntimeFailureContext {
     int32_t entity_id = -1;
     int32_t node_id = -1;
     int32_t sequence_id = -1;
+    int32_t interruption_id = -1;
     std::string additional_info;
     bool should_stop_processing = false;
 };
