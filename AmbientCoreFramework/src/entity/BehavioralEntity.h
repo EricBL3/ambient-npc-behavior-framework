@@ -146,5 +146,7 @@ private:
     std::vector<int32_t> GetValidTransitionNodeIds(const std::vector<Transition> &transitions);
 
     void HandleRuntimeFailure(const RuntimeFailureContext& context);
+
+    FrameworkEntity* SelectRandomEntity(const std::vector<FrameworkEntity*>& entities) const;
 };
 }

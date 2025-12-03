@@ -76,6 +76,9 @@ public:
     size_t GetActionMemoryCount() const;
     size_t GetInterruptionMemoryCount() const;
 
+    [[nodiscard]]
+    bool HasActionMemory(int32_t action_id, int32_t target_entity_id) const { return FindActionMemory(action_id, target_entity_id) != nullptr; }
+
 private:
 
     [[nodiscard]]

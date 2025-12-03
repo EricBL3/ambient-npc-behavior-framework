@@ -383,20 +383,34 @@ FrameworkEntity* BehavioralEntity::GetActionTargetEntity(const std::shared_ptr<A
 {
     ZoneScoped;
 
-    // Evaluate entities
     std::vector<FrameworkEntity*> entities = entity_query.GetEntitiesSupportingAction(action->GetActionId());
 
-    // Filter to have only the entities that can be done (precondition satisfaction)
-    std::vector<int32_t> entity_ids = GetValidEntityIds(entities, action->GetPreconditionsForTarget(StateOperationTarget::ENTITY));
+    auto preconditions = action->GetPreconditionsForTarget(StateOperationTarget::ENTITY);
+    std::vector<FrameworkEntity*> previously_used_entities;
+    previously_used_entities.reserve(entities.size());
 
-    if (entity_ids.empty())
+    for (auto* entity : entities)
+    {
+        if (!EvaluatePreconditions(preconditions, entity))
+        {
+            // skip invalid entities
+            continue;
+        }
+
+        // Perfect match is an entity that doesn't exist in the action memory of the character
+        if (!memory.HasActionMemory(action->GetActionId(), entity->GetEntityId()))
+        {
+            return entity;
+        }
+
+        previously_used_entities.push_back(entity);
+    }
+    if (previously_used_entities.empty())
     {
         return nullptr;
     }
 
-    // Select best entity
-    auto selected_entity_id = memory.GetLeastRecentlyUsedEntityIdForAction(action->GetActionId(), entity_ids);
-    return entity_query.GetEntityFromId(selected_entity_id);
+    return SelectRandomEntity(previously_used_entities);
 }
 
 std::vector<int32_t> BehavioralEntity::GetValidEntityIds(const std::vector<FrameworkEntity*>& entities, const std::vector<StateOperation>* preconditions)
@@ -437,7 +451,7 @@ BehavioralEntity::PreconditionValidation BehavioralEntity::ValidateActionPrecond
         }
     }
 
-    return { true, StateOperationTarget::SELF };
+    return { true, std::nullopt };
 }
 
 bool BehavioralEntity::EvaluatePreconditions(const std::vector<StateOperation>* preconditions, FrameworkEntity* other)
@@ -936,4 +950,14 @@ void BehavioralEntity::HandleRuntimeFailure(const RuntimeFailureContext &context
     if (context.should_stop_processing) {
         is_processing = false;
     }
+}
+
+FrameworkEntity * BehavioralEntity::SelectRandomEntity(const std::vector<FrameworkEntity *> &entities) const
+{
+    if (entities.empty())
+    {
+        return nullptr;
+    }
+
+    return entities[rand() % entities.size()];
 }
