@@ -962,7 +962,7 @@ void BehavioralEntity::ProcessInterruption(int32_t interruption_id)
     sequences.top()->SetSequenceState(SequenceState::INTERRUPTED);
 
     // Response sequence activation
-    sequences.push(sequence);
+    sequences.push(sequence->CreateInstance());
 }
 
 void BehavioralEntity::HandleRuntimeFailure(const RuntimeFailureContext &context)
