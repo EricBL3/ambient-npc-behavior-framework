@@ -387,19 +387,6 @@ FrameworkEntity* BehavioralEntity::GetActionTargetEntity(const std::shared_ptr<A
 {
     ZoneScoped;
 
-    // Context Persistence by checking if current target entity is still valid
-    if( current_action_target_id >= 0 &&
-        entity_query.EntitySupportsAction(current_action_target_id, action->GetActionId()))
-    {
-        auto* current_entity = entity_query.GetEntityFromId(current_action_target_id);
-
-        if (current_entity &&
-            EvaluatePreconditions(action->GetPreconditionsForTarget(StateOperationTarget::ENTITY), current_entity))
-        {
-            return current_entity;
-        }
-    }
-
     std::vector<FrameworkEntity*> entities = entity_query.GetEntitiesSupportingAction(action->GetActionId());
     auto preconditions = action->GetPreconditionsForTarget(StateOperationTarget::ENTITY);
 
