@@ -1,6 +1,7 @@
 #pragma once
 #include <optional>
 
+#include "services/interfaces/IEntityPositionManager.h"
 #include "services/interfaces/IEnvironmentalConditionManager.h"
 #include "services/interfaces/IFrameworkSchemaManager.h"
 #include "services/interfaces/ILogger.h"
@@ -12,11 +13,13 @@ private:
     ILogger& logger;
     IFrameworkSchemaManager& schema_manager;
     IEnvironmentalConditionManager& environment_manager;
+    IEntityPositionManager& entity_position_manager;
 
 public:
     explicit StateOperationEvaluator(ILogger& logger, IFrameworkSchemaManager& schema_manager,
-        IEnvironmentalConditionManager& environment_manager) :
-        logger(logger), schema_manager(schema_manager), environment_manager(environment_manager) {}
+        IEnvironmentalConditionManager& environment_manager, IEntityPositionManager& entity_position_manager) :
+        logger(logger), schema_manager(schema_manager), environment_manager(environment_manager),
+        entity_position_manager(entity_position_manager) {}
 
     /**
      * @return For comparisons, the condition result. For modifications, the success status.

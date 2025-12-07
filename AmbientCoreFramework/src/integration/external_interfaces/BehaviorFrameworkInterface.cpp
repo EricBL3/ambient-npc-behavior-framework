@@ -9,13 +9,15 @@ using namespace AmbientCharacterBehavior;
 
 extern "C" {
     AmbientCoreFramework_API void * CreateAmbientBehaviorFramework(QueryEnvironmentalConditionFn env_callback,
-        StartCharacterActionFn start_action_callback)
+        StartCharacterActionFn start_action_callback, QueryEntityPositionFn query_position_callback)
     {
         ZoneScoped;
 
         try
         {
-            auto framework = ServiceBuilder::CreateBehaviorFramework(env_callback, start_action_callback);
+            auto framework = ServiceBuilder::CreateBehaviorFramework(
+                env_callback, start_action_callback, query_position_callback);
+
             return framework.release();
         }
         catch (...)

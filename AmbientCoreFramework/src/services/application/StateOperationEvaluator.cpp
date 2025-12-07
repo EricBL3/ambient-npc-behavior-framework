@@ -116,8 +116,10 @@ std::optional<int32_t> StateOperationEvaluator::GetStateOperationValue(StateOper
             case StateOperationTarget::ENTITY:
                 return context.target_entity->GetStateValue(state_key);
             case StateOperationTarget::DISTANCE_TO_ENTITY:
-                //todo: add evaluation to distance from position manager
-                break;
+                return entity_position_manager.CalculateDistance(
+                    context.self_entity->GetEntityHandle(),
+                    context.target_entity->GetEntityHandle()
+                );
         }
     }
     catch (std::exception& e)

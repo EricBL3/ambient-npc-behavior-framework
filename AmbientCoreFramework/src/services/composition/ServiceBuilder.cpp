@@ -2,10 +2,12 @@
 
 #include "services/application/StateOperationEvaluator.h"
 #include "services/configuration/JsonLoader.h"
+#include "services/core/EntityPositionProvider.h"
 #include "services/core/EnvironmentalConditionProvider.h"
 #include "services/core/FrameworkLogger.h"
 #include "services/core/StartCharacterActionProvider.h"
 #include "services/core/TimeManager.h"
+#include "services/domain/EntityPositionManager.h"
 #include "services/domain/EnvironmentalConditionManager.h"
 #include "services/domain/FrameworkSchemaManager.h"
 #include "services/registry/FrameworkRegistry.h"
@@ -42,19 +44,30 @@ ServiceBuilder& ServiceBuilder::WithStartCharacterActionCallback(StartCharacterA
     return *this;
 }
 
+ServiceBuilder & ServiceBuilder::WithQueryEntityPositionCallback(QueryEntityPositionFn callback)
+{
+    if (!callback) {
+        throw std::invalid_argument("Query entity position callback cannot be null");
+    }
+    query_entity_pos_callback = callback;
+    return *this;
+}
+
 ServiceBuilder & ServiceBuilder::WithProviders()
 {
     EnsureCoreServices();
 
-    if (!query_env_callback || !start_action_callback) {
+    if (!query_env_callback || !start_action_callback || !query_entity_pos_callback) {
         throw std::runtime_error(
             "Callbacks must be set before creating providers. "
-            "Call WithQueryEnvironmentalConditionCallback() and "
+            "Call WithQueryEnvironmentalConditionCallback(), "
+            "WithQueryEntityPositionCallback() and "
             "WithStartCharacterActionCallback() first.");
     }
 
     environmental_condition_provider = std::make_unique<EnvironmentalConditionProvider>(query_env_callback);
     start_character_action_provider = std::make_unique<StartCharacterActionProvider>(start_action_callback);
+    entity_pos_provider = std::make_unique<EntityPositionProvider>(query_entity_pos_callback);
 
     return *this;
 }
@@ -75,6 +88,15 @@ ServiceBuilder & ServiceBuilder::WithEnvironmentalConditionManager()
     return *this;
 }
 
+ServiceBuilder & ServiceBuilder::WithEntityPositionManager()
+{
+    EnsureConfigurationServices();
+    entity_position_manager = std::make_unique<EntityPositionManager>(*logger, *time_manager,
+        *entity_pos_provider);
+
+    return *this;
+}
+
 ServiceBuilder & ServiceBuilder::WithSchemaManager()
 {
     EnsureConfigurationServices();
@@ -86,7 +108,7 @@ ServiceBuilder & ServiceBuilder::WithStateOperationEvaluator()
 {
     EnsureDomainServices();
     state_operation_evaluator = std::make_unique<StateOperationEvaluator>(*logger, *schema_manager,
-        *environmental_condition_manager);
+        *environmental_condition_manager, *entity_position_manager);
 
     return *this;
 }
@@ -110,8 +132,10 @@ std::unique_ptr<ApplicationContext> ServiceBuilder::Build()
         std::move(time_manager),
         std::move(environmental_condition_provider),
         std::move(start_character_action_provider),
+        std::move(entity_pos_provider),
         std::move(json_loader),
         std::move(environmental_condition_manager),
+        std::move(entity_position_manager),
         std::move(schema_manager),
         std::move(state_operation_evaluator),
         std::move(registry)
@@ -119,9 +143,9 @@ std::unique_ptr<ApplicationContext> ServiceBuilder::Build()
 }
 
 std::unique_ptr<ApplicationContext> ServiceBuilder::CreateApplicationContext(QueryEnvironmentalConditionFn query_callback,
-    StartCharacterActionFn start_action_callback)
+    StartCharacterActionFn start_action_callback, QueryEntityPositionFn query_position_callback)
 {
-    if (!query_callback || !start_action_callback) {
+    if (!query_callback || !start_action_callback || !query_position_callback) {
         throw std::invalid_argument(
             "CreateApplicationContext: Callbacks cannot be null");
     }
@@ -131,9 +155,11 @@ std::unique_ptr<ApplicationContext> ServiceBuilder::CreateApplicationContext(Que
         .WithTimeManager(std::make_unique<TimeManager>())
         .WithQueryEnvironmentalConditionCallback(query_callback)
         .WithStartCharacterActionCallback(start_action_callback)
+        .WithQueryEntityPositionCallback(query_position_callback)
         .WithProviders()
         .WithJsonLoader()
         .WithEnvironmentalConditionManager()
+        .WithEntityPositionManager()
         .WithSchemaManager()
         .WithStateOperationEvaluator()
         .WithFrameworkRegistry()
@@ -141,9 +167,9 @@ std::unique_ptr<ApplicationContext> ServiceBuilder::CreateApplicationContext(Que
 }
 
 std::unique_ptr<BehaviorFramework> ServiceBuilder::CreateBehaviorFramework(QueryEnvironmentalConditionFn query_callback,
-    StartCharacterActionFn start_action_callback)
+    StartCharacterActionFn start_action_callback, QueryEntityPositionFn query_position_callback)
 {
-    return std::make_unique<BehaviorFramework>(CreateApplicationContext(query_callback, start_action_callback));
+    return std::make_unique<BehaviorFramework>(CreateApplicationContext(query_callback, start_action_callback, query_position_callback));
 }
 
 void ServiceBuilder::EnsureCoreServices() const
@@ -157,7 +183,7 @@ void ServiceBuilder::EnsureCoreServices() const
 void ServiceBuilder::EnsureProvidersConfigured() const
 {
     EnsureCoreServices();
-    if (!environmental_condition_provider || !start_character_action_provider)
+    if (!environmental_condition_provider || !start_character_action_provider || !entity_pos_provider)
     {
         throw std::runtime_error("Providers must be configured first. Call WithProviders()");
     }
@@ -175,7 +201,7 @@ void ServiceBuilder::EnsureConfigurationServices() const
 void ServiceBuilder::EnsureDomainServices() const
 {
     EnsureConfigurationServices();
-    if (!environmental_condition_manager || !schema_manager)
+    if (!environmental_condition_manager || !entity_position_manager || !schema_manager)
     {
         throw std::runtime_error("Domain services must be configured first");
     }

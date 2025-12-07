@@ -1,5 +1,7 @@
 #pragma once
 #include "services/interfaces/IContentProvider.h"
+#include "services/interfaces/IEntityPositionManager.h"
+#include "services/interfaces/IEntityPositionProvider.h"
 #include "services/interfaces/IEntityQuery.h"
 #include "services/interfaces/IEntityRegistry.h"
 #include "services/interfaces/IEnvironmentalConditionManager.h"
@@ -18,11 +20,14 @@ struct CoreServices {
     ITimeManager& time_manager;
     IEnvironmentalConditionProvider& environmental_condition_provider;
     IStartCharacterActionProvider& start_character_action_provider;
+    IEntityPositionProvider& entity_position_provider;
 
     CoreServices(ILogger& logger, ITimeManager& time_manager,
-        IEnvironmentalConditionProvider& environmental_condition_provider, IStartCharacterActionProvider& start_character_action_provider) :
+        IEnvironmentalConditionProvider& environmental_condition_provider,
+        IStartCharacterActionProvider& start_character_action_provider, IEntityPositionProvider& entity_position_provider) :
         logger(logger), time_manager(time_manager), environmental_condition_provider(environmental_condition_provider),
-        start_character_action_provider(start_character_action_provider){}
+        start_character_action_provider(start_character_action_provider),
+        entity_position_provider(entity_position_provider){}
 };
 
 struct ConfigurationServices {
@@ -36,11 +41,15 @@ struct ConfigurationServices {
 struct DomainServices {
     ConfigurationServices& configuration_services;
     IEnvironmentalConditionManager& environmental_condition_manager;
+    IEntityPositionManager& entity_position_manager;
     IFrameworkSchemaManager& schema_manager;
 
     DomainServices(ConfigurationServices& configuration_services, IEnvironmentalConditionManager& environmental_condition_manager,
-        IFrameworkSchemaManager& schema_manager) : configuration_services(configuration_services),
-        environmental_condition_manager(environmental_condition_manager), schema_manager(schema_manager) {}
+        IEntityPositionManager& entity_position_manager, IFrameworkSchemaManager& schema_manager) :
+        configuration_services(configuration_services),
+        environmental_condition_manager(environmental_condition_manager),
+        entity_position_manager(entity_position_manager),
+        schema_manager(schema_manager) {}
 };
 
 struct ApplicationServices {

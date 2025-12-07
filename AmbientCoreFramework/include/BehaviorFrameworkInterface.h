@@ -19,8 +19,10 @@ extern "C" {
     typedef void (*StartCharacterActionFn) (void* entity_handle, int32_t action_id, int64_t action_token, int64_t max_duration_ms,
         void* target_entity_handle);
 
+    typedef bool (*QueryEntityPositionFn) (void* entity_id, int32_t* out_xyz);
+
     AmbientCoreFramework_API void* CreateAmbientBehaviorFramework(QueryEnvironmentalConditionFn env_callback,
-        StartCharacterActionFn start_action_callback);
+        StartCharacterActionFn start_action_callback, QueryEntityPositionFn query_position_callback);
 
     AmbientCoreFramework_API bool InitializeAmbientBehaviorFramework(void* framework_handle, const char* schema_file_path,
         const char* sequences_file_path, const char* actions_file_path,
