@@ -1,5 +1,6 @@
 #pragma once
 #include "behavior/StateOperation.h"
+#include "behavior/StateOperationContext.h"
 #include "entity/FrameworkEntity.h"
 
 namespace AmbientCharacterBehavior {
@@ -9,6 +10,6 @@ namespace AmbientCharacterBehavior {
 class IStateOperationEvaluator {
 public:
     virtual ~IStateOperationEvaluator() = default;
-    virtual bool ProcessStateOperation(StateOperation state_operation, FrameworkEntity* context_entity = nullptr) = 0;
+    virtual bool ProcessStateOperation(StateOperation state_operation, StateOperationContext context) = 0;
 };
 }

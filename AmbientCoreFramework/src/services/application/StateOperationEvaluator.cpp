@@ -4,24 +4,38 @@
 #include <limits>
 
 namespace AmbientCharacterBehavior {
-bool StateOperationEvaluator::ProcessStateOperation(StateOperation state_operation, FrameworkEntity* context_entity)
+bool StateOperationEvaluator::ProcessStateOperation(StateOperation state_operation, StateOperationContext context)
 {
     auto state_key = state_operation.GetStateKey();
     auto target = state_operation.GetTarget();
     auto operation_type = state_operation.GetOperationType();
     auto value = state_operation.GetValue();
 
-    if (!IsValidStateOperation(target, operation_type, context_entity))
+    if (!IsValidStateOperation(target, operation_type, context))
     {
         return false;
     }
 
     // Get the state value
-    auto state_value = GetStateOperationValue(target, state_key, context_entity);
+    auto state_value = GetStateOperationValue(target, state_key, context);
 
     if (!state_value.has_value())
     {
         return false;
+    }
+
+    FrameworkEntity* context_entity = nullptr;
+
+    if (IsModificationOperation(operation_type))
+    {
+        if (RequiresTargetEntity(state_operation.GetTarget()))
+        {
+            context_entity = context.target_entity;
+        }
+        else
+        {
+            context_entity = context.self_entity;
+        }
     }
 
     // Evaluate operation
@@ -29,7 +43,7 @@ bool StateOperationEvaluator::ProcessStateOperation(StateOperation state_operati
 }
 
 bool StateOperationEvaluator::IsValidStateOperation(StateOperationTarget target, StateOperationType operation_type,
-    const FrameworkEntity* context_entity) const
+    StateOperationContext context) const
 {
     if (target == StateOperationTarget::ENVIRONMENT && IsModificationOperation(operation_type))
     {
@@ -40,7 +54,24 @@ bool StateOperationEvaluator::IsValidStateOperation(StateOperationTarget target,
         return false;
     }
 
-    if (RequiresTargetEntity(target) && context_entity == nullptr)
+    if (target == StateOperationTarget::DISTANCE_TO_ENTITY && IsModificationOperation(operation_type))
+    {
+        logger.LogWarning("Distance to entity state operations can only be of comparison. The state operation will "
+            "not be processed. Attempted operation_type: " + schema_manager.GetStateOperationTypeName(operation_type),
+            "StateOperationEvaluator");
+
+        return false;
+    }
+
+    if (target == StateOperationTarget::SELF && context.self_entity == nullptr)
+    {
+        logger.LogWarning("No self entity was passed for the evaluation. The state operation will not be processed.",
+              "StateOperationEvaluator");
+
+        return false;
+    }
+
+    if (RequiresTargetEntity(target) && context.target_entity == nullptr)
     {
         logger.LogWarning("No target entity was passed for the evaluation. The state operation will not be processed.",
             "StateOperationEvaluator");
@@ -68,11 +99,11 @@ bool StateOperationEvaluator::IsModificationOperation(StateOperationType operati
 
 bool StateOperationEvaluator::RequiresTargetEntity(StateOperationTarget target) const
 {
-    return target == StateOperationTarget::SELF || target == StateOperationTarget::ENTITY;
+    return target == StateOperationTarget::ENTITY || target == StateOperationTarget::DISTANCE_TO_ENTITY;
 }
 
 std::optional<int32_t> StateOperationEvaluator::GetStateOperationValue(StateOperationTarget target, int32_t state_key,
-    FrameworkEntity* context_entity) const
+    StateOperationContext context) const
 {
     try
     {
@@ -80,10 +111,12 @@ std::optional<int32_t> StateOperationEvaluator::GetStateOperationValue(StateOper
         {
             case StateOperationTarget::ENVIRONMENT:
                 return environment_manager.GetEnvironmentalConditionValue(state_key);
-                break;
             case StateOperationTarget::SELF:
+                return context.self_entity->GetStateValue(state_key);
             case StateOperationTarget::ENTITY:
-                return context_entity->GetStateValue(state_key);
+                return context.target_entity->GetStateValue(state_key);
+            case StateOperationTarget::DISTANCE_TO_ENTITY:
+                //todo: add evaluation to distance from position manager
                 break;
         }
     }
@@ -144,6 +177,14 @@ bool StateOperationEvaluator::EvaluateStateOperation(StateOperationType operatio
     if (IsComparisonOperation(operation_type))
     {
         return res;
+    }
+
+    if (!context_entity)
+    {
+        logger.LogError("Modification operation called without a valid context entity",
+            "EvaluateStateOperation");
+
+        return false;
     }
 
     context_entity->SetStateValue(state_key, new_value);

@@ -21,17 +21,18 @@ public:
     /**
      * @return For comparisons, the condition result. For modifications, the success status.
      */
-    bool ProcessStateOperation(StateOperation state_operation, FrameworkEntity* context_entity = nullptr) override;
+    bool ProcessStateOperation(StateOperation state_operation, StateOperationContext context) override;
 
 private:
     bool IsValidStateOperation(StateOperationTarget target, StateOperationType operation_type,
-        const FrameworkEntity* context_entity) const;
+        StateOperationContext context) const;
 
     bool IsComparisonOperation(StateOperationType operation) const;
     bool IsModificationOperation(StateOperationType operation) const;
     bool RequiresTargetEntity(StateOperationTarget target) const;
 
-    std::optional<int32_t> GetStateOperationValue(StateOperationTarget target, int32_t state_key, FrameworkEntity* context_entity) const;
+    std::optional<int32_t> GetStateOperationValue(StateOperationTarget target, int32_t state_key,
+        StateOperationContext context) const;
 
     bool EvaluateStateOperation(StateOperationType operation_type, int32_t state_value, int32_t value,
         FrameworkEntity* context_entity, int32_t state_key);
