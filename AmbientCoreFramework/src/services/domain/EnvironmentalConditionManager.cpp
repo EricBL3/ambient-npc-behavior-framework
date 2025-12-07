@@ -114,6 +114,7 @@ void EnvironmentalConditionManager::UpdateEnvironmentalCondition(int32_t conditi
             logger.LogInfo("Updating environment condition " + std::to_string(condition_key) + " failed.",
                 "UpdateEnvironmentalCondition");
 
+            condition.SetLastUpdateMs(time_manager.GetCurrentTime());
             return;
         }
 
