@@ -111,7 +111,9 @@ private:
                         "entity_id": 0,
                         "entity_name": "test_entity",
                         "accepted_actions_ids": [],
-                        "initial_state": {}
+                        "initial_state": {},
+                        "is_static": false,
+                        "position_update_frequency_ms": 0
                     }
                 }
             ]
@@ -138,7 +140,9 @@ private:
                             "max_transition_memories": 15,
                             "max_action_memories": 10,
                             "max_interruption_memories": 5
-                        }
+                        },
+                        "is_static": false,
+                        "position_update_frequency_ms": 0
                     }
                 }
             ]

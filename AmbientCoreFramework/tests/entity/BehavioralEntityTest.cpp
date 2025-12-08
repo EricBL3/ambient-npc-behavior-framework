@@ -640,10 +640,15 @@ TEST_F(BehavioralEntityTest, ActionPrecondition_SelfTarget_UsesCharacterState) {
     EXPECT_CALL(*mock_content, GetActionById(5))
         .WillRepeatedly(testing::Return(action));
 
+    StateOperationContext context(test_entity.get());
+
     // Should evaluate precondition against character (this), not target
     EXPECT_CALL(*mock_evaluator, ProcessStateOperation(
-        testing::_,
-        testing::Eq(test_entity.get())))  // Character, not target_entity
+    testing::_,
+    testing::Truly([this](const StateOperationContext& ctx) {
+        return ctx.self_entity == test_entity.get() &&
+               ctx.target_entity == nullptr;
+        })))
         .WillOnce(testing::Return(true));
 
     SetupEntityWithSequenceOnStack(sequence);
@@ -672,7 +677,10 @@ TEST_F(BehavioralEntityTest, ActionPrecondition_EntityTarget_UsesTargetState) {
     // Should evaluate precondition against target entity
     EXPECT_CALL(*mock_evaluator, ProcessStateOperation(
         testing::_,
-        testing::Eq(target_entity)))
+        testing::Truly([this, target_entity](const StateOperationContext& ctx) {
+            return ctx.self_entity == test_entity.get() &&
+                   ctx.target_entity == target_entity;
+        })))
         .WillOnce(testing::Return(true));
 
     SetupEntityWithSequenceOnStack(sequence);

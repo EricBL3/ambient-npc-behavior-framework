@@ -5,6 +5,8 @@
 #include "../../mocks/MockLogger.h"
 #include "../../mocks/MockFrameworkSchemaManager.h"
 #include "../../../src/services/registry/FrameworkRegistry.h"
+#include "../../mocks/MockEntityPositionManager.h"
+#include "../../mocks/MockEntityPositionProvider.h"
 #include "../../mocks/MockStartCharacterActionProvider.h"
 #include "../../mocks/MockTimeManager.h"
 #include "../../mocks/MockStateOperationEvaluator.h"
@@ -16,10 +18,13 @@ protected:
     std::unique_ptr<MockLogger> mock_logger;
     std::unique_ptr<MockTimeManager> mock_time_manager;
     std::unique_ptr<MockStartCharacterActionProvider> mock_action_provider;
+    std::unique_ptr<MockEntityPositionProvider> mock_entity_pos_provider;
     std::unique_ptr<MockJsonLoader> mock_json_loader;
     std::unique_ptr<MockFrameworkSchemaManager> mock_schema;
     std::unique_ptr<MockEnvironmentalConditionManager> mock_environment_manager;
+    std::unique_ptr<MockEntityPositionManager> mock_entity_pos_manager;
     std::unique_ptr<MockStateOperationEvaluator> mock_state_operation_evaluator;
+
 
     std::unique_ptr<FrameworkRegistry> registry;
     int framework_entity_handle = 100;
@@ -28,12 +33,14 @@ protected:
     void SetUp() override {
         mock_logger = std::make_unique<MockLogger>();
         mock_action_provider = std::make_unique<MockStartCharacterActionProvider>();
+        mock_entity_pos_provider = std::make_unique<MockEntityPositionProvider>();
         mock_json_loader = std::make_unique<MockJsonLoader>();
         mock_schema = std::make_unique<MockFrameworkSchemaManager>();
         mock_environment_manager = std::make_unique<MockEnvironmentalConditionManager>();
+        mock_entity_pos_manager = std::make_unique<MockEntityPositionManager>();
 
         registry = std::make_unique<FrameworkRegistry>(*mock_logger, *mock_time_manager, *mock_action_provider, *mock_json_loader,
-            *mock_schema, *mock_environment_manager, *mock_state_operation_evaluator);
+            *mock_schema, *mock_environment_manager, *mock_state_operation_evaluator, *mock_entity_pos_manager);
     }
 
     SequenceDto CreateBasicSequenceDto(int32_t sequence_id)
@@ -132,6 +139,8 @@ protected:
         FrameworkEntityDto framework_entity_dto;
         framework_entity_dto.entity_id = entity_id;
         framework_entity_dto.entity_name = "test_entity";
+        framework_entity_dto.is_static = true;
+        framework_entity_dto.position_update_frequency_ms = 0;
 
         entity_dto.framework_entity = framework_entity_dto;
 
@@ -193,7 +202,8 @@ protected:
 // Constructor test
 TEST_F(FrameworkRegistryTest, Constructor_ValidServices_CreatesFrameworkRegistry) {
     EXPECT_NO_THROW(FrameworkRegistry framework_registry(*mock_logger, *mock_time_manager, *mock_action_provider,
-        *mock_json_loader, *mock_schema, *mock_environment_manager, *mock_state_operation_evaluator));
+        *mock_json_loader, *mock_schema, *mock_environment_manager, *mock_state_operation_evaluator,
+        *mock_entity_pos_manager));
 }
 
 // REGISTER SEQUENCES TESTS
@@ -412,7 +422,11 @@ TEST_F(FrameworkRegistryTest, RegisterEntity_AddsFrameworkEntityToRegistry)
     EXPECT_CALL(*mock_logger, LogError(testing::_, testing::_))
         .Times(0);
 
-    registry->RegisterEntity(FrameworkEntityHandle(), "test.json");
+    EXPECT_CALL(*mock_entity_pos_manager, RegisterEntityPosition(
+        FrameworkEntityHandle(), testing::_, entity_dto.framework_entity->is_static, entity_dto.framework_entity->position_update_frequency_ms))
+        .Times(1);
+
+    registry->RegisterEntity(FrameworkEntityHandle(), "test.json", Position3D{});
 
     auto framework_entity = registry->GetFrameworkEntityById(0);
 
@@ -436,9 +450,11 @@ TEST_F(FrameworkRegistryTest, RegisterEntity_CreatesFrameworkEntityMapping)
     EXPECT_CALL(*mock_logger, LogError(testing::_, testing::_))
         .Times(0);
 
-    registry->RegisterEntity(FrameworkEntityHandle(), "test.json");
+    registry->RegisterEntity(FrameworkEntityHandle(), "test.json", Position3D{});
 
     auto framework_entity = registry->GetFrameworkEntityById(0);
+
+    ASSERT_NE(framework_entity, nullptr) << "Entity should be registered";
 
     EXPECT_EQ(framework_entity->GetEntityHandle(), registry->GetHandleFromFrameworkId(framework_entity->GetEntityId()));
     EXPECT_EQ(framework_entity->GetEntityId(), registry->GetFrameworkIdFromHandle(framework_entity->GetEntityHandle()));
@@ -463,7 +479,7 @@ TEST_F(FrameworkRegistryTest, RegisterEntity_AddsBehavioralEntityToRegistry)
     EXPECT_CALL(*mock_logger, LogError(testing::_, testing::_))
         .Times(0);
 
-    registry->RegisterEntity(BehavioralEntityHandle(), "test.json");
+    registry->RegisterEntity(BehavioralEntityHandle(), "test.json", Position3D{});
 
     auto entity = registry->GetBehavioralEntityById(0);
 
@@ -496,7 +512,7 @@ TEST_F(FrameworkRegistryTest, RegisterEntity_CreatesBehavioralEntityMapping)
     EXPECT_CALL(*mock_logger, LogError(testing::_, testing::_))
         .Times(0);
 
-    registry->RegisterEntity(BehavioralEntityHandle(), "test.json");
+    registry->RegisterEntity(BehavioralEntityHandle(), "test.json", Position3D{});
 
     auto entity = registry->GetBehavioralEntityById(0);
 
@@ -517,7 +533,7 @@ TEST_F(FrameworkRegistryTest, RegisterEntity_InvalidEntityType_LogsWarningAndRet
         "FrameworkRegistry"))
         .Times(1);
 
-    registry->RegisterEntity(BehavioralEntityHandle(), "test.json");
+    registry->RegisterEntity(BehavioralEntityHandle(), "test.json", Position3D{});
 
     EXPECT_EQ(0, registry->GetFrameworkEntitiesCount());
     EXPECT_EQ(0, registry->GetBehavioralEntitiesCount());
@@ -533,7 +549,7 @@ TEST_F(FrameworkRegistryTest, RegisterEntity_EmptyConfigFile_LogsWarningAndRetur
         "FrameworkRegistry"))
         .Times(1);
 
-    registry->RegisterEntity(BehavioralEntityHandle(), "test.json");
+    registry->RegisterEntity(BehavioralEntityHandle(), "test.json", Position3D{});
 
     EXPECT_EQ(0, registry->GetFrameworkEntitiesCount());
     EXPECT_EQ(0, registry->GetBehavioralEntitiesCount());
@@ -546,7 +562,7 @@ TEST_F(FrameworkRegistryTest, RegisterFrameworkEntity_DuplicateEntityId_LogsWarn
     EXPECT_CALL(*mock_json_loader, ProcessSingleEntityConfigFile("test.json"))
         .WillOnce(testing::Return(std::optional{entity_dto}));
 
-    registry->RegisterEntity(FrameworkEntityHandle(), "test.json");
+    registry->RegisterEntity(FrameworkEntityHandle(), "test.json", Position3D{});
 
     auto repeated_entity_dto = CreateBasicFrameworkEntityDto(0);
     repeated_entity_dto.framework_entity->entity_name = "repeated_entity";
@@ -559,7 +575,7 @@ TEST_F(FrameworkRegistryTest, RegisterFrameworkEntity_DuplicateEntityId_LogsWarn
        "FrameworkRegistry"))
        .Times(1);
 
-    registry->RegisterEntity(BehavioralEntityHandle(), "test.json");
+    registry->RegisterEntity(BehavioralEntityHandle(), "test.json", Position3D{});
 
     auto framework_entity = registry->GetFrameworkEntityById(0);
 
@@ -577,7 +593,7 @@ TEST_F(FrameworkRegistryTest, RegisterFrameworkEntity_DuplicateEntityHandle_Logs
     EXPECT_CALL(*mock_json_loader, ProcessSingleEntityConfigFile("test.json"))
         .WillOnce(testing::Return(std::optional{entity_dto}));
 
-    registry->RegisterEntity(FrameworkEntityHandle(), "test.json");
+    registry->RegisterEntity(FrameworkEntityHandle(), "test.json", Position3D{});
 
     auto repeated_entity_dto = CreateBasicFrameworkEntityDto(1);
     repeated_entity_dto.framework_entity->entity_name = "repeated_entity";
@@ -591,7 +607,7 @@ TEST_F(FrameworkRegistryTest, RegisterFrameworkEntity_DuplicateEntityHandle_Logs
        .Times(1);
 
     // repeated handle
-    registry->RegisterEntity(FrameworkEntityHandle(), "test.json");
+    registry->RegisterEntity(FrameworkEntityHandle(), "test.json", Position3D{});
 
     auto framework_entity = registry->GetFrameworkEntityById(0);
 
@@ -609,7 +625,7 @@ TEST_F(FrameworkRegistryTest, RegisterBehavioralEntity_DuplicateEntityId_LogsWar
     EXPECT_CALL(*mock_json_loader, ProcessSingleEntityConfigFile("test.json"))
         .WillOnce(testing::Return(std::optional{entity_dto}));
 
-    registry->RegisterEntity(FrameworkEntityHandle(), "test.json");
+    registry->RegisterEntity(FrameworkEntityHandle(), "test.json", Position3D{});
 
     auto repeated_entity_dto = CreateBasicBehavioralEntityDto(0);
     repeated_entity_dto.behavioral_entity->base_properties.entity_name = "repeated_entity";
@@ -622,7 +638,7 @@ TEST_F(FrameworkRegistryTest, RegisterBehavioralEntity_DuplicateEntityId_LogsWar
        "FrameworkRegistry"))
        .Times(1);
 
-    registry->RegisterEntity(BehavioralEntityHandle(), "test.json");
+    registry->RegisterEntity(BehavioralEntityHandle(), "test.json", Position3D{});
 
     auto framework_entity = registry->GetBehavioralEntityById(0);
 
@@ -640,7 +656,7 @@ TEST_F(FrameworkRegistryTest, RegisterBehavioralEntity_DuplicateEntityHandle_Log
     EXPECT_CALL(*mock_json_loader, ProcessSingleEntityConfigFile("test.json"))
         .WillOnce(testing::Return(std::optional{entity_dto}));
 
-    registry->RegisterEntity(BehavioralEntityHandle(), "test.json");
+    registry->RegisterEntity(BehavioralEntityHandle(), "test.json", Position3D{});
 
     auto repeated_entity_dto = CreateBasicBehavioralEntityDto(1);
     repeated_entity_dto.behavioral_entity->base_properties.entity_name = "repeated_entity";
@@ -654,7 +670,7 @@ TEST_F(FrameworkRegistryTest, RegisterBehavioralEntity_DuplicateEntityHandle_Log
        .Times(1);
 
     // repeated handle
-    registry->RegisterEntity(BehavioralEntityHandle(), "test.json");
+    registry->RegisterEntity(BehavioralEntityHandle(), "test.json", Position3D{});
 
     auto framework_entity = registry->GetBehavioralEntityById(0);
 
@@ -690,7 +706,7 @@ TEST_F(FrameworkRegistryTest, RegisterEntity_ComplexFrameworkEntity_RegistersVal
     EXPECT_CALL(*mock_schema, GetStateKey("AVAILABLE_SEATS"))
          .WillOnce(testing::Return(0));
 
-    registry->RegisterEntity(FrameworkEntityHandle(), "test.json");
+    registry->RegisterEntity(FrameworkEntityHandle(), "test.json", Position3D{});
 
     auto framework_entity = registry->GetFrameworkEntityById(0);
 
@@ -716,7 +732,7 @@ TEST_F(FrameworkRegistryTest, RegisterEntity_ComplexFrameworkEntity_LogsWarningA
     EXPECT_CALL(*mock_schema, GetStateKey("AVAILABLE_SEATS"))
          .WillOnce(testing::Return(0));
 
-    registry->RegisterEntity(FrameworkEntityHandle(), "test.json");
+    registry->RegisterEntity(FrameworkEntityHandle(), "test.json", Position3D{});
 
     auto framework_entity = registry->GetFrameworkEntityById(0);
 
@@ -757,7 +773,7 @@ TEST_F(FrameworkRegistryTest, RegisterEntity_ComplexBehavioralEntity_ConfiguresC
     EXPECT_CALL(*mock_schema, GetStateKey("AVAILABLE_SEATS"))
          .WillOnce(testing::Return(0));
 
-    registry->RegisterEntity(BehavioralEntityHandle(), "test.json");
+    registry->RegisterEntity(BehavioralEntityHandle(), "test.json", Position3D{});
 
     auto framework_entity = registry->GetBehavioralEntityById(0);
 
@@ -793,7 +809,7 @@ TEST_F(FrameworkRegistryTest, RegisterEntity_ComplexBehavioralEntity_LogsWarning
     EXPECT_CALL(*mock_schema, GetStateKey("AVAILABLE_SEATS"))
          .WillOnce(testing::Return(0));
 
-    registry->RegisterEntity(BehavioralEntityHandle(), "test.json");
+    registry->RegisterEntity(BehavioralEntityHandle(), "test.json", Position3D{});
 
     auto framework_entity = registry->GetBehavioralEntityById(0);
 
@@ -830,7 +846,7 @@ TEST_F(FrameworkRegistryTest, RegisterEntity_ComplexBehavioralEntity_LogsWarning
     EXPECT_CALL(*mock_schema, GetStateKey("AVAILABLE_SEATS"))
          .WillOnce(testing::Return(0));
 
-    registry->RegisterEntity(BehavioralEntityHandle(), "test.json");
+    registry->RegisterEntity(BehavioralEntityHandle(), "test.json", Position3D{});
 
     auto framework_entity = registry->GetBehavioralEntityById(0);
 
@@ -868,7 +884,7 @@ TEST_F(FrameworkRegistryTest, RegisterEntity_ComplexBehavioralEntity_LogsWarning
     EXPECT_CALL(*mock_schema, GetStateKey("AVAILABLE_SEATS"))
          .WillOnce(testing::Return(0));
 
-    registry->RegisterEntity(BehavioralEntityHandle(), "test.json");
+    registry->RegisterEntity(BehavioralEntityHandle(), "test.json", Position3D{});
 
     auto framework_entity = registry->GetBehavioralEntityById(0);
 
@@ -911,7 +927,7 @@ TEST_F(FrameworkRegistryTest, RegisterEntity_ComplexBehavioralEntity_LogsWarning
     EXPECT_CALL(*mock_schema, GetStateKey("AVAILABLE_SEATS"))
          .WillOnce(testing::Return(0));
 
-    registry->RegisterEntity(BehavioralEntityHandle(), "test.json");
+    registry->RegisterEntity(BehavioralEntityHandle(), "test.json", Position3D{});
 
     auto framework_entity = registry->GetBehavioralEntityById(0);
 
@@ -930,7 +946,7 @@ TEST_F(FrameworkRegistryTest, UnregisterEntity_RemovesFrameworkEntity) {
     EXPECT_CALL(*mock_json_loader, ProcessSingleEntityConfigFile("test.json"))
         .WillOnce(testing::Return(std::optional{entity_dto}));
 
-    registry->RegisterEntity(FrameworkEntityHandle(), "test.json");
+    registry->RegisterEntity(FrameworkEntityHandle(), "test.json", Position3D{});
 
     EXPECT_EQ(1, registry->GetFrameworkEntitiesCount());
 
@@ -959,7 +975,7 @@ TEST_F(FrameworkRegistryTest, UnregisterEntity_RemovesBehavioralEntity) {
     EXPECT_CALL(*mock_json_loader, ProcessSingleEntityConfigFile("test.json"))
         .WillOnce(testing::Return(std::optional{entity_dto}));
 
-    registry->RegisterEntity(BehavioralEntityHandle(), "test.json");
+    registry->RegisterEntity(BehavioralEntityHandle(), "test.json", Position3D{});
 
     EXPECT_EQ(1, registry->GetBehavioralEntitiesCount());
 
@@ -982,7 +998,7 @@ TEST_F(FrameworkRegistryTest, UnregisterEntity_LogsWarningOnNullHandle) {
     EXPECT_CALL(*mock_json_loader, ProcessSingleEntityConfigFile("test.json"))
         .WillOnce(testing::Return(std::optional{entity_dto}));
 
-    registry->RegisterEntity(FrameworkEntityHandle(), "test.json");
+    registry->RegisterEntity(FrameworkEntityHandle(), "test.json", Position3D{});
 
     EXPECT_EQ(1, registry->GetFrameworkEntitiesCount());
 
@@ -1002,7 +1018,7 @@ TEST_F(FrameworkRegistryTest, UnregisterEntity_LogsWarningOnInexistentHandle) {
     EXPECT_CALL(*mock_json_loader, ProcessSingleEntityConfigFile("test.json"))
         .WillOnce(testing::Return(std::optional{entity_dto}));
 
-    registry->RegisterEntity(FrameworkEntityHandle(), "test.json");
+    registry->RegisterEntity(FrameworkEntityHandle(), "test.json", Position3D{});
 
     EXPECT_EQ(1, registry->GetFrameworkEntitiesCount());
 
@@ -1022,7 +1038,7 @@ TEST_F(FrameworkRegistryTest, UnregisterEntity_CanRegisterFrameworkEntityAgain) 
     EXPECT_CALL(*mock_json_loader, ProcessSingleEntityConfigFile("test.json"))
         .WillOnce(testing::Return(std::optional{entity_dto}));
 
-    registry->RegisterEntity(FrameworkEntityHandle(), "test.json");
+    registry->RegisterEntity(FrameworkEntityHandle(), "test.json", Position3D{});
     EXPECT_EQ(1, registry->GetFrameworkEntitiesCount());
 
     registry->UnregisterEntity(FrameworkEntityHandle());
@@ -1039,7 +1055,7 @@ TEST_F(FrameworkRegistryTest, UnregisterEntity_CanRegisterFrameworkEntityAgain) 
     EXPECT_CALL(*mock_logger, LogError(testing::_, testing::_))
         .Times(0);
 
-    registry->RegisterEntity(FrameworkEntityHandle(), "test.json");
+    registry->RegisterEntity(FrameworkEntityHandle(), "test.json", Position3D{});
     auto framework_entity = registry->GetFrameworkEntityById(0);
 
     EXPECT_EQ(1, registry->GetFrameworkEntitiesCount());
@@ -1058,7 +1074,7 @@ TEST_F(FrameworkRegistryTest, UnregisterEntity_CanRegisterBehavioralEntityAgain)
     EXPECT_CALL(*mock_json_loader, ProcessSingleEntityConfigFile("test.json"))
         .WillOnce(testing::Return(std::optional{entity_dto}));
 
-    registry->RegisterEntity(BehavioralEntityHandle(), "test.json");
+    registry->RegisterEntity(BehavioralEntityHandle(), "test.json", Position3D{});
     EXPECT_EQ(1, registry->GetBehavioralEntitiesCount());
 
     registry->UnregisterEntity(BehavioralEntityHandle());
@@ -1075,7 +1091,7 @@ TEST_F(FrameworkRegistryTest, UnregisterEntity_CanRegisterBehavioralEntityAgain)
     EXPECT_CALL(*mock_logger, LogError(testing::_, testing::_))
         .Times(0);
 
-    registry->RegisterEntity(BehavioralEntityHandle(), "test.json");
+    registry->RegisterEntity(BehavioralEntityHandle(), "test.json", Position3D{});
     auto framework_entity = registry->GetBehavioralEntityById(0);
 
     EXPECT_EQ(1, registry->GetBehavioralEntitiesCount());

@@ -20,6 +20,11 @@ static void TestStartCharacterAction(void* entity_handle, int32_t action_id, int
 
 }
 
+static bool TestQueryEntityPosition(void* entity_handle, int32_t* out_xyz)
+{
+    return true;
+}
+
 class ServiceBuilderTest : public testing::Test {
 protected:
     std::unique_ptr<BehaviorFramework> framework;
@@ -29,7 +34,8 @@ TEST_F(ServiceBuilderTest, CreateBehaviorFramework_ProducesValidFramework) {
     EXPECT_NO_THROW({
         framework = ServiceBuilder::CreateBehaviorFramework(
             TestQueryEnvironmentalCondition,
-            TestStartCharacterAction
+            TestStartCharacterAction,
+            TestQueryEntityPosition
         );
     });
 
@@ -41,7 +47,8 @@ TEST_F(ServiceBuilderTest, CreateBehaviorFramework_WithNullQueryCallback_Throws)
     EXPECT_THROW({
         framework = ServiceBuilder::CreateBehaviorFramework(
             nullptr,
-            TestStartCharacterAction
+            TestStartCharacterAction,
+            TestQueryEntityPosition
         );
     }, std::invalid_argument);
 }
@@ -50,6 +57,17 @@ TEST_F(ServiceBuilderTest, CreateBehaviorFramework_WithNullActionCallback_Throws
     EXPECT_THROW({
         framework = ServiceBuilder::CreateBehaviorFramework(
             TestQueryEnvironmentalCondition,
+            nullptr,
+            TestQueryEntityPosition
+        );
+    }, std::invalid_argument);
+}
+
+TEST_F(ServiceBuilderTest, CreateBehaviorFramework_WithNullEntityPositionCallback_Throws) {
+    EXPECT_THROW({
+        framework = ServiceBuilder::CreateBehaviorFramework(
+            TestQueryEnvironmentalCondition,
+            TestStartCharacterAction,
             nullptr
         );
     }, std::invalid_argument);
