@@ -1,5 +1,5 @@
 #include "EntityPositionManager.h"
-
+#include <tracy/Tracy.hpp>
 #include <stdexcept>
 
 using namespace AmbientCharacterBehavior;
@@ -46,6 +46,8 @@ void EntityPositionManager::UnregisterEntityPosition(void* entity_handle)
 
 int32_t EntityPositionManager::CalculateDistance(void* entity_a_handle, void* entity_b_handle)
 {
+    ZoneScoped;
+
     // Validate entities exist
     auto iterator_a = entity_position_cache.find(entity_a_handle);
     if (iterator_a == entity_position_cache.end())
@@ -94,6 +96,8 @@ int32_t EntityPositionManager::CalculateDistance(void* entity_a_handle, void* en
 
 void EntityPositionManager::UpdateEntityPosition(void* entity_handle)
 {
+    ZoneScoped;
+
     auto iterator = entity_position_cache.find(entity_handle);
     if (iterator == entity_position_cache.end())
     {

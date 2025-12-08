@@ -1,5 +1,6 @@
 
 #pragma once
+#include <queue>
 #include <random>
 #include <stack>
 #include <unordered_map>
@@ -56,6 +57,8 @@ private:
     bool is_halted;
 
     std::mt19937 rng;
+
+    std::queue<int32_t> pending_interruptions;
 
 public:
     /**
@@ -147,5 +150,8 @@ private:
     void HandleRuntimeFailure(const RuntimeFailureContext& context);
 
     int32_t GetRandomIndex(int32_t max_exclusive);
+
+    void ProcessPendingInterruptions();
+    void ProcessInterruptionImmediate(int32_t interruption_id);
 };
 }

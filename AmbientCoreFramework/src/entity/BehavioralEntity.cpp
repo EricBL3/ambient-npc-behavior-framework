@@ -83,6 +83,11 @@ std::shared_ptr<Sequence> BehavioralEntity::FindInterruptionHandler(int32_t inte
 
 void BehavioralEntity::ExecuteCurrentSequence()
 {
+    if (!pending_interruptions.empty())
+    {
+        ProcessPendingInterruptions();
+        return;
+    }
 
     is_processing = true;
 
@@ -478,6 +483,8 @@ BehavioralEntity::PreconditionValidation BehavioralEntity::ValidateActionPrecond
 
 bool BehavioralEntity::EvaluatePreconditions(const std::vector<StateOperation>* preconditions, FrameworkEntity* other)
 {
+    ZoneScoped;
+
     if (!preconditions || preconditions->empty())
     {
         return true;
@@ -591,6 +598,16 @@ void BehavioralEntity::HandleNodeExecutionCompletion()
 {
     ZoneScoped;
 
+    if (!sequences.empty() && sequences.top()->GetSequenceState() == SequenceState::INTERRUPTED)
+    {
+        logger.LogInfo(
+            "Node execution completion aborted - entity " + std::to_string(entity_id) +
+            " was interrupted",
+            "HandleNodeExecutionCompletion"
+        );
+        return;
+    }
+
     auto current_node = sequences.top()->FindCurrentNode();
     if (!current_node)
     {
@@ -612,6 +629,16 @@ void BehavioralEntity::HandleNodeExecutionCompletion()
             .additional_info = "HandleNodeExecutionCompletion",
         });
 
+        return;
+    }
+
+    if (!sequences.empty() && sequences.top()->GetSequenceState() == SequenceState::INTERRUPTED)
+    {
+        logger.LogWarning(
+            "Entity " + std::to_string(entity_id) +
+            " interrupted during transition selection. Aborting node completion.",
+            "HandleNodeExecutionCompletion"
+        );
         return;
     }
 
@@ -876,64 +903,16 @@ void BehavioralEntity::ResumeActionWithSavedContext(const std::shared_ptr<Action
 
 void BehavioralEntity::ProcessInterruption(int32_t interruption_id)
 {
-    // Check handler exists
-    if (!interruption_handlers.contains(interruption_id))
+    if (is_processing)
     {
-        HandleRuntimeFailure({
-            .reason = RuntimeFailureReason::INTERRUPTION_NOT_FOUND,
-            .interruption_id = interruption_id,
-            .additional_info = "ProcessInterruption"
-        });
+        logger.LogInfo("Entity " + std::to_string(entity_id) + " queueing interruption " + std::to_string(interruption_id),
+            "ProcessInterruption");
 
+        pending_interruptions.push(interruption_id);
         return;
     }
 
-    auto sequence = interruption_handlers.at(interruption_id);
-
-    logger.LogInfo("Will process interruption " + std::to_string(interruption_id) + " with sequence " +
-        std::to_string(sequence->GetSequenceId()) + " for entity: " + std::to_string(entity_id),
-        "ProcessInterruption");
-
-    // Context preservation
-    if (sequences.top()->GetSequenceState() == SequenceState::WAITING_FOR_ACTION)
-    {
-        auto action = content_provider.GetActionById(current_action_id);
-        if (!action)
-        {
-            HandleRuntimeFailure({
-                .reason = RuntimeFailureReason::ACTION_NOT_FOUND,
-                .action_id = current_action_id,
-                .additional_info = "ProcessInterruption"
-            });
-
-            return;
-        }
-
-        FrameworkEntity* target_entity = nullptr;
-        if (current_action_target_id >= 0)
-        {
-            target_entity = entity_query.GetEntityFromId(current_action_target_id);
-        }
-
-        ApplyActionEffects(action->GetInterruptionEffects(), target_entity);
-
-        if (action->GetInterruptionBehavior() == InterruptionBehaviorType::RESUMABLE)
-        {
-            memory.UpdateInterruptionMemory(current_action_id, sequences.top()->GetSequenceId(), sequences.top()->GetCurrentNodeId(),
-            current_action_target_id, time_manager.GetCurrentTime());
-        }
-        else
-        {
-            logger.LogInfo("The current action is not resumable so no context will be saved in the interruption memory for "
-                           "entity " + std::to_string(entity_id), "ProcessInterruption");
-        }
-    }
-
-    // Sequence State Management
-    sequences.top()->SetSequenceState(SequenceState::INTERRUPTED);
-
-    // Response sequence activation
-    sequences.push(sequence->CreateInstance());
+    ProcessInterruptionImmediate(interruption_id);
 }
 
 void BehavioralEntity::HandleRuntimeFailure(const RuntimeFailureContext &context)
@@ -989,6 +968,7 @@ void BehavioralEntity::HandleRuntimeFailure(const RuntimeFailureContext &context
 
 int32_t BehavioralEntity::GetRandomIndex(int32_t max_exclusive)
 {
+    ZoneScoped;
     if (max_exclusive <= 1 )
     {
         return 0;
@@ -996,4 +976,83 @@ int32_t BehavioralEntity::GetRandomIndex(int32_t max_exclusive)
 
     std::uniform_int_distribution<int32_t> dist(0, max_exclusive - 1);
     return dist(rng);
+}
+
+void BehavioralEntity::ProcessPendingInterruptions()
+{
+    logger.LogInfo("Processing " + std::to_string(pending_interruptions.size()) + " queued interruptions for "
+        "entity" + std::to_string(entity_id), "ProcessPendingInterruptions");
+
+    while (!pending_interruptions.empty())
+    {
+        auto interruption_id = pending_interruptions.front();
+        pending_interruptions.pop();
+
+        ProcessInterruptionImmediate(interruption_id);
+    }
+}
+
+void BehavioralEntity::ProcessInterruptionImmediate(int32_t interruption_id)
+{
+    // Check handler exists
+    if (!interruption_handlers.contains(interruption_id))
+    {
+        HandleRuntimeFailure({
+            .reason = RuntimeFailureReason::INTERRUPTION_NOT_FOUND,
+            .interruption_id = interruption_id,
+            .additional_info = "ProcessInterruptionImmediate"
+        });
+
+        return;
+    }
+
+    auto sequence = interruption_handlers.at(interruption_id);
+
+    logger.LogInfo("Will process interruption " + std::to_string(interruption_id) + " with sequence " +
+        std::to_string(sequence->GetSequenceId()) + " for entity: " + std::to_string(entity_id),
+        "ProcessInterruptionImmediate");
+
+    // Context preservation
+    if (sequences.top()->GetSequenceState() == SequenceState::WAITING_FOR_ACTION)
+    {
+        auto action = content_provider.GetActionById(current_action_id);
+        if (!action)
+        {
+            HandleRuntimeFailure({
+                .reason = RuntimeFailureReason::ACTION_NOT_FOUND,
+                .action_id = current_action_id,
+                .additional_info = "ProcessInterruptionImmediate"
+            });
+
+            return;
+        }
+
+        FrameworkEntity* target_entity = nullptr;
+        if (current_action_target_id >= 0)
+        {
+            target_entity = entity_query.GetEntityFromId(current_action_target_id);
+        }
+
+        ApplyActionEffects(action->GetInterruptionEffects(), target_entity);
+
+        if (action->GetInterruptionBehavior() == InterruptionBehaviorType::RESUMABLE)
+        {
+            memory.UpdateInterruptionMemory(current_action_id, sequences.top()->GetSequenceId(), sequences.top()->GetCurrentNodeId(),
+            current_action_target_id, time_manager.GetCurrentTime());
+
+            // Invalidate action token to reject late callbacks of complete action
+            current_action_token++;
+        }
+        else
+        {
+            logger.LogInfo("The current action is not resumable so no context will be saved in the interruption memory for "
+                           "entity " + std::to_string(entity_id), "ProcessInterruptionImmediate");
+        }
+    }
+
+    // Sequence State Management
+    sequences.top()->SetSequenceState(SequenceState::INTERRUPTED);
+
+    // Response sequence activation
+    sequences.push(sequence->CreateInstance());
 }

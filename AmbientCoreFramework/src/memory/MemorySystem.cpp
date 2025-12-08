@@ -1,6 +1,7 @@
 #include "MemorySystem.h"
 #include <algorithm>
 #include <iostream>
+#include <tracy/Tracy.hpp>
 
 using namespace AmbientCharacterBehavior;
 
@@ -192,6 +193,8 @@ const InterruptionMemory * MemorySystem::FindInterruptionMemory(int32_t action_i
 
 std::vector<int32_t> MemorySystem::GetLeastRecentlyVisitedNodeIds(const std::vector<int32_t> &node_ids) const
 {
+    ZoneScoped;
+
     if (node_ids.empty())
     {
         logger.LogError("GetLeastRecentlyVisitedNode: There are no node_ids to search through",
@@ -215,6 +218,7 @@ std::vector<int32_t> MemorySystem::GetLeastRecentlyVisitedNodeIds(const std::vec
 
 std::vector<int32_t> MemorySystem::GetLeastRecentlyUsedEntityIdsForAction(int32_t action_id, const std::vector<int32_t> &entity_ids) const
 {
+    ZoneScoped;
     if (entity_ids.empty())
     {
         logger.LogError("GetLeastRecentlyUsedEntityForAction: There are no entity_ids to search through",
