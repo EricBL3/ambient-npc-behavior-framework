@@ -384,7 +384,8 @@ FrameworkEntity* BehavioralEntity::GetActionTargetEntity(const std::shared_ptr<A
     ZoneScoped;
 
     std::vector<FrameworkEntity*> entities = entity_query.GetEntitiesSupportingAction(action->GetActionId());
-    auto preconditions = action->GetPreconditionsForTarget(StateOperationTarget::ENTITY);
+    auto entity_preconditions = action->GetPreconditionsForTarget(StateOperationTarget::ENTITY);
+    auto entity_distance_preconditions = action->GetPreconditionsForTarget(StateOperationTarget::DISTANCE_TO_ENTITY);
 
     std::vector<int32_t> unused_entities;
     unused_entities.reserve(entities.size());
@@ -400,7 +401,13 @@ FrameworkEntity* BehavioralEntity::GetActionTargetEntity(const std::shared_ptr<A
             continue;
         }
 
-        if (!EvaluatePreconditions(preconditions, entity))
+        if (!EvaluatePreconditions(entity_preconditions, entity))
+        {
+            // skip invalid entities
+            continue;
+        }
+
+        if (!EvaluatePreconditions(entity_distance_preconditions, entity))
         {
             // skip invalid entities
             continue;
@@ -478,20 +485,8 @@ bool BehavioralEntity::EvaluatePreconditions(const std::vector<StateOperation>* 
 
     for (const auto& precondition : *preconditions)
     {
-        FrameworkEntity* target_entity = nullptr;
-        switch (precondition.GetTarget())
-        {
-            case StateOperationTarget::SELF:
-                target_entity = this;
-                break;
-            case StateOperationTarget::ENTITY:
-                target_entity = other;
-                break;
-            default:
-                break;
-        }
-
-        if (!state_operation_evaluator.ProcessStateOperation(precondition, target_entity))
+        StateOperationContext context(this, other);
+        if (!state_operation_evaluator.ProcessStateOperation(precondition, context))
         {
             return false;
         }
@@ -505,20 +500,8 @@ void BehavioralEntity::ApplyActionEffects(const std::vector<StateOperation> & ef
 
     for (const auto& effect: effects)
     {
-        FrameworkEntity* effect_entity = nullptr;
-        switch (effect.GetTarget())
-        {
-            case StateOperationTarget::SELF:
-                effect_entity = this;
-                break;
-            case StateOperationTarget::ENTITY:
-                effect_entity = target_entity;
-                break;
-            default:
-                break;
-        }
-
-        state_operation_evaluator.ProcessStateOperation(effect, effect_entity);
+        StateOperationContext context(this, target_entity);
+        state_operation_evaluator.ProcessStateOperation(effect, context);
     }
 
     logger.LogInfo("Applied " + std::to_string(effects.size()) + " effects for action processing of " +
@@ -857,6 +840,11 @@ bool BehavioralEntity::ValidateResumptionContext(const std::shared_ptr<Action>& 
         }
 
         if (!EvaluatePreconditions(action->GetPreconditionsForTarget(StateOperationTarget::ENTITY), target_entity))
+        {
+            return false;
+        }
+
+        if (!EvaluatePreconditions(action->GetPreconditionsForTarget(StateOperationTarget::DISTANCE_TO_ENTITY), target_entity))
         {
             return false;
         }

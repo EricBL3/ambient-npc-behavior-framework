@@ -31,7 +31,9 @@ public:
     void Update(int32_t character_batch_size, int64_t current_time_ms);
     void ProcessInterruption(int32_t interruption_id, const std::vector<void*> &affected_entity_handles) const;
 
-    void RegisterEntity(void* entity_handle, const std::string& config_path) const;
+    void RegisterEntity(void* entity_handle, const std::string& config_path, int32_t entity_pos_x, int32_t entity_pos_y,
+        int32_t entity_pos_z) const;
+
     void UnregisterEntity(void* entity_handle) const;
     void ProcessPendingEntityCommands() const;
 

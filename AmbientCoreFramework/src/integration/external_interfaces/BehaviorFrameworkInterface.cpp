@@ -94,12 +94,14 @@ extern "C" {
         }
     }
 
-    AmbientCoreFramework_API void RegisterEntity(void* framework_handle, void* entity_handle, const char* config_path)
+    AmbientCoreFramework_API void RegisterEntity(void* framework_handle, void* entity_handle, const char* config_path,
+        int32_t entity_pos_x, int32_t entity_pos_y, int32_t entity_pos_z)
     {
         if (framework_handle)
         {
             auto framework = static_cast<BehaviorFramework*>(framework_handle);
-            framework->RegisterEntity(entity_handle, config_path);
+
+            framework->RegisterEntity(entity_handle, config_path, entity_pos_x, entity_pos_y, entity_pos_z);
         }
     }
 

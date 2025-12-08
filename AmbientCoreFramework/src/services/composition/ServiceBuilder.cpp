@@ -117,7 +117,7 @@ ServiceBuilder & ServiceBuilder::WithFrameworkRegistry()
 {
     EnsureApplicationServices();
     registry = std::make_unique<FrameworkRegistry>(*logger, *time_manager, *start_character_action_provider, *json_loader,
-        *schema_manager, *environmental_condition_manager, *state_operation_evaluator);
+        *schema_manager, *environmental_condition_manager, *state_operation_evaluator, *entity_position_manager);
 
     return *this;
 }

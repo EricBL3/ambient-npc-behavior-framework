@@ -12,6 +12,8 @@ struct FrameworkEntityDto {
     std::string entity_name;
     std::vector<int32_t> accepted_actions_ids;
     std::unordered_map<std::string, int32_t> initial_state;
+    bool is_static;
+    int64_t position_update_frequency_ms;
 };
 
 struct MemoryLimitsDto {

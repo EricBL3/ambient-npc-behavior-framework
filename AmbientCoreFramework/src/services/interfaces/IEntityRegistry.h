@@ -4,13 +4,14 @@
 
 #include "entity/BehavioralEntity.h"
 #include "entity/FrameworkEntity.h"
+#include "services/domain/EntityPosition.h"
 
 namespace AmbientCharacterBehavior {
 class IEntityRegistry {
 public:
     virtual ~IEntityRegistry() {}
 
-    virtual void QueueEntityRegistration(void* handle, const std::string& path) = 0;
+    virtual void QueueEntityRegistration(void* handle, const std::string& path, Position3D position) = 0;
     virtual void QueueEntityUnregistration(void* handle) = 0;
     virtual size_t ProcessPendingEntityCommands() = 0;
     virtual size_t GetPendingCommandCount() const = 0;

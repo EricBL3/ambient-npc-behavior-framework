@@ -33,7 +33,9 @@ extern "C" {
     AmbientCoreFramework_API void ProcessInterruption(void* framework_handle, int32_t interruption_id, void** entity_handles,
         int32_t count);
 
-    AmbientCoreFramework_API void RegisterEntity(void* framework_handle, void* entity_handle, const char* config_path);
+    AmbientCoreFramework_API void RegisterEntity(void* framework_handle, void* entity_handle, const char* config_path,
+        int32_t entity_pos_x, int32_t entity_pos_y, int32_t entity_pos_z);
+
     AmbientCoreFramework_API void UnregisterEntity(void* framework_handle, void* entity_handle);
 
     AmbientCoreFramework_API void CompleteCharacterAction(void* framework_handle, void* entity_handle, int32_t action_id,

@@ -48,10 +48,19 @@ const std::vector<StateOperation> * Action::GetPreconditionsForTarget(StateOpera
 
 bool Action::GetRequiresTargetEntity() const
 {
-    if (const auto entity_preconditions = GetPreconditionsForTarget(StateOperationTarget::ENTITY))
+    bool requires_target = false;
+
+    const auto entity_preconditions = GetPreconditionsForTarget(StateOperationTarget::ENTITY);
+    if (entity_preconditions && !entity_preconditions->empty())
     {
-        return entity_preconditions->size() > 0;
+        requires_target =  true;
     }
 
-    return false;
+    const auto entity_distance_preconditions = GetPreconditionsForTarget(StateOperationTarget::DISTANCE_TO_ENTITY);
+    if (entity_distance_preconditions && !entity_distance_preconditions->empty())
+    {
+        requires_target = true;
+    }
+
+    return requires_target;
 }

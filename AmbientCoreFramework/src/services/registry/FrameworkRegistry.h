@@ -9,7 +9,9 @@
 #include "behavior/Sequence.h"
 #include "entity/BehavioralEntity.h"
 #include "entity/FrameworkEntity.h"
+#include "services/domain/EntityPosition.h"
 #include "services/interfaces/IContentProvider.h"
+#include "services/interfaces/IEntityPositionManager.h"
 #include "services/interfaces/IEntityRegistry.h"
 #include "services/interfaces/IEnvironmentalConditionManager.h"
 #include "services/interfaces/IJsonLoader.h"
@@ -40,6 +42,7 @@ private:
     IFrameworkSchemaManager& schema_manager;
     IEnvironmentalConditionManager& environment_manager;
     IStateOperationEvaluator& state_operation_evaluator;
+    IEntityPositionManager& entity_position_manager;
 
     enum class EntityCommandType {
         REGISTER,
@@ -50,6 +53,7 @@ private:
         EntityCommandType type;
         void* entity_handle;
         std::string config_path;
+        Position3D position;
     };
 
     std::queue<EntityCommand> pending_commands;
@@ -57,19 +61,20 @@ private:
 public:
     explicit FrameworkRegistry(ILogger& logger, ITimeManager& time_manager, IStartCharacterActionProvider& start_action_provider,
         IJsonLoader& json_loader, IFrameworkSchemaManager& state_schema, IEnvironmentalConditionManager& environment_manager,
-        IStateOperationEvaluator& state_operation_evaluator) :
+        IStateOperationEvaluator& state_operation_evaluator, IEntityPositionManager& entity_position_manager) :
         logger(logger), time_manager(time_manager), start_action_provider(start_action_provider), json_loader(json_loader),
-        schema_manager(state_schema), environment_manager(environment_manager), state_operation_evaluator(state_operation_evaluator) {}
+        schema_manager(state_schema), environment_manager(environment_manager),
+        state_operation_evaluator(state_operation_evaluator), entity_position_manager(entity_position_manager) {}
 
     bool RegisterSequences(const std::string& config_file_path) override;
     bool RegisterActions(const std::string& config_file_path) override;
 
-    void QueueEntityRegistration(void* handle, const std::string& path) override;
+    void QueueEntityRegistration(void* handle, const std::string& path, Position3D position) override;
     void QueueEntityUnregistration(void* handle) override;
     size_t ProcessPendingEntityCommands() override;
     size_t GetPendingCommandCount() const override;
     void ClearPendingCommands() override;
-    void RegisterEntity(void* entity_handle, const std::string& config_file_path);
+    void RegisterEntity(void* entity_handle, const std::string& config_file_path, Position3D position);
     void UnregisterEntity(void* entity_handle);
 
     bool HasSequence(int32_t sequence_id) const override;
@@ -123,7 +128,7 @@ private:
     std::unordered_map<StateOperationTarget, std::vector<StateOperation>> GenerateStateOperationHashTableFromDto(
         const std::vector<StateOperationDto> &dto_state_operations) const;
 
-    StateOperation GenerateStateOperationFromDto(const StateOperationDto &dto_state_operation) const;
+    StateOperation GenerateStateOperationFromDto(StateOperationTarget target, const StateOperationDto &dto_state_operation) const;
 
     bool GenerateActionFromDto(const ActionDto &action_dto);
     InterruptionBehaviorType ParseInterruptionBehavior(const std::string& behavior_name) const;

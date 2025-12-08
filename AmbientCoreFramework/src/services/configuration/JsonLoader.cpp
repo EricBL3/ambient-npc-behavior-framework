@@ -14,7 +14,9 @@ NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(SequenceDto, sequence_id, sequence_name, entr
 NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(ActionDto, action_id, action_name, preconditions, immediate_effects,
     completion_effects, interruption_effects, max_duration_ms, interruption_behavior_name);
 
-NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(FrameworkEntityDto, entity_id, entity_name, accepted_actions_ids, initial_state);
+NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(FrameworkEntityDto, entity_id, entity_name, accepted_actions_ids, initial_state, is_static,
+    position_update_frequency_ms);
+
 NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(MemoryLimitsDto, max_transition_memories, max_action_memories, max_interruption_memories);
 NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(BehavioralEntityDto, main_sequence_id, fallback_sequences, interruption_handlers, memory_limits);
 

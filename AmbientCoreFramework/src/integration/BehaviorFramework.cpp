@@ -318,11 +318,13 @@ bool BehaviorFramework::ProcessInterruptionForEntity(int32_t interruption_id, vo
     return false;
 }
 
-void BehaviorFramework::RegisterEntity(void *entity_handle, const std::string &config_path) const
+void BehaviorFramework::RegisterEntity(void *entity_handle, const std::string &config_path, int32_t entity_pos_x,
+    int32_t entity_pos_y, int32_t entity_pos_z) const
 {
     ZoneScoped;
 
-    app_context->Registry().entity_registry.QueueEntityRegistration(entity_handle, config_path);
+    Position3D position {entity_pos_x, entity_pos_y, entity_pos_z};
+    app_context->Registry().entity_registry.QueueEntityRegistration(entity_handle, config_path, position);
     app_context->Core().logger.LogInfo("Queued entity registration command" ,"BehaviorFramework");
 }
 

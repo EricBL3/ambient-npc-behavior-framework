@@ -155,7 +155,7 @@ std::unordered_map<StateOperationTarget, std::vector<StateOperation>> FrameworkR
 
         if (target.has_value())
         {
-            state_operations[target.value()].emplace_back(GenerateStateOperationFromDto(dto_state_operation));
+            state_operations[target.value()].emplace_back(GenerateStateOperationFromDto(target.value(), dto_state_operation));
         }
         else
         {
@@ -184,34 +184,37 @@ std::optional<StateOperationTarget> FrameworkRegistry::ParseStateOperationTarget
         return StateOperationTarget::ENTITY;
     }
 
+    if (target_name == "DISTANCE_TO_ENTITY")
+    {
+        return StateOperationTarget::DISTANCE_TO_ENTITY;
+    }
+
 
     return std::nullopt;
 }
 
-StateOperation FrameworkRegistry::GenerateStateOperationFromDto(const StateOperationDto &dto_state_operation) const
+StateOperation FrameworkRegistry::GenerateStateOperationFromDto(StateOperationTarget target, const StateOperationDto &dto_state_operation) const
 {
     StateOperationTarget target_id;
     int32_t state_key;
-    if (dto_state_operation.target_id_name == "ENVIRONMENT")
+    switch (target)
     {
-        target_id = StateOperationTarget::ENVIRONMENT;
-        state_key = environment_manager.GetEnvironmentalConditionKey(dto_state_operation.state_key_name);
-    }
-    else if (dto_state_operation.target_id_name == "SELF")
-    {
-        target_id = StateOperationTarget::SELF;
-        state_key = schema_manager.GetStateKey(dto_state_operation.state_key_name);
-    }
-    else
-    {
-        // Assume that all other names will reference ENTITY
-        target_id = StateOperationTarget::ENTITY;
-        state_key = schema_manager.GetStateKey(dto_state_operation.state_key_name);
+        case StateOperationTarget::ENVIRONMENT:
+            state_key = environment_manager.GetEnvironmentalConditionKey(dto_state_operation.state_key_name);
+            break;
+            case StateOperationTarget::SELF:
+            state_key = schema_manager.GetStateKey(dto_state_operation.state_key_name);
+            break;
+            case StateOperationTarget::ENTITY:
+            state_key = schema_manager.GetStateKey(dto_state_operation.state_key_name);
+            break;
+        default:
+            state_key = 0;
     }
 
     auto operation_type = schema_manager.GetStateOperationTypeId(dto_state_operation.operation_name);
 
-    return StateOperation(target_id, state_key, operation_type, dto_state_operation.value);
+    return StateOperation(target, state_key, operation_type, dto_state_operation.value);
 }
 
 bool FrameworkRegistry::RegisterActions(const std::string &config_file_path)
@@ -286,7 +289,8 @@ bool FrameworkRegistry::ConfigureActionWithDto(const std::shared_ptr<Action> &ne
 
         if (target.has_value())
         {
-            new_action->AddPrecondition(target.value(), GenerateStateOperationFromDto(precondition_dto));
+            new_action->AddPrecondition(target.value(), GenerateStateOperationFromDto(target.value(),
+                precondition_dto));
         }
         else
         {
@@ -297,17 +301,47 @@ bool FrameworkRegistry::ConfigureActionWithDto(const std::shared_ptr<Action> &ne
 
     for (const auto& immediate_effect_dto : action_dto.immediate_effects)
     {
-        new_action->AddImmediateEffect(GenerateStateOperationFromDto(immediate_effect_dto));
+        auto target = ParseStateOperationTargetName(immediate_effect_dto.target_id_name);
+
+        if (target.has_value())
+        {
+            new_action->AddImmediateEffect(GenerateStateOperationFromDto(target.value(), immediate_effect_dto));
+        }
+        else
+        {
+            logger.LogWarning("State operation target " + immediate_effect_dto.target_id_name + " does not exist. "
+                "The immediate effect will be skipped.", "ConfigureActionWithDto");
+        }
     }
 
     for (const auto& completion_effect_dto : action_dto.completion_effects)
     {
-        new_action->AddCompletionEffect(GenerateStateOperationFromDto(completion_effect_dto));
+        auto target = ParseStateOperationTargetName(completion_effect_dto.target_id_name);
+
+        if (target.has_value())
+        {
+            new_action->AddCompletionEffect(GenerateStateOperationFromDto(target.value(), completion_effect_dto));
+        }
+        else
+        {
+            logger.LogWarning("State operation target " + completion_effect_dto.target_id_name + " does not exist. "
+                "The completion effect will be skipped.", "ConfigureActionWithDto");
+        }
     }
 
     for (const auto& interruption_effect_dto : action_dto.interruption_effects)
     {
-        new_action->AddInterruptionEffect(GenerateStateOperationFromDto(interruption_effect_dto));
+        auto target = ParseStateOperationTargetName(interruption_effect_dto.target_id_name);
+
+        if (target.has_value())
+        {
+            new_action->AddInterruptionEffect(GenerateStateOperationFromDto(target.value(), interruption_effect_dto));
+        }
+        else
+        {
+            logger.LogWarning("State operation target " + interruption_effect_dto.target_id_name + " does not exist. "
+                "The interruption effect will be skipped.", "ConfigureActionWithDto");
+        }
     }
 
     logger.LogInfo("Action '" + action_dto.action_name + " ' has been configured.",
@@ -316,12 +350,13 @@ bool FrameworkRegistry::ConfigureActionWithDto(const std::shared_ptr<Action> &ne
     return true;
 }
 
-void FrameworkRegistry::QueueEntityRegistration(void *handle, const std::string &path)
+void FrameworkRegistry::QueueEntityRegistration(void *handle, const std::string &path, Position3D position)
 {
     EntityCommand command {
-    EntityCommandType::REGISTER,
-    handle,
-    path,
+        .type = EntityCommandType::REGISTER,
+        .entity_handle = handle,
+        .config_path = path,
+        .position = position
     };
 
     pending_commands.push(command);
@@ -330,8 +365,8 @@ void FrameworkRegistry::QueueEntityRegistration(void *handle, const std::string 
 void FrameworkRegistry::QueueEntityUnregistration(void *handle)
 {
     EntityCommand command {
-        EntityCommandType::UNREGISTER,
-        handle,
+        .type = EntityCommandType::UNREGISTER,
+        .entity_handle = handle,
     };
 
     pending_commands.push(command);
@@ -350,7 +385,7 @@ size_t FrameworkRegistry::ProcessPendingEntityCommands()
         {
             if (command.type == EntityCommandType::REGISTER)
             {
-                RegisterEntity(command.entity_handle, command.config_path);
+                RegisterEntity(command.entity_handle, command.config_path, command.position);
             }
             else
             {
@@ -382,7 +417,7 @@ void FrameworkRegistry::ClearPendingCommands()
     }
 }
 
-void FrameworkRegistry::RegisterEntity(void *entity_handle, const std::string &config_file_path)
+void FrameworkRegistry::RegisterEntity(void *entity_handle, const std::string &config_file_path, Position3D position)
 {
     auto entity_dto = json_loader.ProcessSingleEntityConfigFile(config_file_path);
     if (!entity_dto.has_value())
@@ -398,7 +433,8 @@ void FrameworkRegistry::RegisterEntity(void *entity_handle, const std::string &c
         auto entity = GenerateFrameworkEntityFromDto(entity_handle, entity_dto->framework_entity);
         GenerateFrameworkEntityIdAndHandleMapping(entity);
 
-
+        entity_position_manager.RegisterEntityPosition(entity_handle, position, entity_dto->framework_entity->is_static,
+            entity_dto->framework_entity->position_update_frequency_ms);
 
         logger.LogInfo("Registered Framework Entity: " + entity_dto->framework_entity->entity_name,
             "FrameworkRegistry");
@@ -407,6 +443,10 @@ void FrameworkRegistry::RegisterEntity(void *entity_handle, const std::string &c
     {
         auto entity = GenerateBehavioralEntityFromDto(entity_handle, entity_dto->behavioral_entity);
         GenerateBehavioralEntityIdAndHandleMapping(entity);
+
+        entity_position_manager.RegisterEntityPosition(entity_handle, position,
+            entity_dto->behavioral_entity->base_properties.is_static,
+            entity_dto->behavioral_entity->base_properties.position_update_frequency_ms);
 
         logger.LogInfo("Registered Behavioral Entity: " + entity_dto->behavioral_entity->base_properties.entity_name,
             "FrameworkRegistry");
@@ -538,9 +578,9 @@ BehavioralEntity * FrameworkRegistry::GenerateBehavioralEntityFromDto(void *enti
     }
 }
 
-void FrameworkRegistry::GenerateBehavioralEntityIdAndHandleMapping(const BehavioralEntity *framework_entity)
+void FrameworkRegistry::GenerateBehavioralEntityIdAndHandleMapping(const BehavioralEntity *behavioral_entity)
 {
-    if (!framework_entity)
+    if (!behavioral_entity)
     {
         logger.LogWarning("The framework entity was not generated. The mapping cannot be done.",
             "FrameworkRegistry");
@@ -548,8 +588,8 @@ void FrameworkRegistry::GenerateBehavioralEntityIdAndHandleMapping(const Behavio
         return;
     }
 
-    handle_to_behavioral_id[framework_entity->GetEntityHandle()] = framework_entity->GetEntityId();
-    behavioral_id_to_handle[framework_entity->GetEntityId()] = framework_entity->GetEntityHandle();
+    handle_to_behavioral_id[behavioral_entity->GetEntityHandle()] = behavioral_entity->GetEntityId();
+    behavioral_id_to_handle[behavioral_entity->GetEntityId()] = behavioral_entity->GetEntityHandle();
 }
 
 void FrameworkRegistry::ConfigureBehavioralEntityWithDto(const std::unique_ptr<BehavioralEntity> &new_entity,
@@ -615,6 +655,7 @@ bool FrameworkRegistry::UnregisterFrameworkEntity(void* entity_handle)
 {
     auto framework_id = GetFrameworkIdFromHandle(entity_handle);
     if (framework_id != -1) {
+        entity_position_manager.UnregisterEntityPosition(entity_handle);
         RemoveEntityFromActionIndex(framework_id);
         handle_to_framework_id.erase(entity_handle);
         framework_id_to_handle.erase(framework_id);
@@ -630,6 +671,7 @@ bool FrameworkRegistry::UnregisterBehavioralEntity(void* entity_handle)
 {
     auto behavioral_id = GetBehavioralIdFromHandle(entity_handle);
     if (behavioral_id != -1) {
+        entity_position_manager.UnregisterEntityPosition(entity_handle);
         RemoveEntityFromActionIndex(behavioral_id);
         handle_to_behavioral_id.erase(entity_handle);
         behavioral_id_to_handle.erase(behavioral_id);
@@ -650,8 +692,8 @@ void FrameworkRegistry::RemoveEntityFromActionIndex(int32_t entity_id)
         return;
     }
 
-    const auto& actions = entity_actions_it->second;
-    for (int32_t action_id : actions)
+    const auto& entity_actions = entity_actions_it->second;
+    for (int32_t action_id : entity_actions)
     {
         auto action_entities_it = action_to_entities_index.find(action_id);
         if (action_entities_it != action_to_entities_index.end())
