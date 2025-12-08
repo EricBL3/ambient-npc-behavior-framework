@@ -21,9 +21,9 @@ public:
     {
         int32_t xyz[3] = {0, 0, 0};
 
-        bool query_failed = query_callback(entity_handle, xyz);
+        bool success = query_callback(entity_handle, xyz);
 
-        return PositionQuery{Position3D(xyz[0], xyz[1], xyz[2]), query_failed};
+        return PositionQuery{Position3D(xyz[0], xyz[1], xyz[2]), success};
     }
 };
 }
