@@ -68,7 +68,8 @@ extern "C" {
             framework->GetServices().Core().logger.LogInfo("Shutting down ambient character behavior framework",
                 "BehaviorFrameworkInterface");
 
-            framework->ProcessPendingEntityCommands();
+            // pass -1 as batch size to process all remaining entity commands
+            framework->ProcessPendingEntityCommands(-1);
 
             delete framework;
         }

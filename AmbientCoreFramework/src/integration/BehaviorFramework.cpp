@@ -123,10 +123,9 @@ void BehaviorFramework::Update(int32_t character_batch_size, int64_t current_tim
 
         if (app_context->Registry().entity_registry.GetPendingCommandCount() > 0)
         {
-            ProcessPendingEntityCommands();
+            ProcessPendingEntityCommands(character_batch_size);
         }
-
-        if (CanUpdateBehavioralEntities(character_batch_size))
+        else if (CanUpdateBehavioralEntities(character_batch_size))
         {
             UpdateBehavioralEntities(character_batch_size);
         }
@@ -146,22 +145,31 @@ bool BehaviorFramework::IsFrameworkInitialized() const
     return true;
 }
 
-void BehaviorFramework::ProcessPendingEntityCommands() const
+void BehaviorFramework::ProcessPendingEntityCommands(int32_t batch_size)
 {
     ZoneScoped;
 
+    is_processing_entity_batch = true;
+
     try
     {
-        auto processed_count = app_context->Registry().entity_registry.ProcessPendingEntityCommands();
-        app_context->Core().logger.LogInfo("Processed " + std::to_string(processed_count) + " entity commands",
-        "BehaviorFramework");
+        auto processed_count = app_context->Registry().entity_registry.ProcessPendingEntityCommands(batch_size);
+
+        auto remaining_count = app_context->Registry().entity_registry.GetPendingCommandCount();
+
+        app_context->Core().logger.LogInfo("Processed " + std::to_string(processed_count) + " entity commands, " +
+            std::to_string(remaining_count) + " remaining", "BehaviorFramework");
 
     }
     catch (const std::exception &e)
     {
         app_context->Core().logger.LogError("Error processing entity commands: " +
                 std::string(e.what()),"BehaviorFramework");
+
+        is_processing_entity_batch = false;
     }
+
+    is_processing_entity_batch = false;
 }
 
 bool BehaviorFramework::CanUpdateBehavioralEntities(int32_t character_batch_size) const
@@ -220,6 +228,8 @@ void BehaviorFramework::UpdateBehavioralEntities(int32_t character_batch_size)
         {
             app_context->Core().logger.LogError("Error updating behavioral entities: " +
                 std::string(e.what()),"BehaviorFramework");
+
+            is_processing_entity_batch = false;
         }
     }
 

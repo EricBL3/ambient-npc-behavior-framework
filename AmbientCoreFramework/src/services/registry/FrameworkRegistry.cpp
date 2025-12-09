@@ -372,14 +372,16 @@ void FrameworkRegistry::QueueEntityUnregistration(void *handle)
     pending_commands.push(command);
 }
 
-size_t FrameworkRegistry::ProcessPendingEntityCommands()
+size_t FrameworkRegistry::ProcessPendingEntityCommands(int32_t batch_size)
 {
     size_t processed = 0;
 
-    while (!pending_commands.empty())
+    auto commands_to_process = DetermineCommandBatchSize(batch_size);
+    while (!pending_commands.empty() && processed < commands_to_process)
     {
         auto command = pending_commands.front();
         pending_commands.pop();
+        processed++;
 
         try
         {
@@ -391,7 +393,6 @@ size_t FrameworkRegistry::ProcessPendingEntityCommands()
             {
                 UnregisterEntity(command.entity_handle);
             }
-            processed++;
         }
         catch (const std::exception &e)
         {
@@ -402,6 +403,16 @@ size_t FrameworkRegistry::ProcessPendingEntityCommands()
     }
 
     return processed;
+}
+
+int32_t FrameworkRegistry::DetermineCommandBatchSize(int32_t batch_size) const
+{
+    if (batch_size < 0)
+    {
+        return std::numeric_limits<int32_t>::max();
+    }
+
+    return batch_size;
 }
 
 size_t FrameworkRegistry::GetPendingCommandCount() const

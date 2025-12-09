@@ -13,7 +13,7 @@ public:
 
     virtual void QueueEntityRegistration(void* handle, const std::string& path, Position3D position) = 0;
     virtual void QueueEntityUnregistration(void* handle) = 0;
-    virtual size_t ProcessPendingEntityCommands() = 0;
+    virtual size_t ProcessPendingEntityCommands(int32_t batch_size) = 0;
     virtual size_t GetPendingCommandCount() const = 0;
     virtual void ClearPendingCommands() = 0;
 

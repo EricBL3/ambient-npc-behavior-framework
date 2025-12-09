@@ -71,7 +71,7 @@ public:
 
     void QueueEntityRegistration(void* handle, const std::string& path, Position3D position) override;
     void QueueEntityUnregistration(void* handle) override;
-    size_t ProcessPendingEntityCommands() override;
+    size_t ProcessPendingEntityCommands(int32_t batch_size) override;
     size_t GetPendingCommandCount() const override;
     void ClearPendingCommands() override;
     void RegisterEntity(void* entity_handle, const std::string& config_file_path, Position3D position);
@@ -147,6 +147,8 @@ private:
 
     void AddFallbackSequencesToEntity(const std::vector<int32_t> &fallback_sequences, const std::unique_ptr<BehavioralEntity> &new_entity) const;
     void AddInterruptionHandlersToEntity(const std::unordered_map<std::string, int32_t> &interruption_handlers, const std::unique_ptr<BehavioralEntity> &new_entity) const;
+
+    int32_t DetermineCommandBatchSize(int32_t batch_size) const;
 
     bool UnregisterFrameworkEntity(void* entity_handle);
     bool UnregisterBehavioralEntity(void* entity_handle);

@@ -12,7 +12,7 @@ public:
 
     MOCK_METHOD(void, QueueEntityRegistration, (void* entity_handle,const std::string& config_file_path, Position3D position), (override));
     MOCK_METHOD(void, QueueEntityUnregistration, (void* entity_handle), (override));
-    MOCK_METHOD(size_t, ProcessPendingEntityCommands, (), (override));
+    MOCK_METHOD(size_t, ProcessPendingEntityCommands, (int32_t character_batch_size), (override));
     MOCK_METHOD(size_t, GetPendingCommandCount, (), (const, override));
     MOCK_METHOD(void, ClearPendingCommands, (), (override));
 

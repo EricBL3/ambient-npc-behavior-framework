@@ -35,7 +35,7 @@ public:
         int32_t entity_pos_z) const;
 
     void UnregisterEntity(void* entity_handle) const;
-    void ProcessPendingEntityCommands() const;
+    void ProcessPendingEntityCommands(int32_t batch_size);
 
     void CompleteCharacterAction(void* entity_handle, int32_t action_id, int64_t action_token) const;
 
