@@ -22,7 +22,7 @@ private:
     std::vector<StateOperation> immediate_effects;
     std::vector<StateOperation> completion_effects;
     std::vector<StateOperation> interruption_effects;
-    int64_t max_duration_ms;
+    int64_t action_duration_ms;
     InterruptionBehaviorType interruption_behavior;
 
 public:
@@ -45,7 +45,7 @@ public:
 
     bool GetRequiresTargetEntity() const;
 
-    int64_t GetMaxDuration() const { return max_duration_ms; }
+    int64_t GetMaxDuration() const { return action_duration_ms; }
 
     std::unordered_map<StateOperationTarget, std::vector<StateOperation>> GetAllPreconditions() const { return preconditions_by_target; }
 

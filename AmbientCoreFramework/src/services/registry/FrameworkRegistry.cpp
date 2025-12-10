@@ -248,7 +248,7 @@ bool FrameworkRegistry::GenerateActionFromDto(const ActionDto &action_dto)
         auto interruption_behavior = ParseInterruptionBehavior(action_dto.interruption_behavior_name);
 
         auto [new_action_iterator, inserted] = actions.emplace(action_dto.action_id, std::make_shared<Action>(
-            Action(action_dto.action_id, action_dto.action_name, action_dto.max_duration_ms,
+            Action(action_dto.action_id, action_dto.action_name, action_dto.action_duration_ms,
                 interruption_behavior)));
 
         if (!inserted)

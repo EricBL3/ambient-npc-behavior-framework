@@ -19,10 +19,10 @@ public:
         }
     }
 
-    void StartCharacterAction(void *entity_handle, int32_t action_id, int64_t action_token, int64_t max_duration_ms,
+    void StartCharacterAction(void *entity_handle, int32_t action_id, int64_t action_token, int64_t action_duration_ms,
         void *target_entity_id) override
     {
-        start_action_callback(entity_handle, action_id, action_token, max_duration_ms, target_entity_id);
+        start_action_callback(entity_handle, action_id, action_token, action_duration_ms, target_entity_id);
     }
 };
 }

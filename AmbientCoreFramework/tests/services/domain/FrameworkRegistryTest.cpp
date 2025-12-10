@@ -92,7 +92,7 @@ protected:
         ActionDto action_dto;
         action_dto.action_id = action_id;
         action_dto.action_name = "test_action";
-        action_dto.max_duration_ms = 1000;
+        action_dto.action_duration_ms = 1000;
         action_dto.interruption_behavior_name = "RESUMABLE";
 
         return action_dto;

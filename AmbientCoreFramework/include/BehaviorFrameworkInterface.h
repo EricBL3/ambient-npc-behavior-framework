@@ -16,7 +16,7 @@ extern "C" {
 #endif
 
     typedef int32_t (*QueryEnvironmentalConditionFn) (int32_t condition_key);
-    typedef void (*StartCharacterActionFn) (void* entity_handle, int32_t action_id, int64_t action_token, int64_t max_duration_ms,
+    typedef void (*StartCharacterActionFn) (void* entity_handle, int32_t action_id, int64_t action_token, int64_t action_duration_ms,
         void* target_entity_handle);
 
     typedef bool (*QueryEntityPositionFn) (void* entity_id, int32_t* out_xyz);

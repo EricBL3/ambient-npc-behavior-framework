@@ -75,7 +75,7 @@ private:
                     "immediate_effects": [],
                     "completion_effects": [],
                     "interruption_effects": [],
-                    "max_duration_ms": 5000,
+                    "action_duration_ms": 5000,
                     "interruption_behavior_name": "NON_RESUMABLE"
                 }
             ]
@@ -307,7 +307,7 @@ TEST_F(JsonLoaderTest, ProcessActionsConfigFile_ValidFile_ReturnsActions) {
     EXPECT_EQ(result.size(), 1);
     EXPECT_EQ(result[0].action_id, 1);
     EXPECT_EQ(result[0].action_name, "test_action");
-    EXPECT_EQ(result[0].max_duration_ms, 5000);
+    EXPECT_EQ(result[0].action_duration_ms, 5000);
 }
 
 TEST_F(JsonLoaderTest, ProcessActionsConfigFile_NonexistentFile_LogsErrorAndReturnsEmpty) {
