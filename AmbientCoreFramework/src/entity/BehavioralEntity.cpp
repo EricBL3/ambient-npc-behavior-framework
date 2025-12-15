@@ -392,12 +392,10 @@ FrameworkEntity* BehavioralEntity::GetActionTargetEntity(const std::shared_ptr<A
     auto entity_preconditions = action->GetPreconditionsForTarget(StateOperationTarget::ENTITY);
     auto entity_distance_preconditions = action->GetPreconditionsForTarget(StateOperationTarget::DISTANCE_TO_ENTITY);
 
-    std::vector<int32_t> unused_entities;
-    unused_entities.reserve(entities.size());
-    std::vector<int32_t> previously_used_entities;
-    previously_used_entities.reserve(entities.size());
+    std::vector<int32_t> valid_entity_ids;
+    valid_entity_ids.reserve(entities.size());
 
-    // Separate unused from used entities
+    // Obtain valid entity ids
     for (auto* entity : entities)
     {
         // skip current entity if we checked it above
@@ -418,41 +416,11 @@ FrameworkEntity* BehavioralEntity::GetActionTargetEntity(const std::shared_ptr<A
             continue;
         }
 
-        // Check if entity has been used for this action before
-        if (!memory.HasActionMemory(action->GetActionId(), entity->GetEntityId()))
-        {
-            unused_entities.push_back(entity->GetEntityId());
-        }
-        else
-        {
-            previously_used_entities.push_back(entity->GetEntityId());
-        }
+        valid_entity_ids.push_back(entity->GetEntityId());
     }
 
-    // Exploration by choosing randomly an unused entity
-    if (!unused_entities.empty())
-    {
-        auto random_index = GetRandomIndex(unused_entities.size());
-
-        return entity_query.GetEntityFromId(unused_entities[random_index]);
-    }
-
-    // Exploitation by using least recently used among used entities
-    if (previously_used_entities.empty())
-    {
-        return nullptr;
-    }
-
-    auto lru_options = memory.GetLeastRecentlyUsedEntityIdsForAction(action->GetActionId(), previously_used_entities);
-    if (lru_options.empty())
-    {
-        return nullptr;
-    }
-
-    auto random_index = GetRandomIndex(lru_options.size());
-    auto selected_entity_id = lru_options[random_index];
-
-    return entity_query.GetEntityFromId(selected_entity_id);
+    auto selected_entity_id = memory.SelectActionEntityId(action->GetActionId(), valid_entity_ids);
+    return selected_entity_id ? entity_query.GetEntityFromId(selected_entity_id.value()) : nullptr;
 }
 
 BehavioralEntity::PreconditionValidation BehavioralEntity::ValidateActionPreconditions(
@@ -666,54 +634,27 @@ std::optional<int32_t> BehavioralEntity::GetNodeIdForNextTransition()
 
     std::vector<Transition> transitions = sequences.top()->GetValidTransitionsFromCurrentNode();
 
-    std::vector<int32_t> unused_transitions;
-    unused_transitions.reserve(transitions.size());
-    std::vector<int32_t> previously_used_transitions;
-    previously_used_transitions.reserve(transitions.size());
+    std::vector<int32_t> valid_node_ids;
+    valid_node_ids.reserve(transitions.size());
 
-    // Separate unused from used transitions
+    // Obtain valid node_ids
     for (const auto& transition : transitions)
     {
-        if (!EvaluatePreconditions(transition.GetPreconditionsForTarget(StateOperationTarget::SELF), nullptr) ||
-            !EvaluatePreconditions(transition.GetPreconditionsForTarget(StateOperationTarget::ENVIRONMENT), nullptr))
+        // skip invalid transitions
+        if (!EvaluatePreconditions(transition.GetPreconditionsForTarget(StateOperationTarget::SELF), nullptr))
         {
-            // skip invalid transitions
             continue;
         }
 
-        // Check if the transition has been used before
-        if (!memory.HasTransitionMemory(transition.GetDestinationNodeId()))
+        if (!EvaluatePreconditions(transition.GetPreconditionsForTarget(StateOperationTarget::ENVIRONMENT), nullptr))
         {
-            unused_transitions.push_back(transition.GetDestinationNodeId());
+            continue;
         }
-        else
-        {
-            previously_used_transitions.push_back(transition.GetDestinationNodeId());
-        }
+
+        valid_node_ids.emplace_back(transition.GetDestinationNodeId());
     }
 
-    // Exploration phase choosing randomly between unused transitions
-    if (!unused_transitions.empty())
-    {
-        auto random_index = GetRandomIndex(unused_transitions.size());
-
-        return unused_transitions[random_index];
-    }
-
-    // Exploitation phase using least recently used
-    if (previously_used_transitions.empty())
-    {
-        return std::nullopt;
-    }
-
-    auto lru_options = memory.GetLeastRecentlyVisitedNodeIds(previously_used_transitions);
-    if (lru_options.empty())
-    {
-        return std::nullopt;
-    }
-
-    auto random_index = GetRandomIndex(lru_options.size());
-    return lru_options[random_index];
+    return memory.SelectTransitionNodeId(valid_node_ids);
 }
 
 void BehavioralEntity::HandleSequenceFailure()
@@ -964,18 +905,6 @@ void BehavioralEntity::HandleRuntimeFailure(const RuntimeFailureContext &context
     if (context.should_stop_processing) {
         is_processing = false;
     }
-}
-
-int32_t BehavioralEntity::GetRandomIndex(int32_t max_exclusive)
-{
-    ZoneScoped;
-    if (max_exclusive <= 1 )
-    {
-        return 0;
-    }
-
-    std::uniform_int_distribution<int32_t> dist(0, max_exclusive - 1);
-    return dist(rng);
 }
 
 void BehavioralEntity::ProcessPendingInterruptions()

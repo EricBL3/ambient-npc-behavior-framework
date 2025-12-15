@@ -1,7 +1,9 @@
 
 #pragma once
+#include <deque>
+#include <optional>
+#include <random>
 #include <vector>
-#include <string>
 
 #include "ActionMemory.h"
 #include "InterruptionMemory.h"
@@ -30,11 +32,13 @@ private:
      */
     int32_t max_interruption_memories;
 
-    std::vector<TransitionMemory> transition_memories;
-    std::vector<ActionMemory> action_memories;
-    std::vector<InterruptionMemory> interruption_memories;
+    std::deque<TransitionMemory> transition_memories;
+    std::deque<ActionMemory> action_memories;
+    std::deque<InterruptionMemory> interruption_memories;
 
     ILogger& logger;
+
+    std::mt19937 rng;
 
 public:
 
@@ -62,10 +66,10 @@ public:
     const InterruptionMemory* FindInterruptionMemory(int32_t action_id, int32_t sequence_id, int32_t node_id) const;
 
     [[nodiscard]]
-    std::vector<int32_t> GetLeastRecentlyVisitedNodeIds(const std::vector<int32_t>& node_ids) const;
+    std::optional<int32_t> SelectTransitionNodeId(const std::vector<int32_t>& valid_node_ids);
 
     [[nodiscard]]
-    std::vector<int32_t> GetLeastRecentlyUsedEntityIdsForAction(int32_t action_id, const std::vector<int32_t>& entity_ids) const;
+    std::optional<int32_t> SelectActionEntityId(int32_t action_id, const std::vector<int32_t>& valid_entity_ids);
 
     void ClearSequenceInterruptionMemories(int32_t sequence_id);
     bool RemoveInterruptionMemory(int32_t action_id, int32_t sequence_id, int32_t node_id);
@@ -91,17 +95,7 @@ private:
     void RemoveExistingTransitionMemory(int32_t target_node_id);
     void RemoveExistingActionMemory(int32_t action_id, int32_t target_entity_id);
 
-    [[nodiscard]]
-    std::vector<int32_t> FindOldestTransitionNodeIds(const std::vector<int32_t>& node_ids) const;
-
-    [[nodiscard]]
-    std::vector<int32_t> FindOldestActionEntityIds(int32_t action_id, const std::vector<int32_t>& entity_ids) const;
-
-    [[nodiscard]]
-    std::vector<int32_t> FindUnusedTransitionNodeIds(const std::vector<int32_t>& node_ids) const;
-
-    [[nodiscard]]
-    std::vector<int32_t> FindUnusedActionEntityIds(int32_t action_id, const std::vector<int32_t>& entity_ids) const;
+    int32_t GetRandomIndex(int32_t max_exclusive);
 };
 
 }
