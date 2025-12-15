@@ -492,7 +492,7 @@ void BehavioralEntity::CompleteAction(int32_t action_id, int64_t action_token)
             std::to_string(action_id) + " and token: " + std::to_string(action_token) ,"CompleteAction");
 
         ApplyCompletionEffects(action_id);
-        memory.UpdateActionMemory(action_id, current_action_target_id, time_manager.GetCurrentTime());
+        memory.CreateActionMemory(action_id, current_action_target_id, time_manager.GetCurrentTime());
 
         // Reset and current_action_id to invalid value.
         current_action_id = -1;
@@ -622,7 +622,7 @@ void BehavioralEntity::HandleNodeExecutionCompletion()
     }
 
     current_node->MarkAsCompleted();
-    memory.UpdateTransitionMemory(selected_node_id.value(), time_manager.GetCurrentTime());
+    memory.CreateTransitionMemory(sequences.top()->GetSequenceId(), selected_node_id.value(), time_manager.GetCurrentTime());
     sequences.top()->FindCurrentNode()->ResetCompletion();
     sequences.top()->SetSequenceState(SequenceState::PROCESSING_NODE);
     fallback_attempt_count = 0;
@@ -654,7 +654,7 @@ std::optional<int32_t> BehavioralEntity::GetNodeIdForNextTransition()
         valid_node_ids.emplace_back(transition.GetDestinationNodeId());
     }
 
-    return memory.SelectTransitionNodeId(valid_node_ids);
+    return memory.SelectTransitionNodeId(sequences.top()->GetSequenceId(), valid_node_ids);
 }
 
 void BehavioralEntity::HandleSequenceFailure()
@@ -966,7 +966,7 @@ void BehavioralEntity::ProcessInterruptionImmediate(int32_t interruption_id)
 
         if (action->GetInterruptionBehavior() == InterruptionBehaviorType::RESUMABLE)
         {
-            memory.UpdateInterruptionMemory(current_action_id, sequences.top()->GetSequenceId(), sequences.top()->GetCurrentNodeId(),
+            memory.CreateInterruptionMemory(current_action_id, sequences.top()->GetSequenceId(), sequences.top()->GetCurrentNodeId(),
             current_action_target_id, time_manager.GetCurrentTime());
 
             // Invalidate action token to reject late callbacks of complete action

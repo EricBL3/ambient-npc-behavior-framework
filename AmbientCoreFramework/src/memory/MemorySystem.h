@@ -48,16 +48,23 @@ public:
     int32_t GetMaxActionMemories() const;
     int32_t GetMaxInterruptionMemories() const;
 
-    void SetAndEnforceMaxTransitionMemories(int32_t max_transitions);
-    void SetAndEnforceMaxActionMemories(int32_t max_actions);
-    void SetAndEnforceMaxInterruptionMemories(int32_t max_interruptions);
+    void ConfigureMaxTransitionMemories(int32_t max_transitions);
+    void ConfigureMaxActionMemories(int32_t max_actions);
+    void ConfigureMaxInterruptionMemories(int32_t max_interruptions);
 
-    bool UpdateTransitionMemory(int32_t target_node_id, int64_t current_time);
-    bool UpdateActionMemory(int32_t action_id, int32_t target_entity_id, int64_t current_time);
-    bool UpdateInterruptionMemory(int32_t action_id, int32_t sequence_id, int32_t node_id, int32_t entity_id, int64_t current_time);
+    bool CreateTransitionMemory(int32_t sequence_id, int32_t target_node_id, int64_t current_time);
+    bool CreateActionMemory(int32_t action_id, int32_t target_entity_id, int64_t current_time);
+    bool CreateInterruptionMemory(int32_t action_id, int32_t sequence_id, int32_t node_id, int32_t entity_id, int64_t current_time);
 
     [[nodiscard]]
-    const TransitionMemory* FindTransitionMemory(int32_t target_node_id) const;
+    std::optional<int32_t> SelectTransitionNodeId(int32_t sequence_id, const std::vector<int32_t>& valid_node_ids);
+
+    [[nodiscard]]
+    std::optional<int32_t> SelectActionEntityId(int32_t action_id, const std::vector<int32_t>& valid_entity_ids);
+
+
+    [[nodiscard]]
+    const TransitionMemory* FindTransitionMemory(int32_t sequence_id, int32_t target_node_id) const;
 
     [[nodiscard]]
     const ActionMemory* FindActionMemory(int32_t action_id, int32_t target_entity_id) const;
@@ -65,26 +72,14 @@ public:
     [[nodiscard]]
     const InterruptionMemory* FindInterruptionMemory(int32_t action_id, int32_t sequence_id, int32_t node_id) const;
 
-    [[nodiscard]]
-    std::optional<int32_t> SelectTransitionNodeId(const std::vector<int32_t>& valid_node_ids);
-
-    [[nodiscard]]
-    std::optional<int32_t> SelectActionEntityId(int32_t action_id, const std::vector<int32_t>& valid_entity_ids);
-
-    void ClearSequenceInterruptionMemories(int32_t sequence_id);
     bool RemoveInterruptionMemory(int32_t action_id, int32_t sequence_id, int32_t node_id);
     bool RemoveInterruptionMemory(const InterruptionMemory* memory);
+    void ClearSequenceInterruptionMemories(int32_t sequence_id);
     void ClearAllMemories();
 
     size_t GetTransitionMemoryCount() const;
     size_t GetActionMemoryCount() const;
     size_t GetInterruptionMemoryCount() const;
-
-    [[nodiscard]]
-    bool HasActionMemory(int32_t action_id, int32_t target_entity_id) const { return FindActionMemory(action_id, target_entity_id) != nullptr; }
-
-    [[nodiscard]]
-    bool HasTransitionMemory(int32_t target_node_id) const { return FindTransitionMemory(target_node_id) != nullptr; }
 
 private:
 
@@ -92,7 +87,7 @@ private:
     void EnforceMaxActionMemories();
     void EnforceMaxInterruptionMemories();
 
-    void RemoveExistingTransitionMemory(int32_t target_node_id);
+    void RemoveExistingTransitionMemory(int32_t sequence_id, int32_t target_node_id);
     void RemoveExistingActionMemory(int32_t action_id, int32_t target_entity_id);
 
     int32_t GetRandomIndex(int32_t max_exclusive);

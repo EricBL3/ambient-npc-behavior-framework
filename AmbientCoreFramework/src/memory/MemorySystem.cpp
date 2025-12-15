@@ -9,9 +9,9 @@ using namespace AmbientCharacterBehavior;
 MemorySystem::MemorySystem(int32_t max_transitions, int32_t max_actions, int32_t max_interruptions, ILogger& logger) :
 logger(logger), rng(std::random_device{}())
 {
-    SetAndEnforceMaxTransitionMemories(max_transitions);
-    SetAndEnforceMaxActionMemories(max_actions);
-    SetAndEnforceMaxInterruptionMemories(max_interruptions);
+    ConfigureMaxTransitionMemories(max_transitions);
+    ConfigureMaxActionMemories(max_actions);
+    ConfigureMaxInterruptionMemories(max_interruptions);
 
     ClearAllMemories();
 }
@@ -31,7 +31,7 @@ int32_t MemorySystem::GetMaxInterruptionMemories() const
     return max_interruption_memories;
 }
 
-void MemorySystem::SetAndEnforceMaxTransitionMemories(int32_t max_transitions)
+void MemorySystem::ConfigureMaxTransitionMemories(int32_t max_transitions)
 {
     if (max_transitions <= 0 || max_transitions == max_transition_memories)
     {
@@ -45,7 +45,7 @@ void MemorySystem::SetAndEnforceMaxTransitionMemories(int32_t max_transitions)
     EnforceMaxTransitionMemories();
 }
 
-void MemorySystem::SetAndEnforceMaxActionMemories(int32_t max_actions)
+void MemorySystem::ConfigureMaxActionMemories(int32_t max_actions)
 {
     if (max_actions <= 0 || max_actions == max_action_memories)
     {
@@ -60,7 +60,7 @@ void MemorySystem::SetAndEnforceMaxActionMemories(int32_t max_actions)
 
 }
 
-void MemorySystem::SetAndEnforceMaxInterruptionMemories(int32_t max_interruptions)
+void MemorySystem::ConfigureMaxInterruptionMemories(int32_t max_interruptions)
 {
     if (max_interruptions <= 0 || max_interruptions == max_interruption_memories)
     {
@@ -81,22 +81,22 @@ void MemorySystem::SetAndEnforceMaxInterruptionMemories(int32_t max_interruption
 /**
  * @return true if update succeeded, false if validation or creation failed
  */
-bool MemorySystem::UpdateTransitionMemory(int32_t target_node_id, int64_t current_time)
+bool MemorySystem::CreateTransitionMemory(int32_t sequence_id, int32_t target_node_id, int64_t current_time)
 {
     try
     {
-        TransitionMemory new_memory(target_node_id, current_time);
-        RemoveExistingTransitionMemory(target_node_id);
+        TransitionMemory new_memory(sequence_id, target_node_id, current_time);
+        RemoveExistingTransitionMemory(sequence_id, target_node_id);
         transition_memories.push_back(new_memory);
         EnforceMaxTransitionMemories();
 
         logger.LogInfo("Added transition memory with target_node_id = " + std::to_string(target_node_id) +
-            " current_time = " + std::to_string(current_time), "UpdateTransitionMemory");
+            " current_time = " + std::to_string(current_time), "CreateTransitionMemory");
 
         return true;
     } catch (const std::exception& e)
     {
-        logger.LogError("UpdateTransitionMemory failed: " + std::string(e.what()), "UpdateTransitionMemory");
+        logger.LogError("CreateTransitionMemory failed: " + std::string(e.what()), "CreateTransitionMemory");
         return false;
     }
 }
@@ -105,7 +105,7 @@ bool MemorySystem::UpdateTransitionMemory(int32_t target_node_id, int64_t curren
  * @return true if update succeeded, false if validation or creation failed
  *
  */
-bool MemorySystem::UpdateActionMemory(int32_t action_id, int32_t target_entity_id, int64_t current_time)
+bool MemorySystem::CreateActionMemory(int32_t action_id, int32_t target_entity_id, int64_t current_time)
 {
     try
     {
@@ -115,12 +115,12 @@ bool MemorySystem::UpdateActionMemory(int32_t action_id, int32_t target_entity_i
         EnforceMaxActionMemories();
 
         logger.LogInfo("Added action memory with action_id = " + std::to_string(action_id) + " target_entity_id = " +
-            std::to_string(target_entity_id) + " current_time = " + std::to_string(current_time), "UpdateActionMemory");
+            std::to_string(target_entity_id) + " current_time = " + std::to_string(current_time), "CreateActionMemory");
 
         return true;
     } catch (const std::exception& e)
     {
-        logger.LogError("UpdateActionMemory failed: " + std::string(e.what()), "UpdateActionMemory");
+        logger.LogError("CreateActionMemory failed: " + std::string(e.what()), "CreateActionMemory");
         return false;
     }
 }
@@ -128,7 +128,7 @@ bool MemorySystem::UpdateActionMemory(int32_t action_id, int32_t target_entity_i
 /**
  * @return true if update succeeded, false if validation or creation failed
  */
-bool MemorySystem::UpdateInterruptionMemory(int32_t action_id, int32_t sequence_id, int32_t node_id, int32_t entity_id,
+bool MemorySystem::CreateInterruptionMemory(int32_t action_id, int32_t sequence_id, int32_t node_id, int32_t entity_id,
     int64_t current_time)
 {
     try
@@ -140,24 +140,24 @@ bool MemorySystem::UpdateInterruptionMemory(int32_t action_id, int32_t sequence_
 
         logger.LogInfo("Added interruption memory with action_id = " + std::to_string(action_id) + " sequence_id = " +
             std::to_string(sequence_id) + " node_id = " + std::to_string(node_id) + " entity_id = " + std::to_string(entity_id) +
-            " current_time = " + std::to_string(current_time), "UpdateInterruptionMemory");
+            " current_time = " + std::to_string(current_time), "CreateInterruptionMemory");
 
         return true;
 
     } catch (const std::exception& e)
     {
-        logger.LogError("UpdateInterruptionMemory failed: " + std::string(e.what()), "MemorySystem");
+        logger.LogError("CreateInterruptionMemory failed: " + std::string(e.what()), "MemorySystem");
         return false;
     }
 }
 
-const TransitionMemory * MemorySystem::FindTransitionMemory(int32_t target_node_id) const
+const TransitionMemory * MemorySystem::FindTransitionMemory(int32_t sequence_id, int32_t target_node_id) const
 {
     // find_if performs a linear search over the memories
     auto iterator = std::find_if(transition_memories.begin(), transition_memories.end(),
-        [target_node_id](const TransitionMemory& memory) // lambda function: for each memory in the vector
+        [sequence_id, target_node_id](const TransitionMemory& memory) // lambda function: for each memory in the vector
         {
-           return  memory.MatchesMemory(target_node_id); // return true if it matches
+           return  memory.MatchesMemory(sequence_id, target_node_id); // return true if it matches
         });
 
     return (iterator !=  transition_memories.end()) ? &(*iterator) : nullptr;
@@ -188,7 +188,7 @@ const InterruptionMemory * MemorySystem::FindInterruptionMemory(int32_t action_i
 
 }
 
-std::optional<int32_t> MemorySystem::SelectTransitionNodeId(const std::vector<int32_t> &valid_node_ids)
+std::optional<int32_t> MemorySystem::SelectTransitionNodeId(int32_t sequence_id, const std::vector<int32_t> &valid_node_ids)
 {
     ZoneScoped;
 
@@ -209,7 +209,7 @@ std::optional<int32_t> MemorySystem::SelectTransitionNodeId(const std::vector<in
     used_transition_memories.reserve(valid_node_ids.size());
     for (auto node_id : valid_node_ids)
     {
-        const auto transition_memory = FindTransitionMemory(node_id);
+        const auto transition_memory = FindTransitionMemory(sequence_id, node_id);
         if (!transition_memory)
         {
             unused_nodes.emplace_back(node_id);
@@ -442,13 +442,13 @@ void MemorySystem::EnforceMaxInterruptionMemories()
     }
 }
 
-void MemorySystem::RemoveExistingTransitionMemory(int32_t target_node_id)
+void MemorySystem::RemoveExistingTransitionMemory(int32_t sequence_id, int32_t target_node_id)
 {
     // Search for existing memory with same target_node_id
     auto iterator = std::find_if(transition_memories.begin(), transition_memories.end(),
-        [target_node_id](const TransitionMemory& memory)
+        [sequence_id, target_node_id](const TransitionMemory& memory)
         {
-           return  memory.MatchesMemory(target_node_id);
+           return  memory.MatchesMemory(sequence_id, target_node_id);
         });
 
     // Remove existing memory if found

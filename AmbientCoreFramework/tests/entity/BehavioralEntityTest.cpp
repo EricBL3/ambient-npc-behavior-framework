@@ -584,7 +584,7 @@ TEST_F(BehavioralEntityTest, SequenceFailure_ClearsInterruptionMemories) {
     auto current_node_id = sequence->GetCurrentNodeId();
 
     // Pre-populate interruption memory
-    test_entity->GetMemorySystem().UpdateInterruptionMemory(5, sequence->GetSequenceId(), current_node_id,
+    test_entity->GetMemorySystem().CreateInterruptionMemory(5, sequence->GetSequenceId(), current_node_id,
         100, 1000);
 
     sequence->SetSequenceState(SequenceState::FAILED);
