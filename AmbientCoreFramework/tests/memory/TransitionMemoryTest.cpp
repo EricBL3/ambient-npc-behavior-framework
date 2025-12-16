@@ -11,7 +11,7 @@ TEST(TransitionMemoryTest, ConstructorInitializesCorrectly)
 {
     TransitionMemory memory(0, 20, 456);
     EXPECT_EQ(20, memory.GetTargetNodeId());
-    EXPECT_EQ(456, memory.GetLastUsedTime());
+    EXPECT_EQ(456, memory.GetCreationTime());
 }
 
 TEST(TransitionMemoryTest, RejectsNegativeValues) {
@@ -42,4 +42,21 @@ TEST(TransitionMemoryTest, DoesNotMatchDifferentNodeId) {
     
     EXPECT_FALSE(memory1.MatchesMemory(memory2));
     EXPECT_FALSE(memory2.MatchesMemory(memory1));
+}
+
+TEST(TransitionMemoryTest, RequiresBothSequenceAndNodeToMatch) {
+    TransitionMemory seq1_node5(1, 5, 100);  // Sequence 1, Node 5
+    TransitionMemory seq2_node5(2, 5, 100);  // Sequence 2, Node 5 (different sequence!)
+    TransitionMemory seq1_node7(1, 7, 100);  // Sequence 1, Node 7 (different node)
+
+    // Same node in different sequences should NOT match
+    EXPECT_FALSE(seq1_node5.MatchesMemory(seq2_node5));
+    EXPECT_FALSE(seq2_node5.MatchesMemory(seq1_node5));
+
+    // Different nodes in same sequence should NOT match
+    EXPECT_FALSE(seq1_node5.MatchesMemory(seq1_node7));
+
+    // Only exact match should match
+    TransitionMemory duplicate(1, 5, 200);  // Same sequence and node, different time
+    EXPECT_TRUE(seq1_node5.MatchesMemory(duplicate));
 }

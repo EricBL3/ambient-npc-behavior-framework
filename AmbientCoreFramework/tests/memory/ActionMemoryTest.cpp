@@ -11,12 +11,21 @@ TEST(ActionMemoryTest, ConstructorInitializesCorrectly) {
     ActionMemory memory(20, 3, 456);
     EXPECT_EQ(20, memory.GetActionId());
     EXPECT_EQ(3, memory.GetTargetEntityId());
-    EXPECT_EQ(456, memory.GetLastUsedTime());
+    EXPECT_EQ(456, memory.GetCreationTime());
 }
 
-TEST(ActionMemoryTest, RejectsNegativeValues) {
-    EXPECT_THROW(ActionMemory(-1, 1, 100), std::invalid_argument);
-    EXPECT_THROW(ActionMemory(1, 1, -1), std::invalid_argument);
+TEST(ActionMemoryTest, RejectsNegativeActionIdAndTime) {
+    EXPECT_THROW(ActionMemory(-1, 1, 100), std::invalid_argument);  // Negative action
+    EXPECT_THROW(ActionMemory(1, 1, -1), std::invalid_argument);    // Negative time
+}
+
+TEST(ActionMemoryTest, AcceptsMinusOneForNullEntity) {
+    EXPECT_NO_THROW(ActionMemory(1, -1, 100));  // -1 is valid for entity
+}
+
+TEST(ActionMemoryTest, RejectsInvalidEntityIds) {
+    EXPECT_THROW(ActionMemory(1, -2, 100), std::invalid_argument);   // -2 not allowed
+    EXPECT_THROW(ActionMemory(1, -999, 100), std::invalid_argument); // Other negatives
 }
 
 TEST(ActionMemoryTest, AcceptsZeroValues) {

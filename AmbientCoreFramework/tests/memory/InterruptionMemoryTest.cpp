@@ -14,7 +14,7 @@ TEST(InterruptionMemoryTest, ConstructorInitializesCorrectly)
     EXPECT_EQ(10, memory.GetInterruptedSequenceId());
     EXPECT_EQ(15, memory.GetInterruptedSequenceNodeId());
     EXPECT_EQ(20, memory.GetInterruptedTargetEntityId());
-    EXPECT_EQ(456, memory.GetLastUsedTime());
+    EXPECT_EQ(456, memory.GetCreationTime());
 }
 
 TEST(InterruptionMemoryTest, ConstructorHandlesNullEntity) {
