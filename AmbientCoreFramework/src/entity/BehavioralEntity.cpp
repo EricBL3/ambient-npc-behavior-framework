@@ -374,6 +374,8 @@ void BehavioralEntity::InitiateActionExecution(const std::shared_ptr<Action>& ac
 
     current_action_id = action->GetActionId();
     current_action_token++;
+    
+    memory.CreateActionMemory(current_action_id, current_action_target_id, time_manager.GetCurrentTime());
 
     logger.LogInfo("Calling start character action for entity: " + std::to_string(entity_id) + " with action id: " +
         std::to_string(current_action_id) + " and token: " + std::to_string(current_action_token), "InitiateActionExecution");
@@ -492,7 +494,6 @@ void BehavioralEntity::CompleteAction(int32_t action_id, int64_t action_token)
             std::to_string(action_id) + " and token: " + std::to_string(action_token) ,"CompleteAction");
 
         ApplyCompletionEffects(action_id);
-        memory.CreateActionMemory(action_id, current_action_target_id, time_manager.GetCurrentTime());
 
         // Reset and current_action_id to invalid value.
         current_action_id = -1;
