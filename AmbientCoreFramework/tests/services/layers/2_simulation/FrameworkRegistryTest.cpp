@@ -7,6 +7,7 @@
 #include "services/layers/4_content_registry/FrameworkRegistry.h"
 #include "../../mocks/MockEntityPositionManager.h"
 #include "../../mocks/MockEntityPositionProvider.h"
+#include "../../mocks/MockEnvironmentalConditionProvider.h"
 #include "../../mocks/MockStartCharacterActionProvider.h"
 #include "../../mocks/MockTimeManager.h"
 #include "../../mocks/MockStateOperationEvaluator.h"
@@ -17,6 +18,7 @@ class FrameworkRegistryTest : public testing::Test {
 protected:
     std::unique_ptr<MockLogger> mock_logger;
     std::unique_ptr<MockTimeManager> mock_time_manager;
+    std::unique_ptr<MockEnvironmentalConditionProvider> mock_environmental_condition_provider;
     std::unique_ptr<MockStartCharacterActionProvider> mock_action_provider;
     std::unique_ptr<MockEntityPositionProvider> mock_entity_pos_provider;
     std::unique_ptr<MockJsonLoader> mock_json_loader;
@@ -25,6 +27,10 @@ protected:
     std::unique_ptr<MockEntityPositionManager> mock_entity_pos_manager;
     std::unique_ptr<MockStateOperationEvaluator> mock_state_operation_evaluator;
 
+    std::unique_ptr<SimulationServices> simulation_state_services;
+    std::unique_ptr<BehavioralEvaluationServices> behavioral_evaluation_services;
+    std::unique_ptr<DataAccessServices> data_access_services;
+    std::unique_ptr<FoundationServices> foundation_services;
 
     std::unique_ptr<FrameworkRegistry> registry;
     int framework_entity_handle = 100;
@@ -32,15 +38,30 @@ protected:
 
     void SetUp() override {
         mock_logger = std::make_unique<MockLogger>();
+        mock_time_manager = std::make_unique<MockTimeManager>();
+        mock_environmental_condition_provider = std::make_unique<MockEnvironmentalConditionProvider>();
         mock_action_provider = std::make_unique<MockStartCharacterActionProvider>();
         mock_entity_pos_provider = std::make_unique<MockEntityPositionProvider>();
+
         mock_json_loader = std::make_unique<MockJsonLoader>();
+
         mock_schema = std::make_unique<MockFrameworkSchemaManager>();
+
         mock_environment_manager = std::make_unique<MockEnvironmentalConditionManager>();
         mock_entity_pos_manager = std::make_unique<MockEntityPositionManager>();
 
-        registry = std::make_unique<FrameworkRegistry>(*mock_logger, *mock_time_manager, *mock_action_provider, *mock_json_loader,
-            *mock_schema, *mock_environment_manager, *mock_state_operation_evaluator, *mock_entity_pos_manager);
+        foundation_services = std::make_unique<FoundationServices>(*mock_logger, *mock_time_manager,
+            *mock_environmental_condition_provider,*mock_action_provider, *mock_entity_pos_provider);
+
+        data_access_services = std::make_unique<DataAccessServices>(*foundation_services, *mock_json_loader);
+
+        simulation_state_services = std::make_unique<SimulationServices>(*data_access_services,
+            *mock_environment_manager,*mock_entity_pos_manager, *mock_schema);
+
+        behavioral_evaluation_services = std::make_unique<BehavioralEvaluationServices>(*simulation_state_services,
+            *mock_state_operation_evaluator);
+
+        registry = std::make_unique<FrameworkRegistry>(*behavioral_evaluation_services);
     }
 
     SequenceDto CreateBasicSequenceDto(int32_t sequence_id)
@@ -201,9 +222,7 @@ protected:
 
 // Constructor test
 TEST_F(FrameworkRegistryTest, Constructor_ValidServices_CreatesFrameworkRegistry) {
-    EXPECT_NO_THROW(FrameworkRegistry framework_registry(*mock_logger, *mock_time_manager, *mock_action_provider,
-        *mock_json_loader, *mock_schema, *mock_environment_manager, *mock_state_operation_evaluator,
-        *mock_entity_pos_manager));
+    EXPECT_NO_THROW(FrameworkRegistry framework_registry(*behavioral_evaluation_services));
 }
 
 // REGISTER SEQUENCES TESTS

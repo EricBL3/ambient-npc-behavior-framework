@@ -9,7 +9,7 @@
 namespace AmbientCharacterBehavior {
 class IEntityRegistry {
 public:
-    virtual ~IEntityRegistry() {}
+    virtual ~IEntityRegistry() = default;
 
     virtual void QueueEntityRegistration(void* handle, const std::string& path, Position3D position) = 0;
     virtual void QueueEntityUnregistration(void* handle) = 0;

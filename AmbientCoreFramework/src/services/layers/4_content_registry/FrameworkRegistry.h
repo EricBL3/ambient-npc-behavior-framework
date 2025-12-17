@@ -9,6 +9,7 @@
 #include "behavior/Sequence.h"
 #include "entity/BehavioralEntity.h"
 #include "entity/FrameworkEntity.h"
+#include "services/composition/ServiceBundles.h"
 #include "services/layers/2_simulation/EntityPosition.h"
 #include "services/interfaces/IContentProvider.h"
 #include "services/interfaces/IEntityPositionManager.h"
@@ -21,6 +22,9 @@
 namespace AmbientCharacterBehavior {
 class FrameworkRegistry : public IContentProvider, public IEntityRegistry, public IEntityQuery {
 private:
+    BehavioralEvaluationServices& services;
+    ContentRegistryServices* self_bundle;
+
     std::unordered_map<int32_t, std::shared_ptr<Action>> actions;
     std::unordered_map<int32_t, std::shared_ptr<Sequence>> sequences;
     std::unordered_map<int32_t, std::unique_ptr<FrameworkEntity>> framework_entities;
@@ -34,15 +38,6 @@ private:
 
     std::unordered_map<int32_t, std::unordered_set<int32_t>> action_to_entities_index;
     std::unordered_map<int32_t, std::unordered_set<int32_t>> entity_to_actions_index;
-
-    ILogger& logger;
-    ITimeManager& time_manager;
-    IStartCharacterActionProvider& start_action_provider;
-    IJsonLoader& json_loader;
-    IFrameworkSchemaManager& schema_manager;
-    IEnvironmentalConditionManager& environment_manager;
-    IStateOperationEvaluator& state_operation_evaluator;
-    IEntityPositionManager& entity_position_manager;
 
     enum class EntityCommandType {
         REGISTER,
@@ -58,17 +53,62 @@ private:
 
     std::queue<EntityCommand> pending_commands;
 
+    ILogger& Logger() const
+    {
+        return services.simulation_state.data_access.foundation.logger;
+    }
+
+    ITimeManager& TimeManager() const
+    {
+        return services.simulation_state.data_access.foundation.time_manager;
+    }
+
+    IStartCharacterActionProvider& ActionProvider() const
+    {
+        return services.simulation_state.data_access.foundation.start_character_action_provider;
+    }
+
+    IJsonLoader& JsonLoader() const
+    {
+        return services.simulation_state.data_access.json_loader;
+    }
+
+    IFrameworkSchemaManager& SchemaManager() const
+    {
+        return services.simulation_state.schema_manager;
+    }
+
+    IEnvironmentalConditionManager& EnvironmentManager() const
+    {
+        return services.simulation_state.environmental_condition_manager;
+    }
+
+    IEntityPositionManager& PositionManager() const
+    {
+        return services.simulation_state.entity_position_manager;
+    }
+
+    IStateOperationEvaluator& StateEvaluator() const
+    {
+        return services.state_operation_evaluator;
+    }
+
+
 public:
-    explicit FrameworkRegistry(ILogger& logger, ITimeManager& time_manager, IStartCharacterActionProvider& start_action_provider,
-        IJsonLoader& json_loader, IFrameworkSchemaManager& state_schema, IEnvironmentalConditionManager& environment_manager,
-        IStateOperationEvaluator& state_operation_evaluator, IEntityPositionManager& entity_position_manager) :
-        logger(logger), time_manager(time_manager), start_action_provider(start_action_provider), json_loader(json_loader),
-        schema_manager(state_schema), environment_manager(environment_manager),
-        state_operation_evaluator(state_operation_evaluator), entity_position_manager(entity_position_manager) {}
+    explicit FrameworkRegistry(BehavioralEvaluationServices& services);
+
+    void SetSelfBundle(ContentRegistryServices& bundle);
+
+    // IContentProvider interface
 
     bool RegisterSequences(const std::string& config_file_path) override;
     bool RegisterActions(const std::string& config_file_path) override;
+    bool HasSequence(int32_t sequence_id) const override;
+    std::shared_ptr<Sequence> GetSequenceById(int32_t sequence_id) const override;
+    bool HasAction(int32_t action_id) const override;
+    std::shared_ptr<Action> GetActionById(int32_t action_id) const override;
 
+    // IEntityRegistry interface
     void QueueEntityRegistration(void* handle, const std::string& path, Position3D position) override;
     void QueueEntityUnregistration(void* handle) override;
     size_t ProcessPendingEntityCommands(int32_t batch_size) override;
@@ -77,10 +117,7 @@ public:
     void RegisterEntity(void* entity_handle, const std::string& config_file_path, Position3D position);
     void UnregisterEntity(void* entity_handle);
 
-    bool HasSequence(int32_t sequence_id) const override;
-    std::shared_ptr<Sequence> GetSequenceById(int32_t sequence_id) const override;
-    bool HasAction(int32_t action_id) const override;
-    std::shared_ptr<Action> GetActionById(int32_t action_id) const override;
+
 
     bool HasFrameworkEntity(int32_t entity_id) const override;
     FrameworkEntity* GetFrameworkEntityById(int32_t entity_id) const override;
@@ -94,8 +131,8 @@ public:
     int32_t GetBehavioralIdFromHandle(void* entity_handle) const;
 
     std::vector<BehavioralEntity*> GetBehavioralEntitiesRange(int32_t start_index, int32_t count) const override;
-    int32_t GetBehavioralEntityCount() const override
-    { return behavioral_entities.size(); }
+
+    //IEntityQuery interface
 
     std::vector<FrameworkEntity*> GetEntitiesSupportingAction(int32_t action_id) const override;
     FrameworkEntity* GetEntityFromId(int32_t entity_id) const override;
@@ -119,6 +156,8 @@ public:
         return behavioral_entities.size();
     }
 
+    int32_t GetBehavioralEntityCount() const override
+    { return behavioral_entities.size(); }
 
 private:
     bool GenerateSequenceFromDto(const SequenceDto &sequence_dto);
@@ -138,15 +177,22 @@ private:
 
     FrameworkEntity* GenerateFrameworkEntityFromDto(void* entity_handle, std::optional<FrameworkEntityDto> entity_dto);
     bool IsEntityDuplicate(void* entity_handle, int32_t entity_id) const;
+
     void GenerateFrameworkEntityIdAndHandleMapping(const FrameworkEntity* framework_entity);
-    void ConfigureFrameworkEntityWithDto(const std::unique_ptr<FrameworkEntity> &new_entity, const FrameworkEntityDto &entity_dto);
+    void ConfigureFrameworkEntityWithDto(const std::unique_ptr<FrameworkEntity> &new_entity,
+        const FrameworkEntityDto &entity_dto);
 
     BehavioralEntity* GenerateBehavioralEntityFromDto(void* entity_handle, std::optional<BehavioralEntityDto> entity_dto);
     void GenerateBehavioralEntityIdAndHandleMapping(const BehavioralEntity* behavioral_entity);
-    void ConfigureBehavioralEntityWithDto(const std::unique_ptr<BehavioralEntity> &new_entity, const BehavioralEntityDto &entity_dto);
 
-    void AddFallbackSequencesToEntity(const std::vector<int32_t> &fallback_sequences, const std::unique_ptr<BehavioralEntity> &new_entity) const;
-    void AddInterruptionHandlersToEntity(const std::unordered_map<std::string, int32_t> &interruption_handlers, const std::unique_ptr<BehavioralEntity> &new_entity) const;
+    void ConfigureBehavioralEntityWithDto(const std::unique_ptr<BehavioralEntity> &new_entity,
+        const BehavioralEntityDto &entity_dto);
+
+    void AddFallbackSequencesToEntity(const std::vector<int32_t> &fallback_sequences,
+        const std::unique_ptr<BehavioralEntity> &new_entity) const;
+
+    void AddInterruptionHandlersToEntity(const std::unordered_map<std::string, int32_t> &interruption_handlers,
+        const std::unique_ptr<BehavioralEntity> &new_entity) const;
 
     int32_t DetermineCommandBatchSize(int32_t batch_size) const;
 
@@ -168,30 +214,31 @@ private:
                 action_to_entities_index[action_id].insert(entity_id);
                 entity_to_actions_index[entity_id].insert(action_id);
 
-                logger.LogInfo("Registered action " + std::to_string(action_id) + " for entity " + std::to_string(entity_id),
+                Logger().LogInfo("Registered action " + std::to_string(action_id) + " for entity " + std::to_string(entity_id),
                               "RegisterActionForEntity");
             }
             else
             {
-                logger.LogWarning("Action with id: " + std::to_string(action_id) + " does not exist.",
+                Logger().LogWarning("Action with id: " + std::to_string(action_id) + " does not exist.",
                     "FrameworkRegistry");
             }
         }
     }
 
     template<typename T>
-    void AddInitialStateMapToEntity(const std::unordered_map<std::string, int32_t> &initial_state, const std::unique_ptr<T> &new_entity) const
+    void AddInitialStateMapToEntity(const std::unordered_map<std::string, int32_t> &initial_state,
+        const std::unique_ptr<T> &new_entity) const
     {
         for (const auto& state_pair : initial_state)
         {
             try
             {
-                auto state_key = schema_manager.GetStateKey(state_pair.first);
+                auto state_key = SchemaManager().GetStateKey(state_pair.first);
                 new_entity->SetStateValue(state_key, state_pair.second);
             }
             catch (const std::exception &e)
             {
-                logger.LogWarning("State '" + state_pair.first + "' does not exist.",
+                Logger().LogWarning("State '" + state_pair.first + "' does not exist.",
                     "FrameworkRegistry");
             }
         }

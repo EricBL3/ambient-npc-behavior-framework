@@ -18,6 +18,7 @@ namespace AmbientCharacterBehavior {
 class ApplicationContext {
 private:
     // Service ownership (order matters for destruction)
+
     std::unique_ptr<ILogger> logger;
     std::unique_ptr<ITimeManager> time_manager;
     std::unique_ptr<IEnvironmentalConditionProvider> environmental_condition_provider;
@@ -30,13 +31,32 @@ private:
     std::unique_ptr<IStateOperationEvaluator> state_operation_evaluator;
     std::unique_ptr<FrameworkRegistry> registry;
 
+    // Service bundles
+
     FoundationServices foundation_services;
     DataAccessServices data_access_services;
     SimulationServices simulation_state_services;
     BehavioralEvaluationServices behavioral_evaluation_services;
-    ContentRegistryServices content_registry_services;
+    std::unique_ptr<ContentRegistryServices> content_registry_services;
 
 public:
+    // Factory method that creates all services
+    static std::unique_ptr<ApplicationContext> Create(
+        QueryEnvironmentalConditionCallback query_env_callback,
+        StartCharacterActionCallback start_action_callback,
+        QueryEntityPositionCallback query_position_callback
+    );
+
+    // Accessor methods
+
+    FoundationServices& Foundation() { return foundation_services; }
+    DataAccessServices& DataAccess() { return data_access_services; }
+    SimulationServices& SimulationState() { return simulation_state_services; }
+    BehavioralEvaluationServices& BehavioralEvaluation() { return behavioral_evaluation_services; }
+    ContentRegistryServices& ContentRegistry() const { return *content_registry_services; }
+
+private:
+    // Private constructor, forcing the use of the factory method
     ApplicationContext(
         std::unique_ptr<ILogger> logger,
         std::unique_ptr<ITimeManager> time_manager,
@@ -47,51 +67,10 @@ public:
         std::unique_ptr<IEnvironmentalConditionManager> environmental_condition_manager,
         std::unique_ptr<IEntityPositionManager> entity_position_manager,
         std::unique_ptr<IFrameworkSchemaManager> schema_manager,
-        std::unique_ptr<IStateOperationEvaluator> state_operation_evaluator,
-        std::unique_ptr<FrameworkRegistry> registry) :
-        logger(std::move(logger)),
-        time_manager(std::move(time_manager)),
-        environmental_condition_provider(std::move(environmental_condition_provider)),
-        start_character_action_provider(std::move(start_character_action_provider)),
-        entity_position_provider(std::move(entity_position_provider)),
-        json_loader(std::move(json_loader)),
-        environmental_condition_manager(std::move(environmental_condition_manager)),
-        entity_position_manager(std::move(entity_position_manager)),
-        schema_manager(std::move(schema_manager)),
-        state_operation_evaluator(std::move(state_operation_evaluator)),
-        registry(std::move(registry)),
-        foundation_services(
-            *this->logger,
-            *this->time_manager,
-            *this->environmental_condition_provider,
-            *this->start_character_action_provider,
-            *this->entity_position_provider
-        ),
-        data_access_services(
-            foundation_services,
-            *this->json_loader
-        ),
-        simulation_state_services(
-            data_access_services,
-            *this->environmental_condition_manager,
-            *this->entity_position_manager,
-            *this->schema_manager
-        ),
-        behavioral_evaluation_services(
-            simulation_state_services,
-            *this->state_operation_evaluator
-        ),
-        content_registry_services(
-            behavioral_evaluation_services,
-            *this->registry,
-            *this->registry,
-            *this->registry
-        ) {}
+        std::unique_ptr<IStateOperationEvaluator> state_operation_evaluator);
 
-    FoundationServices& Foundation() { return foundation_services; }
-    DataAccessServices& DataAccess() { return data_access_services; }
-    SimulationServices& SimulationState() { return simulation_state_services; }
-    BehavioralEvaluationServices& BehavioralEvaluation() { return behavioral_evaluation_services; }
-    ContentRegistryServices& ContentRegistry() { return content_registry_services; }
+    // Two phase initialization for registry
+    void InitializeRegistry();
+
 };
 }
