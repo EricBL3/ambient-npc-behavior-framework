@@ -7,6 +7,7 @@
 #include "ActionMemory.h"
 #include "InterruptionMemory.h"
 #include "TransitionMemory.h"
+#include "services/composition/ServiceBundles.h"
 #include "services/interfaces/ILogger.h"
 
 namespace AmbientCharacterBehavior {
@@ -61,7 +62,12 @@ private:
     // Dependencies
     // =============================================================================
 
-    ILogger& logger;
+    FoundationServices& services;
+
+    ILogger& Logger() const
+    {
+        return services.logger;
+    }
 
     // Random number generator for tie-breaking
     std::mt19937 rng;
@@ -76,9 +82,9 @@ public:
      * @param max_transitions Maximum number of transition memories to store (must be > 0)
      * @param max_actions Maximum number of action memories to store (must be > 0)
      * @param max_interruptions Maximum number of interruption memories to store (must be > 0)
-     * @param logger Logger for memory operations
+     * @param services The foundation services of the framework. The memory system uses only logging.
      */
-    explicit MemorySystem(int32_t max_transitions, int32_t max_actions, int32_t max_interruptions, ILogger& logger);
+    explicit MemorySystem(int32_t max_transitions, int32_t max_actions, int32_t max_interruptions, FoundationServices& services);
 
     // =============================================================================
     // Capacity Configuration

@@ -2,11 +2,12 @@
 #include <cstdint>
 #include <string>
 
-#include "entity/BehavioralEntity.h"
 #include "entity/FrameworkEntity.h"
 #include "services/layers/2_simulation/EntityPosition.h"
 
 namespace AmbientCharacterBehavior {
+class BehavioralEntity;
+
 class IEntityRegistry {
 public:
     virtual ~IEntityRegistry() = default;

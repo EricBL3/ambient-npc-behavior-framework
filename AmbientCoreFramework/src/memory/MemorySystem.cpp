@@ -8,8 +8,8 @@ using namespace AmbientCharacterBehavior;
 // CONSTRUCTION & CONFIGURATION
 // =============================================================================
 
-MemorySystem::MemorySystem(int32_t max_transitions, int32_t max_actions, int32_t max_interruptions, ILogger& logger) :
-    max_transition_memories(0), max_action_memories(0), max_interruption_memories(0), logger(logger),
+MemorySystem::MemorySystem(int32_t max_transitions, int32_t max_actions, int32_t max_interruptions, FoundationServices& services) :
+    max_transition_memories(0), max_action_memories(0), max_interruption_memories(0), services(services),
     rng(std::random_device{}()) // Seed RNG with random device
 {
     ConfigureMaxTransitionMemories(max_transitions);
@@ -24,7 +24,7 @@ void MemorySystem::ConfigureMaxTransitionMemories(int32_t max_transitions)
     // Validate new capacity
     if (max_transitions <= 0 || max_transitions == max_transition_memories)
     {
-        logger.LogWarning("max_transitions must be greater than 0 and different from the current "
+        Logger().LogWarning("max_transitions must be greater than 0 and different from the current "
                         "maximum. Keeping current value", "MemorySystem");
 
         return;
@@ -40,7 +40,7 @@ void MemorySystem::ConfigureMaxActionMemories(int32_t max_actions)
     // Validate new capacity
     if (max_actions <= 0 || max_actions == max_action_memories)
     {
-        logger.LogWarning("max_actions must be greater than 0, and different from the current "
+        Logger().LogWarning("max_actions must be greater than 0, and different from the current "
                         "maximum. Keeping current value", "MemorySystem");
 
         return;
@@ -57,7 +57,7 @@ void MemorySystem::ConfigureMaxInterruptionMemories(int32_t max_interruptions)
     // Validate new capacity
     if (max_interruptions <= 0 || max_interruptions == max_interruption_memories)
     {
-        logger.LogWarning("max_interruptions must be greater than 0, and different from the current maximum. "
+        Logger().LogWarning("max_interruptions must be greater than 0, and different from the current maximum. "
                  "Keeping current value", "MemorySystem");
         return;
     }
@@ -84,13 +84,13 @@ bool MemorySystem::CreateTransitionMemory(int32_t sequence_id, int32_t target_no
         // Remove the oldest memories if over capacity
         EnforceMaxTransitionMemories();
 
-        logger.LogInfo("Created transition memory: sequence=" + std::to_string(sequence_id) + " node=" +
+        Logger().LogInfo("Created transition memory: sequence=" + std::to_string(sequence_id) + " node=" +
             std::to_string(target_node_id), "MemorySystem");
 
         return true;
     } catch (const std::exception& e)
     {
-        logger.LogError("CreateTransitionMemory failed: " + std::string(e.what()),
+        Logger().LogError("CreateTransitionMemory failed: " + std::string(e.what()),
             "CreateTransitionMemory");
 
         return false;
@@ -110,13 +110,13 @@ bool MemorySystem::CreateActionMemory(int32_t action_id, int32_t target_entity_i
         // Remove the oldest memories if over capacity
         EnforceMaxActionMemories();
 
-        logger.LogInfo("Created action memory: action_id = " + std::to_string(action_id) + " target_entity_id = " +
+        Logger().LogInfo("Created action memory: action_id = " + std::to_string(action_id) + " target_entity_id = " +
             std::to_string(target_entity_id), "CreateActionMemory");
 
         return true;
     } catch (const std::exception& e)
     {
-        logger.LogError("CreateActionMemory failed: " + std::string(e.what()), "CreateActionMemory");
+        Logger().LogError("CreateActionMemory failed: " + std::string(e.what()), "CreateActionMemory");
         return false;
     }
 }
@@ -134,7 +134,7 @@ bool MemorySystem::CreateInterruptionMemory(int32_t action_id, int32_t sequence_
         // Remove the oldest memories if over capacity
         EnforceMaxInterruptionMemories();
 
-        logger.LogInfo("Created interruption memory: action_id = " + std::to_string(action_id) + " sequence_id = " +
+        Logger().LogInfo("Created interruption memory: action_id = " + std::to_string(action_id) + " sequence_id = " +
             std::to_string(sequence_id) + " node_id = " + std::to_string(node_id) + " entity_id = " + std::to_string(entity_id),
             "CreateInterruptionMemory");
 
@@ -142,7 +142,7 @@ bool MemorySystem::CreateInterruptionMemory(int32_t action_id, int32_t sequence_
 
     } catch (const std::exception& e)
     {
-        logger.LogError("CreateInterruptionMemory failed: " + std::string(e.what()),
+        Logger().LogError("CreateInterruptionMemory failed: " + std::string(e.what()),
             "CreateInterruptionMemory");
         return false;
     }
@@ -260,7 +260,7 @@ std::optional<int32_t> MemorySystem::SelectTransitionNodeId(int32_t sequence_id,
     if (used_transition_memories.empty())
     {
         // Should be impossible: we have valid nodes but neither unused nor used
-        logger.LogWarning("All nodes unused but exploration failed",
+        Logger().LogWarning("All nodes unused but exploration failed",
             "MemorySystem");
 
         return std::nullopt;

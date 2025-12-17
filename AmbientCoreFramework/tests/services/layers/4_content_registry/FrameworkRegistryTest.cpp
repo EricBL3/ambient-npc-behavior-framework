@@ -27,10 +27,11 @@ protected:
     std::unique_ptr<MockEntityPositionManager> mock_entity_pos_manager;
     std::unique_ptr<MockStateOperationEvaluator> mock_state_operation_evaluator;
 
-    std::unique_ptr<SimulationServices> simulation_state_services;
-    std::unique_ptr<BehavioralEvaluationServices> behavioral_evaluation_services;
-    std::unique_ptr<DataAccessServices> data_access_services;
     std::unique_ptr<FoundationServices> foundation_services;
+    std::unique_ptr<DataAccessServices> data_access_services;
+    std::unique_ptr<SimulationServices> simulation_services;
+    std::unique_ptr<BehavioralEvaluationServices> behavioral_evaluation_services;
+    std::unique_ptr<ContentRegistryServices> content_registry_services;
 
     std::unique_ptr<FrameworkRegistry> registry;
     int framework_entity_handle = 100;
@@ -55,13 +56,22 @@ protected:
 
         data_access_services = std::make_unique<DataAccessServices>(*foundation_services, *mock_json_loader);
 
-        simulation_state_services = std::make_unique<SimulationServices>(*data_access_services,
+        simulation_services = std::make_unique<SimulationServices>(*data_access_services,
             *mock_environment_manager,*mock_entity_pos_manager, *mock_schema);
 
-        behavioral_evaluation_services = std::make_unique<BehavioralEvaluationServices>(*simulation_state_services,
+        behavioral_evaluation_services = std::make_unique<BehavioralEvaluationServices>(*simulation_services,
             *mock_state_operation_evaluator);
 
         registry = std::make_unique<FrameworkRegistry>(*behavioral_evaluation_services);
+
+        content_registry_services = std::make_unique<ContentRegistryServices>(
+            *behavioral_evaluation_services,
+            *registry,
+            *registry,
+            *registry
+        );
+
+        registry->SetSelfBundle(*content_registry_services);
     }
 
     SequenceDto CreateBasicSequenceDto(int32_t sequence_id)

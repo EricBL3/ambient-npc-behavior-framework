@@ -5,21 +5,42 @@
 #include "../services/mocks/MockContentProvider.h"
 #include "../services/mocks/MockEntityQuery.h"
 #include "../services/mocks/MockStartCharacterActionProvider.h"
+#include "../services/mocks/MockEnvironmentalConditionProvider.h"
 #include "../services/mocks/MockStateOperationEvaluator.h"
+#include "../services/mocks/MockEntityPositionProvider.h"
+#include "../services/mocks/MockJsonLoader.h"
+#include "../services/mocks/MockFrameworkSchemaManager.h"
+#include "../services/mocks/MockEnvironmentalConditionManager.h"
+#include "../services/mocks/MockEntityPositionManager.h"
+#include "../services/mocks/MockEntityRegistry.h"
 #include "behavior/sequence_nodes/ActionSequenceNode.h"
 #include "../../src/behavior/sequence_nodes/EndSequenceNode.h"
 #include "entity/BehavioralEntity.h"
+
 
 using namespace AmbientCharacterBehavior;
 
 class BehavioralEntityTest : public testing::Test {
 protected:
     std::unique_ptr<MockLogger> mock_logger;
-    std::unique_ptr<MockTimeManager> mock_time;
-    std::unique_ptr<MockContentProvider> mock_content;
-    std::unique_ptr<MockEntityQuery> mock_entity_query;
+    std::unique_ptr<MockTimeManager> mock_time_manager;
+    std::unique_ptr<MockEnvironmentalConditionProvider> mock_environmental_condition_provider;
     std::unique_ptr<MockStartCharacterActionProvider> mock_action_provider;
-    std::unique_ptr<MockStateOperationEvaluator> mock_evaluator;
+    std::unique_ptr<MockEntityPositionProvider> mock_entity_pos_provider;
+    std::unique_ptr<MockJsonLoader> mock_json_loader;
+    std::unique_ptr<MockFrameworkSchemaManager> mock_schema;
+    std::unique_ptr<MockEnvironmentalConditionManager> mock_environment_manager;
+    std::unique_ptr<MockEntityPositionManager> mock_entity_pos_manager;
+    std::unique_ptr<MockStateOperationEvaluator> mock_state_operation_evaluator;
+    std::unique_ptr<MockContentProvider> mock_content_provider;
+    std::unique_ptr<MockEntityRegistry> mock_entity_registry;
+    std::unique_ptr<MockEntityQuery> mock_entity_query;
+
+    std::unique_ptr<FoundationServices> foundation_services;
+    std::unique_ptr<DataAccessServices> data_access_services;
+    std::unique_ptr<SimulationServices> simulation_state_services;
+    std::unique_ptr<BehavioralEvaluationServices> behavioral_evaluation_services;
+    std::unique_ptr<ContentRegistryServices> content_registry_services;
 
     void* entity_handle;
     int32_t entity_id;
@@ -35,11 +56,36 @@ protected:
     void SetUp() override
     {
         mock_logger = std::make_unique<MockLogger>();
-        mock_time = std::make_unique<MockTimeManager>();
-        mock_content = std::make_unique<MockContentProvider>();
-        mock_entity_query = std::make_unique<MockEntityQuery>();
+        mock_time_manager = std::make_unique<MockTimeManager>();
+        mock_environmental_condition_provider = std::make_unique<MockEnvironmentalConditionProvider>();
         mock_action_provider = std::make_unique<MockStartCharacterActionProvider>();
-        mock_evaluator = std::make_unique<MockStateOperationEvaluator>();
+        mock_entity_pos_provider = std::make_unique<MockEntityPositionProvider>();
+
+        mock_json_loader = std::make_unique<MockJsonLoader>();
+
+        mock_schema = std::make_unique<MockFrameworkSchemaManager>();
+        mock_environment_manager = std::make_unique<MockEnvironmentalConditionManager>();
+        mock_entity_pos_manager = std::make_unique<MockEntityPositionManager>();
+
+        mock_state_operation_evaluator = std::make_unique<MockStateOperationEvaluator>();
+
+        mock_content_provider = std::make_unique<MockContentProvider>();
+        mock_entity_registry = std::make_unique<MockEntityRegistry>();
+        mock_entity_query = std::make_unique<MockEntityQuery>();
+
+        foundation_services = std::make_unique<FoundationServices>(*mock_logger, *mock_time_manager,
+            *mock_environmental_condition_provider,*mock_action_provider, *mock_entity_pos_provider);
+
+        data_access_services = std::make_unique<DataAccessServices>(*foundation_services, *mock_json_loader);
+
+        simulation_state_services = std::make_unique<SimulationServices>(*data_access_services,
+            *mock_environment_manager,*mock_entity_pos_manager, *mock_schema);
+
+        behavioral_evaluation_services = std::make_unique<BehavioralEvaluationServices>(*simulation_state_services,
+            *mock_state_operation_evaluator);
+
+        content_registry_services = std::make_unique<ContentRegistryServices>(*behavioral_evaluation_services,
+            *mock_content_provider, *mock_entity_registry, *mock_entity_query);
 
         entity_handle = reinterpret_cast<void*>(0x1234);
         entity_id = 42;
@@ -52,10 +98,16 @@ protected:
         mock_entities_.clear();
     }
 
+    void VerifyMockSetup() {
+        ASSERT_NE(mock_state_operation_evaluator.get(), nullptr);
+        ASSERT_NE(mock_content_provider.get(), nullptr);
+        ASSERT_NE(mock_entity_query.get(), nullptr);
+        ASSERT_NE(test_entity.get(), nullptr);
+    }
+
     void CreateDefaultEntity() {
         test_entity = std::make_unique<BehavioralEntity>(
-            *mock_logger, *mock_time, *mock_action_provider,
-            *mock_content, *mock_entity_query, *mock_evaluator,
+            *content_registry_services,
             entity_handle, entity_id, 10, 10, 10, "TestCharacter"
         );
     }
@@ -199,7 +251,7 @@ protected:
         auto sequence = CreateSequenceWithActionNode(1, action);
 
         // Mock content provider to return this action
-        EXPECT_CALL(*mock_content, GetActionById(action->GetActionId()))
+        EXPECT_CALL(*mock_content_provider, GetActionById(action->GetActionId()))
             .WillRepeatedly(testing::Return(action));
 
         if (target) {
@@ -214,7 +266,7 @@ protected:
                 .WillRepeatedly(testing::Return(target));
 
             // Mock all preconditions_by_target passing
-            EXPECT_CALL(*mock_evaluator, ProcessStateOperation(testing::_, testing::_))
+            EXPECT_CALL(*mock_state_operation_evaluator, ProcessStateOperation(testing::_, testing::_))
                 .WillRepeatedly(testing::Return(true));
         }
 
@@ -300,7 +352,7 @@ protected:
     }
 
     void SetupAllPreconditionsPass() {
-        EXPECT_CALL(*mock_evaluator, ProcessStateOperation(testing::_, testing::_))
+        EXPECT_CALL(*mock_state_operation_evaluator, ProcessStateOperation(testing::_, testing::_))
             .WillRepeatedly(testing::Return(true));
     }
 
@@ -438,7 +490,7 @@ TEST_F(BehavioralEntityTest, ExecuteActionNode_RequiresEntity_NoValidEntities_Fa
     auto sequence = CreateSequenceWithActionNode(1, action);
     SetupEntityWithSequenceOnStack(sequence);
 
-    EXPECT_CALL(*mock_content, GetActionById(action->GetActionId()))
+    EXPECT_CALL(*mock_content_provider, GetActionById(action->GetActionId()))
         .WillRepeatedly(testing::Return(action));
 
     // Mock test_entity query returns empty list
@@ -454,6 +506,8 @@ TEST_F(BehavioralEntityTest, ExecuteActionNode_RequiresEntity_NoValidEntities_Fa
 }
 
 TEST_F(BehavioralEntityTest, ExecuteActionNode_ValidEntity_AppliesImmediateEffects) {
+    VerifyMockSetup();
+
     auto action = CreateActionWithImmediateEffects(5);
     auto precondition = StateOperation(StateOperationTarget::ENTITY, STATE_KEY_OCCUPIED, StateOperationType::EQUALS, 0);
     action->AddPrecondition(StateOperationTarget::ENTITY, precondition);
@@ -462,24 +516,18 @@ TEST_F(BehavioralEntityTest, ExecuteActionNode_ValidEntity_AppliesImmediateEffec
     auto target_entity = CreateMockEntity(100);
 
     // Setup ALL mocks before execution
-    EXPECT_CALL(*mock_content, GetActionById(action->GetActionId()))
+    EXPECT_CALL(*mock_content_provider, GetActionById(action->GetActionId()))
         .WillRepeatedly(testing::Return(action));
 
-    SetupEntityQueryToReturn({target_entity});
-
     // Mock preconditions_by_target passing
-     EXPECT_CALL(*mock_evaluator, ProcessStateOperation(testing::_, testing::_))
-         .WillRepeatedly(testing::Return(true));
+    EXPECT_CALL(*mock_state_operation_evaluator, ProcessStateOperation(testing::_, testing::_))
+        .WillRepeatedly(testing::Return(true));
 
-    // Setup expectations for immediate effects (in sequence)
-    {
-        testing::InSequence seq;
-
-        // Then action starts
-        EXPECT_CALL(*mock_action_provider, StartCharacterAction(
+    EXPECT_CALL(*mock_action_provider, StartCharacterAction(
             entity_handle, 5, testing::_, testing::_, target_entity->GetEntityHandle()))
             .Times(1);
-    }
+
+    SetupEntityQueryToReturn({target_entity});
 
     SetupEntityWithSequenceOnStack(sequence);
 
@@ -493,7 +541,7 @@ TEST_F(BehavioralEntityTest, ExecuteActionNode_NoEntityRequired_UsesCharacterAsS
     auto sequence = CreateSequenceWithActionNode(1, action);
 
     // Mock content provider
-    EXPECT_CALL(*mock_content, GetActionById(action->GetActionId()))
+    EXPECT_CALL(*mock_content_provider, GetActionById(action->GetActionId()))
         .WillRepeatedly(testing::Return(action));
 
     // Action starts (no entity required)
@@ -510,6 +558,8 @@ TEST_F(BehavioralEntityTest, ExecuteActionNode_NoEntityRequired_UsesCharacterAsS
 // ACTION COMPLETION TESTS
 
 TEST_F(BehavioralEntityTest, CompleteAction_ValidToken_AppliesCompletionEffects) {
+    VerifyMockSetup();
+
     auto precondition = StateOperation(StateOperationTarget::ENTITY, STATE_KEY_OCCUPIED, StateOperationType::EQUALS, 0);
     auto action = CreateActionWithPrecondition(5, precondition);
     auto target_entity = CreateMockEntity(100);
@@ -518,7 +568,7 @@ TEST_F(BehavioralEntityTest, CompleteAction_ValidToken_AppliesCompletionEffects)
     SetupAndStartAction(test_entity.get(), action, target_entity);
     int64_t token = GetCurrentActionToken(test_entity.get());
 
-    EXPECT_CALL(*mock_evaluator, ProcessStateOperation(testing::_, testing::_))
+    EXPECT_CALL(*mock_state_operation_evaluator, ProcessStateOperation(testing::_, testing::_))
         .Times(action->GetCompletionEffects().size());
 
     test_entity->CompleteAction(5, token);
@@ -543,12 +593,14 @@ TEST_F(BehavioralEntityTest, CompleteAction_InvalidToken_IgnoresCompletion) {
 }
 
 TEST_F(BehavioralEntityTest, CompleteAction_ActionNotRequiringEntity_HandlesNullTarget) {
+    VerifyMockSetup();
+
     auto action = CreateAction(5);
     SetupAndStartAction(test_entity.get(), action, nullptr);
 
     // Should not crash when target_entity is null
     // Effects with SELF target should still apply
-    EXPECT_CALL(*mock_evaluator, ProcessStateOperation(testing::_, testing::_))
+    EXPECT_CALL(*mock_state_operation_evaluator, ProcessStateOperation(testing::_, testing::_))
         .Times(testing::AtLeast(0));
 
     EXPECT_NO_THROW(test_entity->CompleteAction(5, GetCurrentActionToken(test_entity.get())));
@@ -560,7 +612,7 @@ TEST_F(BehavioralEntityTest, SequenceFailure_ActivatesFallbackSequence) {
     auto fallback1 = CreateMockSequence(2);
     auto fallback2 = CreateMockSequence(3);
 
-    EXPECT_CALL(*mock_content, GetActionById(testing::_))
+    EXPECT_CALL(*mock_content_provider, GetActionById(testing::_))
         .WillRepeatedly(testing::Return(CreateAction(100)));
 
     test_entity->SetMainSequence(main_seq);
@@ -575,7 +627,7 @@ TEST_F(BehavioralEntityTest, SequenceFailure_ActivatesFallbackSequence) {
 TEST_F(BehavioralEntityTest, SequenceFailure_ClearsInterruptionMemories) {
     auto sequence = CreateMockSequence(1);
 
-    EXPECT_CALL(*mock_content, GetActionById(testing::_))
+    EXPECT_CALL(*mock_content_provider, GetActionById(testing::_))
         .WillRepeatedly(testing::Return(CreateAction(100)));
 
     test_entity->SetMainSequence(sequence);
@@ -599,7 +651,7 @@ TEST_F(BehavioralEntityTest, SequenceFailure_ClearsInterruptionMemories) {
 
 TEST_F(BehavioralEntityTest, ExecuteNestedSequenceNode_ValidSequence_PushesToStack) {
     auto nested_seq = CreateMockSequence(2);
-    EXPECT_CALL(*mock_content, GetSequenceById(2))
+    EXPECT_CALL(*mock_content_provider, GetSequenceById(2))
         .WillOnce(testing::Return(nested_seq));
 
     auto main_seq = CreateSequenceWithNestedNode(1, 2);
@@ -626,6 +678,8 @@ TEST_F(BehavioralEntityTest, ExecuteEndSequenceNode_PopsSequence) {
 // PRECONDITION EVALUATION CONTEXT TESTS
 
 TEST_F(BehavioralEntityTest, ActionPrecondition_SelfTarget_UsesCharacterState) {
+    VerifyMockSetup();
+
     auto precondition = StateOperation(
         StateOperationTarget::SELF,
         STATE_KEY_ENERGY,
@@ -637,13 +691,13 @@ TEST_F(BehavioralEntityTest, ActionPrecondition_SelfTarget_UsesCharacterState) {
     auto sequence = CreateSequenceWithActionNode(1, action);
     auto target_entity = CreateMockEntity(100);
 
-    EXPECT_CALL(*mock_content, GetActionById(5))
+    EXPECT_CALL(*mock_content_provider, GetActionById(5))
         .WillRepeatedly(testing::Return(action));
 
     StateOperationContext context(test_entity.get());
 
     // Should evaluate precondition against character (this), not target
-    EXPECT_CALL(*mock_evaluator, ProcessStateOperation(
+    EXPECT_CALL(*mock_state_operation_evaluator, ProcessStateOperation(
     testing::_,
     testing::Truly([this](const StateOperationContext& ctx) {
         return ctx.self_entity == test_entity.get() &&
@@ -658,6 +712,8 @@ TEST_F(BehavioralEntityTest, ActionPrecondition_SelfTarget_UsesCharacterState) {
 }
 
 TEST_F(BehavioralEntityTest, ActionPrecondition_EntityTarget_UsesTargetState) {
+    VerifyMockSetup();
+
     auto precondition = StateOperation(
         StateOperationTarget::ENTITY,
         STATE_KEY_OCCUPIED,
@@ -669,13 +725,13 @@ TEST_F(BehavioralEntityTest, ActionPrecondition_EntityTarget_UsesTargetState) {
     auto sequence = CreateSequenceWithActionNode(1, action);
     auto target_entity = CreateMockEntity(100);
 
-    EXPECT_CALL(*mock_content, GetActionById(5))
+    EXPECT_CALL(*mock_content_provider, GetActionById(5))
         .WillRepeatedly(testing::Return(action));
 
     SetupEntityQueryToReturn({target_entity});
 
     // Should evaluate precondition against target entity
-    EXPECT_CALL(*mock_evaluator, ProcessStateOperation(
+    EXPECT_CALL(*mock_state_operation_evaluator, ProcessStateOperation(
         testing::_,
         testing::Truly([this, target_entity](const StateOperationContext& ctx) {
             return ctx.self_entity == test_entity.get() &&
@@ -692,17 +748,19 @@ TEST_F(BehavioralEntityTest, ActionPrecondition_EntityTarget_UsesTargetState) {
 // EDGE CASE TESTS
 
 TEST_F(BehavioralEntityTest, GetActionTargetEntity_AllEntitiesFailPreconditions_ReturnsNull) {
+    VerifyMockSetup();
+
     auto action = CreateActionWithStrictPrecondition(5);
     auto sequence = CreateSequenceWithActionNode(1, action);
     auto entities = CreateThreeEntities();
 
-    EXPECT_CALL(*mock_content, GetActionById(5))
+    EXPECT_CALL(*mock_content_provider, GetActionById(5))
         .WillRepeatedly(testing::Return(action));
 
     SetupEntityQueryToReturn(entities);
 
     // All preconditions_by_target fail
-    EXPECT_CALL(*mock_evaluator, ProcessStateOperation(testing::_, testing::_))
+    EXPECT_CALL(*mock_state_operation_evaluator, ProcessStateOperation(testing::_, testing::_))
         .WillRepeatedly(testing::Return(false));
 
     SetupEntityWithSequenceOnStack(sequence);
@@ -716,11 +774,12 @@ TEST_F(BehavioralEntityTest, GetActionTargetEntity_AllEntitiesFailPreconditions_
 }
 
 TEST_F(BehavioralEntityTest, HandleNodeExecutionCompletion_NoValidTransitions_FailsSequence) {
+    VerifyMockSetup();
     auto sequence = CreateSequenceWithInvalidTransition();
     SetupEntityWithSequenceAtNodeExecuted(sequence);
 
     // All transition preconditions_by_target fail
-    EXPECT_CALL(*mock_evaluator, ProcessStateOperation(testing::_, testing::_))
+    EXPECT_CALL(*mock_state_operation_evaluator, ProcessStateOperation(testing::_, testing::_))
         .WillRepeatedly(testing::Return(false));
 
     test_entity->ExecuteCurrentSequence();

@@ -1,18 +1,35 @@
 #include <gtest/gtest.h>
 #include "memory/MemorySystem.h"
 #include "../services/mocks/MockLogger.h"
+#include "../services/mocks/MockTimeManager.h"
+#include "../services/mocks/MockEnvironmentalConditionProvider.h"
+#include "../services/mocks/MockStartCharacterActionProvider.h"
+#include "../services/mocks/MockEntityPositionProvider.h"
 
 using namespace AmbientCharacterBehavior;
 
 class MemorySystemTest : public testing::Test {
 protected:
     std::unique_ptr<MockLogger> mock_logger;
+    std::unique_ptr<MockTimeManager> mock_time_manager;
+    std::unique_ptr<MockEnvironmentalConditionProvider> mock_environmental_condition_provider;
+    std::unique_ptr<MockStartCharacterActionProvider> mock_action_provider;
+    std::unique_ptr<MockEntityPositionProvider> mock_entity_pos_provider;
+
+    std::unique_ptr<FoundationServices> services;
 
 
     void SetUp() override {
         mock_logger = std::make_unique<MockLogger>();
+        mock_time_manager = std::make_unique<MockTimeManager>();
+        mock_environmental_condition_provider = std::make_unique<MockEnvironmentalConditionProvider>();
+        mock_action_provider = std::make_unique<MockStartCharacterActionProvider>();
+        mock_entity_pos_provider = std::make_unique<MockEntityPositionProvider>();
 
-        memory_system = std::make_unique<MemorySystem>(3, 3, 2, *mock_logger);
+        services = std::make_unique<FoundationServices>(*mock_logger, *mock_time_manager,
+            *mock_environmental_condition_provider,*mock_action_provider, *mock_entity_pos_provider);
+
+        memory_system = std::make_unique<MemorySystem>(3, 3, 2, *services);
     }
 
     std::unique_ptr<MemorySystem> memory_system;
@@ -25,7 +42,7 @@ protected:
 // Construction Tests
 
 TEST_F(MemorySystemTest, ConstructorInitializesEmptyMemoryCounts) {
-    MemorySystem system(5, 10, 3, *mock_logger);
+    MemorySystem system(5, 10, 3, *services);
 
     EXPECT_EQ(0, system.GetTransitionMemoryCount());
     EXPECT_EQ(0, system.GetActionMemoryCount());
@@ -33,7 +50,7 @@ TEST_F(MemorySystemTest, ConstructorInitializesEmptyMemoryCounts) {
 }
 
 TEST_F(MemorySystemTest, ConstructorSetsAllCapacities) {
-    MemorySystem system(5, 10, 3, *mock_logger);
+    MemorySystem system(5, 10, 3, *services);
 
     EXPECT_EQ(5, system.GetMaxTransitionMemories());
     EXPECT_EQ(10, system.GetMaxActionMemories());
@@ -268,7 +285,7 @@ TEST_F(MemorySystemTest, SelectionIsUnbiasedForUnusedNodes) {
     std::map<int32_t, int> selection_counts;
 
     for (int i = 0; i < trials; ++i) {
-        MemorySystem temp_system(10, 10, 10, *mock_logger);
+        MemorySystem temp_system(10, 10, 10, *services);
         std::vector<int32_t> unused_nodes = {1, 2, 3};
         auto selected = temp_system.SelectTransitionNodeId(0, unused_nodes);
 
