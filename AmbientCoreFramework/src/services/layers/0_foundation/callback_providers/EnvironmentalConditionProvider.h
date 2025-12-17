@@ -1,8 +1,6 @@
 #pragma once
 #include <cstdint>
 #include <stdexcept>
-
-#include "../../../include/BehaviorFrameworkInterface.h"
 #include "services/interfaces/IEnvironmentalConditionProvider.h"
 
 namespace AmbientCharacterBehavior {

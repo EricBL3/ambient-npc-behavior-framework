@@ -9,7 +9,7 @@
 #include "behavior/Sequence.h"
 #include "entity/BehavioralEntity.h"
 #include "entity/FrameworkEntity.h"
-#include "services/domain/EntityPosition.h"
+#include "services/layers/2_simulation/EntityPosition.h"
 #include "services/interfaces/IContentProvider.h"
 #include "services/interfaces/IEntityPositionManager.h"
 #include "services/interfaces/IEntityRegistry.h"

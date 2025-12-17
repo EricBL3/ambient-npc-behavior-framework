@@ -1,7 +1,6 @@
 #pragma once
 #include "behavior/StateOperation.h"
 #include "behavior/StateOperationContext.h"
-#include "entity/FrameworkEntity.h"
 
 namespace AmbientCharacterBehavior {
 /**

@@ -1,9 +1,6 @@
 #include <gtest/gtest.h>
 
-#include "../../mocks/MockEnvironmentalConditionProvider.h"
-#include "../../mocks/MockStartCharacterActionProvider.h"
-#include "../../mocks/MockLogger.h"
-#include "../../mocks/MockTimeManager.h"
+#include "../mocks/MockStartCharacterActionProvider.h"
 #include "integration/BehaviorFramework.h"
 #include "services/composition/ServiceBuilder.h"
 

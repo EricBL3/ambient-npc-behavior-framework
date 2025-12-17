@@ -2,7 +2,6 @@
 #include <unordered_map>
 
 #include "EntityPosition.h"
-#include "services/core/EntityPositionProvider.h"
 #include "services/interfaces/IEntityPositionManager.h"
 #include "services/interfaces/IEntityPositionProvider.h"
 #include "services/interfaces/ILogger.h"

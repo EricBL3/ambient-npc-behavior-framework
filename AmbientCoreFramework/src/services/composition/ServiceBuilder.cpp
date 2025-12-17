@@ -1,16 +1,16 @@
 #include "ServiceBuilder.h"
 
-#include "services/application/StateOperationEvaluator.h"
-#include "services/configuration/JsonLoader.h"
-#include "services/core/EntityPositionProvider.h"
-#include "services/core/EnvironmentalConditionProvider.h"
-#include "services/core/FrameworkLogger.h"
-#include "services/core/StartCharacterActionProvider.h"
-#include "services/core/TimeManager.h"
-#include "services/domain/EntityPositionManager.h"
-#include "services/domain/EnvironmentalConditionManager.h"
-#include "services/domain/FrameworkSchemaManager.h"
-#include "services/registry/FrameworkRegistry.h"
+#include "services/layers/3_behavioral_evaluation/StateOperationEvaluator.h"
+#include "services/layers/1_data_access/JsonLoader.h"
+#include "../layers/0_foundation/callback_providers/EntityPositionProvider.h"
+#include "services/layers/0_foundation/callback_providers/EnvironmentalConditionProvider.h"
+#include "services/layers/0_foundation/FrameworkLogger.h"
+#include "services/layers/0_foundation/callback_providers/StartCharacterActionProvider.h"
+#include "services/layers/0_foundation/TimeManager.h"
+#include "services/layers/2_simulation/EntityPositionManager.h"
+#include "services/layers/2_simulation/EnvironmentalConditionManager.h"
+#include "services/layers/2_simulation/FrameworkSchemaManager.h"
+#include "services/layers/4_content_registry/FrameworkRegistry.h"
 
 using namespace AmbientCharacterBehavior;
 
@@ -55,7 +55,7 @@ ServiceBuilder & ServiceBuilder::WithQueryEntityPositionCallback(QueryEntityPosi
 
 ServiceBuilder & ServiceBuilder::WithProviders()
 {
-    EnsureCoreServices();
+    EnsureFoundationServices();
 
     if (!query_env_callback || !start_action_callback || !query_entity_pos_callback) {
         throw std::runtime_error(
@@ -74,14 +74,14 @@ ServiceBuilder & ServiceBuilder::WithProviders()
 
 ServiceBuilder & ServiceBuilder::WithJsonLoader()
 {
-    EnsureCoreServices();
+    EnsureFoundationServices();
     json_loader = std::make_unique<JsonLoader>(*logger);
     return *this;
 }
 
 ServiceBuilder & ServiceBuilder::WithEnvironmentalConditionManager()
 {
-    EnsureConfigurationServices();
+    EnsureDataAccessServices();
     environmental_condition_manager = std::make_unique<EnvironmentalConditionManager>(*logger, *time_manager,
         *json_loader,*environmental_condition_provider);
 
@@ -90,7 +90,7 @@ ServiceBuilder & ServiceBuilder::WithEnvironmentalConditionManager()
 
 ServiceBuilder & ServiceBuilder::WithEntityPositionManager()
 {
-    EnsureConfigurationServices();
+    EnsureDataAccessServices();
     entity_position_manager = std::make_unique<EntityPositionManager>(*logger, *time_manager,
         *entity_pos_provider);
 
@@ -99,14 +99,14 @@ ServiceBuilder & ServiceBuilder::WithEntityPositionManager()
 
 ServiceBuilder & ServiceBuilder::WithSchemaManager()
 {
-    EnsureConfigurationServices();
+    EnsureDataAccessServices();
     schema_manager = std::make_unique<FrameworkSchemaManager>(*logger, *json_loader);
     return *this;
 }
 
 ServiceBuilder & ServiceBuilder::WithStateOperationEvaluator()
 {
-    EnsureDomainServices();
+    EnsureSimulationStateServices();
     state_operation_evaluator = std::make_unique<StateOperationEvaluator>(*logger, *schema_manager,
         *environmental_condition_manager, *entity_position_manager);
 
@@ -115,7 +115,7 @@ ServiceBuilder & ServiceBuilder::WithStateOperationEvaluator()
 
 ServiceBuilder & ServiceBuilder::WithFrameworkRegistry()
 {
-    EnsureApplicationServices();
+    EnsureBehavioralEvaluationServices();
     registry = std::make_unique<FrameworkRegistry>(*logger, *time_manager, *start_character_action_provider, *json_loader,
         *schema_manager, *environmental_condition_manager, *state_operation_evaluator, *entity_position_manager);
 
@@ -172,7 +172,7 @@ std::unique_ptr<BehaviorFramework> ServiceBuilder::CreateBehaviorFramework(Query
     return std::make_unique<BehaviorFramework>(CreateApplicationContext(query_callback, start_action_callback, query_position_callback));
 }
 
-void ServiceBuilder::EnsureCoreServices() const
+void ServiceBuilder::EnsureFoundationServices() const
 {
     if (!logger || !time_manager)
     {
@@ -182,14 +182,14 @@ void ServiceBuilder::EnsureCoreServices() const
 
 void ServiceBuilder::EnsureProvidersConfigured() const
 {
-    EnsureCoreServices();
+    EnsureFoundationServices();
     if (!environmental_condition_provider || !start_character_action_provider || !entity_pos_provider)
     {
         throw std::runtime_error("Providers must be configured first. Call WithProviders()");
     }
 }
 
-void ServiceBuilder::EnsureConfigurationServices() const
+void ServiceBuilder::EnsureDataAccessServices() const
 {
     EnsureProvidersConfigured();
     if (!json_loader)
@@ -198,18 +198,18 @@ void ServiceBuilder::EnsureConfigurationServices() const
     }
 }
 
-void ServiceBuilder::EnsureDomainServices() const
+void ServiceBuilder::EnsureSimulationStateServices() const
 {
-    EnsureConfigurationServices();
+    EnsureDataAccessServices();
     if (!environmental_condition_manager || !entity_position_manager || !schema_manager)
     {
         throw std::runtime_error("Domain services must be configured first");
     }
 }
 
-void ServiceBuilder::EnsureApplicationServices() const
+void ServiceBuilder::EnsureBehavioralEvaluationServices() const
 {
-    EnsureDomainServices();
+    EnsureSimulationStateServices();
     if (!state_operation_evaluator)
     {
         throw std::runtime_error("State operation evaluator must be configured first");
@@ -218,7 +218,7 @@ void ServiceBuilder::EnsureApplicationServices() const
 
 void ServiceBuilder::EnsureAllServices() const
 {
-    EnsureApplicationServices();
+    EnsureBehavioralEvaluationServices();
     if (!registry)
     {
         throw std::runtime_error("Framework registry must be configured first");

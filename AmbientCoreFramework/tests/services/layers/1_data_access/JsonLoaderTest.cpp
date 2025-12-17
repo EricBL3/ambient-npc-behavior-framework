@@ -3,7 +3,7 @@
 #include <gtest/gtest.h>
 
 #include "../../mocks/MockLogger.h"
-#include "services/configuration/JsonLoader.h"
+#include "services/layers/1_data_access/JsonLoader.h"
 
 using namespace AmbientCharacterBehavior;
 

@@ -1,7 +1,7 @@
 #include <gtest/gtest.h>
 #include "../../mocks/MockLogger.h"
 #include "../../mocks/MockJsonLoader.h"
-#include "services/domain/FrameworkSchemaManager.h"
+#include "services/layers/2_simulation/FrameworkSchemaManager.h"
 #include <nlohmann/json.hpp>
 
 using json = nlohmann::json;

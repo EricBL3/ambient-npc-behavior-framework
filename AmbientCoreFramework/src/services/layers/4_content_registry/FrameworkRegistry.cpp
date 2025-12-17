@@ -2,7 +2,7 @@
 
 #include <memory>
 
-#include "../../behavior/enums/StateOperationTarget.h"
+#include "behavior/enums/StateOperationTarget.h"
 
 using namespace AmbientCharacterBehavior;
 

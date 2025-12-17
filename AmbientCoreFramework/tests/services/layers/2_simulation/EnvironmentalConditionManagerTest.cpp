@@ -6,7 +6,7 @@
 #include "../../mocks/MockJsonLoader.h"
 #include "../../mocks/MockLogger.h"
 #include "../../mocks/MockTimeManager.h"
-#include "services/domain/EnvironmentalConditionManager.h"
+#include "services/layers/2_simulation/EnvironmentalConditionManager.h"
 
 
 using namespace AmbientCharacterBehavior;

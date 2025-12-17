@@ -1,7 +1,5 @@
 #pragma once
 #include <stdexcept>
-
-#include "../../../include/BehaviorFrameworkInterface.h"
 #include "services/interfaces/IStartCharacterActionProvider.h"
 
 namespace AmbientCharacterBehavior {

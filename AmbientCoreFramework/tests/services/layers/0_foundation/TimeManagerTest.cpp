@@ -1,6 +1,6 @@
 #include <gtest/gtest.h>
 #include "../../mocks/MockTimeManager.h"
-#include "services/core/TimeManager.h"
+#include "services/layers/0_foundation/TimeManager.h"
 
 using namespace AmbientCharacterBehavior;
 

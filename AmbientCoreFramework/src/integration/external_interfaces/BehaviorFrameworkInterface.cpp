@@ -65,7 +65,7 @@ extern "C" {
         if (framework_handle)
         {
             auto framework = static_cast<BehaviorFramework*>(framework_handle);
-            framework->GetServices().Core().logger.LogInfo("Shutting down ambient character behavior framework",
+            framework->GetServices().Foundation().logger.LogInfo("Shutting down ambient character behavior framework",
                 "BehaviorFrameworkInterface");
 
             // pass -1 as batch size to process all remaining entity commands

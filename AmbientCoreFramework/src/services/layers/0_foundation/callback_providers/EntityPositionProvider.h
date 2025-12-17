@@ -1,6 +1,5 @@
 #pragma once
 #include <stdexcept>
-
 #include "services/interfaces/IEntityPositionProvider.h"
 
 namespace AmbientCharacterBehavior {

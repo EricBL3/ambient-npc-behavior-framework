@@ -4,7 +4,7 @@
 
 #include "entity/BehavioralEntity.h"
 #include "entity/FrameworkEntity.h"
-#include "services/domain/EntityPosition.h"
+#include "services/layers/2_simulation/EntityPosition.h"
 
 namespace AmbientCharacterBehavior {
 class IEntityRegistry {

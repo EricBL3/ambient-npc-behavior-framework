@@ -1,11 +1,11 @@
 #include <gtest/gtest.h>
 
-#include "../mocks/MockLogger.h"
-#include "../mocks/MockTimeManager.h"
-#include "../mocks/MockContentProvider.h"
-#include "../mocks/MockEntityQuery.h"
-#include "../mocks/MockStartCharacterActionProvider.h"
-#include "../mocks/MockStateOperationEvaluator.h"
+#include "../services/mocks/MockLogger.h"
+#include "../services/mocks/MockTimeManager.h"
+#include "../services/mocks/MockContentProvider.h"
+#include "../services/mocks/MockEntityQuery.h"
+#include "../services/mocks/MockStartCharacterActionProvider.h"
+#include "../services/mocks/MockStateOperationEvaluator.h"
 #include "behavior/sequence_nodes/ActionSequenceNode.h"
 #include "../../src/behavior/sequence_nodes/EndSequenceNode.h"
 #include "entity/BehavioralEntity.h"

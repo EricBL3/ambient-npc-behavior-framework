@@ -5,7 +5,7 @@
 #include "../../mocks/MockFrameworkSchemaManager.h"
 #include "../../mocks/MockLogger.h"
 #include "../../mocks/MockFrameworkRegistry.h"
-#include "services/application/StateOperationEvaluator.h"
+#include "services/layers/3_behavioral_evaluation/StateOperationEvaluator.h"
 
 
 using namespace AmbientCharacterBehavior;

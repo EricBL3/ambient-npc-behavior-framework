@@ -23,14 +23,14 @@ void BehaviorFramework::InitializeFramework(const std::string &schema_file_path,
 
             if (success)
             {
-                app_context->Core().logger.LogInfo("The framework has been initialized",
+                app_context->Foundation().logger.LogInfo("The framework has been initialized",
                     "BehaviorFramework");
             }
         }
         catch (const std::exception &e)
         {
-            app_context->Core().logger.Initialize("framework_error.log", FrameworkLogLevel::INFO);
-            app_context->Core().logger.LogInfo(e.what(), "BehaviorFramework");
+            app_context->Foundation().logger.Initialize("framework_error.log", FrameworkLogLevel::INFO);
+            app_context->Foundation().logger.LogInfo(e.what(), "BehaviorFramework");
         }
     }
 }
@@ -41,16 +41,16 @@ bool BehaviorFramework::InitializeCoreServices(const std::string& log_file_path,
 
     try
     {
-        if (app_context->Core().logger.Initialize(log_file_path, log_level))
+        if (app_context->Foundation().logger.Initialize(log_file_path, log_level))
         {
-            app_context->Core().logger.LogInfo("Initialized Core Services.","BehaviorFramework");
+            app_context->Foundation().logger.LogInfo("Initialized Foundation Services.","BehaviorFramework");
             return true;
         }
     }
     catch (const std::exception &e)
     {
-        app_context->Core().logger.Initialize("framework_error.log", FrameworkLogLevel::INFO);
-        app_context->Core().logger.LogInfo(e.what(), "BehaviorFramework");
+        app_context->Foundation().logger.Initialize("framework_error.log", FrameworkLogLevel::INFO);
+        app_context->Foundation().logger.LogInfo(e.what(), "BehaviorFramework");
     }
 
     return false;
@@ -61,25 +61,25 @@ bool BehaviorFramework::InitializeDomainServices(const std::string& schema_file_
 {
     ZoneScoped;
 
-    app_context->Core().logger.LogInfo("Loading framework schema","BehaviorFramework");
+    app_context->Foundation().logger.LogInfo("Loading framework schema","BehaviorFramework");
 
-    if (!app_context->Domain().schema_manager.LoadFrameworkSchema(schema_file_path))
+    if (!app_context->SimulationState().schema_manager.LoadFrameworkSchema(schema_file_path))
     {
-        app_context->Core().logger.LogError("Failed to load framework schema","BehaviorFramework");
+        app_context->Foundation().logger.LogError("Failed to load framework schema","BehaviorFramework");
         return false;
     }
 
-    app_context->Core().logger.LogInfo("Registering environmental conditions","BehaviorFramework");
+    app_context->Foundation().logger.LogInfo("Registering environmental conditions","BehaviorFramework");
 
-    if (!app_context->Domain().environmental_condition_manager.RegisterEnvironmentalConditions(environmental_conditions_file_path))
+    if (!app_context->SimulationState().environmental_condition_manager.RegisterEnvironmentalConditions(environmental_conditions_file_path))
     {
-        app_context->Core().logger.LogError("Failed to register environmental conditions",
+        app_context->Foundation().logger.LogError("Failed to register environmental conditions",
             "BehaviorFramework");
 
         return false;
     }
 
-    app_context->Core().logger.LogInfo("Initialized Domain Services","BehaviorFramework");
+    app_context->Foundation().logger.LogInfo("Initialized SimulationState Services","BehaviorFramework");
 
     return true;
 }
@@ -88,26 +88,26 @@ bool BehaviorFramework::InitializeRegistry(const std::string& actions_file_path,
 {
     ZoneScoped;
 
-    app_context->Core().logger.LogInfo("Registering actions", "BehaviorFramework");
-    if (!app_context->Registry().content_provider.RegisterActions(actions_file_path))
+    app_context->Foundation().logger.LogInfo("Registering actions", "BehaviorFramework");
+    if (!app_context->ContentRegistry().content_provider.RegisterActions(actions_file_path))
     {
-        app_context->Core().logger.LogError("Failed to register actions",
+        app_context->Foundation().logger.LogError("Failed to register actions",
             "BehaviorFramework");
 
         return false;
     }
 
-    app_context->Core().logger.LogInfo("Registering sequences", "BehaviorFramework");
+    app_context->Foundation().logger.LogInfo("Registering sequences", "BehaviorFramework");
 
-    if (!app_context->Registry().content_provider.RegisterSequences(sequences_file_path))
+    if (!app_context->ContentRegistry().content_provider.RegisterSequences(sequences_file_path))
     {
-        app_context->Core().logger.LogError("Failed to register sequences",
+        app_context->Foundation().logger.LogError("Failed to register sequences",
             "BehaviorFramework");
 
         return false;
     }
 
-    app_context->Core().logger.LogInfo("Initialized Registry",
+    app_context->Foundation().logger.LogInfo("Initialized Registry",
         "BehaviorFramework");
 
     return true;
@@ -119,9 +119,9 @@ void BehaviorFramework::Update(int32_t character_batch_size, int64_t current_tim
 
     if (IsFrameworkInitialized())
     {
-        app_context->Core().time_manager.SetCurrentTime(current_time_ms);
+        app_context->Foundation().time_manager.SetCurrentTime(current_time_ms);
 
-        if (app_context->Registry().entity_registry.GetPendingCommandCount() > 0)
+        if (app_context->ContentRegistry().entity_registry.GetPendingCommandCount() > 0)
         {
             ProcessPendingEntityCommands(character_batch_size);
         }
@@ -136,7 +136,7 @@ bool BehaviorFramework::IsFrameworkInitialized() const
 {
     if (!is_initialized)
     {
-        app_context->Core().logger.LogWarning("The framework must be initialized",
+        app_context->Foundation().logger.LogWarning("The framework must be initialized",
             "BehaviorFramework");
 
         return false;
@@ -153,17 +153,17 @@ void BehaviorFramework::ProcessPendingEntityCommands(int32_t batch_size)
 
     try
     {
-        auto processed_count = app_context->Registry().entity_registry.ProcessPendingEntityCommands(batch_size);
+        auto processed_count = app_context->ContentRegistry().entity_registry.ProcessPendingEntityCommands(batch_size);
 
-        auto remaining_count = app_context->Registry().entity_registry.GetPendingCommandCount();
+        auto remaining_count = app_context->ContentRegistry().entity_registry.GetPendingCommandCount();
 
-        app_context->Core().logger.LogInfo("Processed " + std::to_string(processed_count) + " entity commands, " +
+        app_context->Foundation().logger.LogInfo("Processed " + std::to_string(processed_count) + " entity commands, " +
             std::to_string(remaining_count) + " remaining", "BehaviorFramework");
 
     }
     catch (const std::exception &e)
     {
-        app_context->Core().logger.LogError("Error processing entity commands: " +
+        app_context->Foundation().logger.LogError("Error processing entity commands: " +
                 std::string(e.what()),"BehaviorFramework");
 
         is_processing_entity_batch = false;
@@ -176,7 +176,7 @@ bool BehaviorFramework::CanUpdateBehavioralEntities(int32_t character_batch_size
 {
     if (is_processing_entity_batch)
     {
-        app_context->Core().logger.LogWarning("The framework is still processing the previous batch",
+        app_context->Foundation().logger.LogWarning("The framework is still processing the previous batch",
             "BehaviorFramework");
 
         return false;
@@ -184,7 +184,7 @@ bool BehaviorFramework::CanUpdateBehavioralEntities(int32_t character_batch_size
 
     if (character_batch_size == 0)
     {
-        app_context->Core().logger.LogInfo("No characters to process (batch_size = 0)",
+        app_context->Foundation().logger.LogInfo("No characters to process (batch_size = 0)",
             "BehaviorFramework");
 
         return false;
@@ -211,7 +211,7 @@ void BehaviorFramework::UpdateBehavioralEntities(int32_t character_batch_size)
         {
             auto entities_range = ComputeBatchRange(character_batch_size, total_entities);
 
-            auto entities_to_process = app_context->Registry().entity_registry.GetBehavioralEntitiesRange(
+            auto entities_to_process = app_context->ContentRegistry().entity_registry.GetBehavioralEntitiesRange(
                 entities_range.start_index, entities_range.count);
 
             ZoneText("entities_to_process", 19);
@@ -226,7 +226,7 @@ void BehaviorFramework::UpdateBehavioralEntities(int32_t character_batch_size)
         }
         catch (const std::exception &e)
         {
-            app_context->Core().logger.LogError("Error updating behavioral entities: " +
+            app_context->Foundation().logger.LogError("Error updating behavioral entities: " +
                 std::string(e.what()),"BehaviorFramework");
 
             is_processing_entity_batch = false;
@@ -238,7 +238,7 @@ void BehaviorFramework::UpdateBehavioralEntities(int32_t character_batch_size)
 
 int32_t BehaviorFramework::GetTotalEntitiesCount() const
 {
-    return app_context->Registry().entity_registry.GetBehavioralEntityCount();
+    return app_context->ContentRegistry().entity_registry.GetBehavioralEntityCount();
 }
 
 BehaviorFramework::EntityBatchRange BehaviorFramework::ComputeBatchRange(int32_t character_batch_size,
@@ -299,7 +299,7 @@ void BehaviorFramework::ProcessInterruption(int32_t interruption_id, const std::
             }
         }
 
-        app_context->Core().logger.LogInfo("Processed interruption " + std::to_string(interruption_id) +
+        app_context->Foundation().logger.LogInfo("Processed interruption " + std::to_string(interruption_id) +
         " for " + std::to_string(processed_count) + " entities (" + std::to_string(failed_count) + " failed)",
         "BehaviorFramework");
     }
@@ -311,18 +311,18 @@ bool BehaviorFramework::ProcessInterruptionForEntity(int32_t interruption_id, vo
 
     try
     {
-        if (BehavioralEntity* entity = app_context->Registry().entity_registry.GetBehavioralEntityByHandle(entity_handle))
+        if (BehavioralEntity* entity = app_context->ContentRegistry().entity_registry.GetBehavioralEntityByHandle(entity_handle))
         {
             entity->ProcessInterruption(interruption_id);
             return true;
         }
 
-        app_context->Core().logger.LogWarning("Invalid entity handle during interruption " +
+        app_context->Foundation().logger.LogWarning("Invalid entity handle during interruption " +
             std::to_string(interruption_id) + " processing","BehaviorFramework");
     }
     catch (const std::exception &e)
     {
-        app_context->Core().logger.LogError("Error processing interruption for entity: " +
+        app_context->Foundation().logger.LogError("Error processing interruption for entity: " +
             std::string(e.what()), "BehaviorFramework");
     }
     return false;
@@ -334,16 +334,16 @@ void BehaviorFramework::RegisterEntity(void *entity_handle, const std::string &c
     ZoneScoped;
 
     Position3D position {entity_pos_x, entity_pos_y, entity_pos_z};
-    app_context->Registry().entity_registry.QueueEntityRegistration(entity_handle, config_path, position);
-    app_context->Core().logger.LogInfo("Queued entity registration command" ,"BehaviorFramework");
+    app_context->ContentRegistry().entity_registry.QueueEntityRegistration(entity_handle, config_path, position);
+    app_context->Foundation().logger.LogInfo("Queued entity registration command" ,"BehaviorFramework");
 }
 
 void BehaviorFramework::UnregisterEntity(void *entity_handle) const
 {
     ZoneScoped;
 
-    app_context->Registry().entity_registry.QueueEntityUnregistration(entity_handle);
-    app_context->Core().logger.LogInfo("Queued entity unregistration command" ,"BehaviorFramework");
+    app_context->ContentRegistry().entity_registry.QueueEntityUnregistration(entity_handle);
+    app_context->Foundation().logger.LogInfo("Queued entity unregistration command" ,"BehaviorFramework");
 }
 
 void BehaviorFramework::CompleteCharacterAction(void *entity_handle, int32_t action_id, int64_t action_token) const
@@ -356,7 +356,7 @@ void BehaviorFramework::CompleteCharacterAction(void *entity_handle, int32_t act
 
     try
     {
-        if (BehavioralEntity* entity = app_context->Registry().entity_registry.GetBehavioralEntityByHandle(entity_handle))
+        if (BehavioralEntity* entity = app_context->ContentRegistry().entity_registry.GetBehavioralEntityByHandle(entity_handle))
         {
             ZoneText("entity_id", 9);
             ZoneValue(entity->GetEntityId());
@@ -365,13 +365,13 @@ void BehaviorFramework::CompleteCharacterAction(void *entity_handle, int32_t act
         }
         else
         {
-            app_context->Core().logger.LogWarning("Invalid entity handle during action with id " + std::to_string(action_id) +
+            app_context->Foundation().logger.LogWarning("Invalid entity handle during action with id " + std::to_string(action_id) +
                 " and token " + std::to_string(action_token) + " completion","BehaviorFramework");
         }
     }
     catch (const std::exception &e)
     {
-        app_context->Core().logger.LogError("Error completing character action: " +
+        app_context->Foundation().logger.LogError("Error completing character action: " +
             std::string(e.what()), "BehaviorFramework");
     }
 }

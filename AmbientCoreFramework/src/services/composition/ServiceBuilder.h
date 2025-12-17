@@ -13,7 +13,7 @@
 #include "integration/BehaviorFramework.h"
 #include "services/interfaces/IEntityPositionManager.h"
 #include "services/interfaces/IEntityPositionProvider.h"
-#include "services/registry/FrameworkRegistry.h"
+#include "services/layers/4_content_registry/FrameworkRegistry.h"
 
 namespace AmbientCharacterBehavior {
 class ServiceBuilder {
@@ -58,11 +58,11 @@ public:
     StartCharacterActionFn start_action_callback, QueryEntityPositionFn query_position_callback);
 
 private:
-    void EnsureCoreServices() const;
+    void EnsureFoundationServices() const;
     void EnsureProvidersConfigured() const;
-    void EnsureConfigurationServices() const;
-    void EnsureDomainServices() const;
-    void EnsureApplicationServices() const;
+    void EnsureDataAccessServices() const;
+    void EnsureSimulationStateServices() const;
+    void EnsureBehavioralEvaluationServices() const;
     void EnsureAllServices() const;
 };
 }

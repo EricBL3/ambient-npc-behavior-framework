@@ -4,7 +4,7 @@
 #include "../../mocks/MockJsonLoader.h"
 #include "../../mocks/MockLogger.h"
 #include "../../mocks/MockFrameworkSchemaManager.h"
-#include "../../../src/services/registry/FrameworkRegistry.h"
+#include "services/layers/4_content_registry/FrameworkRegistry.h"
 #include "../../mocks/MockEntityPositionManager.h"
 #include "../../mocks/MockEntityPositionProvider.h"
 #include "../../mocks/MockStartCharacterActionProvider.h"

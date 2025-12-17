@@ -1,7 +1,7 @@
 #pragma once
 #include <cstdint>
 
-#include "services/domain/EntityPosition.h"
+#include "services/layers/2_simulation/EntityPosition.h"
 
 namespace AmbientCharacterBehavior {
 class IEntityPositionManager {

@@ -1,6 +1,6 @@
 #include <gtest/gtest.h>
 #include "memory/MemorySystem.h"
-#include "../mocks/MockLogger.h"
+#include "../services/mocks/MockLogger.h"
 
 using namespace AmbientCharacterBehavior;
 

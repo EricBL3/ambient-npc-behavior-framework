@@ -3,8 +3,8 @@
 #include <gtest/gtest.h>
 #include <fstream>
 
-#include "utils/FrameworkLogLevel.h"
-#include "services/core/FrameworkLogger.h"
+#include "services/layers/0_foundation/FrameworkLogLevel.h"
+#include "services/layers/0_foundation/FrameworkLogger.h"
 
 using namespace AmbientCharacterBehavior;
 

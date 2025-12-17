@@ -15,14 +15,14 @@
 
 namespace AmbientCharacterBehavior {
 
-struct CoreServices {
+struct FoundationServices {
     ILogger& logger;
     ITimeManager& time_manager;
     IEnvironmentalConditionProvider& environmental_condition_provider;
     IStartCharacterActionProvider& start_character_action_provider;
     IEntityPositionProvider& entity_position_provider;
 
-    CoreServices(ILogger& logger, ITimeManager& time_manager,
+    FoundationServices(ILogger& logger, ITimeManager& time_manager,
         IEnvironmentalConditionProvider& environmental_condition_provider,
         IStartCharacterActionProvider& start_character_action_provider, IEntityPositionProvider& entity_position_provider) :
         logger(logger), time_manager(time_manager), environmental_condition_provider(environmental_condition_provider),
@@ -30,45 +30,45 @@ struct CoreServices {
         entity_position_provider(entity_position_provider){}
 };
 
-struct ConfigurationServices {
-    CoreServices& core_services;
+struct DataAccessServices {
+    FoundationServices& foundation;
     IJsonLoader& json_loader;
 
-    ConfigurationServices(CoreServices& core_services, IJsonLoader& json_loader) :
-        core_services(core_services), json_loader(json_loader) {}
+    DataAccessServices(FoundationServices& foundation, IJsonLoader& json_loader) :
+        foundation(foundation), json_loader(json_loader) {}
 };
 
-struct DomainServices {
-    ConfigurationServices& configuration_services;
+struct SimulationServices {
+    DataAccessServices& data_access;
     IEnvironmentalConditionManager& environmental_condition_manager;
     IEntityPositionManager& entity_position_manager;
     IFrameworkSchemaManager& schema_manager;
 
-    DomainServices(ConfigurationServices& configuration_services, IEnvironmentalConditionManager& environmental_condition_manager,
+    SimulationServices(DataAccessServices& data_access, IEnvironmentalConditionManager& environmental_condition_manager,
         IEntityPositionManager& entity_position_manager, IFrameworkSchemaManager& schema_manager) :
-        configuration_services(configuration_services),
+        data_access(data_access),
         environmental_condition_manager(environmental_condition_manager),
         entity_position_manager(entity_position_manager),
         schema_manager(schema_manager) {}
 };
 
-struct ApplicationServices {
-    DomainServices& domain_services;
+struct BehavioralEvaluationServices {
+    SimulationServices& simulation_state;
     IStateOperationEvaluator& state_operation_evaluator;
 
-    ApplicationServices(DomainServices& domain_services, IStateOperationEvaluator& state_operation_evaluator) :
-        domain_services(domain_services), state_operation_evaluator(state_operation_evaluator) {}
+    BehavioralEvaluationServices(SimulationServices& simulation_state, IStateOperationEvaluator& state_operation_evaluator) :
+        simulation_state(simulation_state), state_operation_evaluator(state_operation_evaluator) {}
 };
 
-struct RegistryServices {
-    ApplicationServices& application_services;
+struct ContentRegistryServices {
+    BehavioralEvaluationServices& behavioral_evaluation;
     IContentProvider& content_provider;
     IEntityRegistry& entity_registry;
     IEntityQuery& entity_query;
 
-    RegistryServices(ApplicationServices& application_services, IContentProvider& content_provider, IEntityRegistry& entity_registry,
+    ContentRegistryServices(BehavioralEvaluationServices& behavioral_evaluation, IContentProvider& content_provider, IEntityRegistry& entity_registry,
         IEntityQuery& entity_query) :
-        application_services(application_services), content_provider(content_provider), entity_registry(entity_registry),
+        behavioral_evaluation(behavioral_evaluation), content_provider(content_provider), entity_registry(entity_registry),
         entity_query(entity_query) {}
 };
 

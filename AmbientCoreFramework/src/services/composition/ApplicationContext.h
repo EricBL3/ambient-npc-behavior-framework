@@ -1,17 +1,17 @@
 #pragma once
 #include <memory>
 
-#include "../interfaces/IEnvironmentalConditionManager.h"
-#include "../interfaces/IEnvironmentalConditionProvider.h"
-#include "../interfaces/IFrameworkSchemaManager.h"
-#include "../interfaces/IJsonLoader.h"
-#include "../interfaces/ILogger.h"
-#include "../interfaces/IStateOperationEvaluator.h"
-#include "../interfaces/ITimeManager.h"
+#include "services/interfaces/IEnvironmentalConditionManager.h"
+#include "services/interfaces/IEnvironmentalConditionProvider.h"
+#include "services/interfaces/IFrameworkSchemaManager.h"
+#include "services/interfaces/IJsonLoader.h"
+#include "services/interfaces/ILogger.h"
+#include "services/interfaces/IStateOperationEvaluator.h"
+#include "services/interfaces/ITimeManager.h"
 #include "ServiceBundles.h"
 #include "services/interfaces/IEntityPositionManager.h"
 #include "services/interfaces/IEntityPositionProvider.h"
-#include "services/registry/FrameworkRegistry.h"
+#include "services/layers/4_content_registry/FrameworkRegistry.h"
 
 
 namespace AmbientCharacterBehavior {
@@ -30,11 +30,11 @@ private:
     std::unique_ptr<IStateOperationEvaluator> state_operation_evaluator;
     std::unique_ptr<FrameworkRegistry> registry;
 
-    CoreServices core_services;
-    ConfigurationServices configuration_services;
-    DomainServices domain_services;
-    ApplicationServices application_services;
-    RegistryServices registry_services;
+    FoundationServices foundation_services;
+    DataAccessServices data_access_services;
+    SimulationServices simulation_state_services;
+    BehavioralEvaluationServices behavioral_evaluation_services;
+    ContentRegistryServices content_registry_services;
 
 public:
     ApplicationContext(
@@ -60,18 +60,38 @@ public:
         schema_manager(std::move(schema_manager)),
         state_operation_evaluator(std::move(state_operation_evaluator)),
         registry(std::move(registry)),
-        core_services(*this->logger, *this->time_manager, *this->environmental_condition_provider,
-            *this->start_character_action_provider, *this->entity_position_provider),
-        configuration_services(core_services, *this->json_loader),
-        domain_services(configuration_services, *this->environmental_condition_manager,
-            *this->entity_position_manager, *this->schema_manager),
-        application_services(domain_services, *this->state_operation_evaluator),
-        registry_services(application_services, *this->registry, *this->registry, *this->registry) {}
+        foundation_services(
+            *this->logger,
+            *this->time_manager,
+            *this->environmental_condition_provider,
+            *this->start_character_action_provider,
+            *this->entity_position_provider
+        ),
+        data_access_services(
+            foundation_services,
+            *this->json_loader
+        ),
+        simulation_state_services(
+            data_access_services,
+            *this->environmental_condition_manager,
+            *this->entity_position_manager,
+            *this->schema_manager
+        ),
+        behavioral_evaluation_services(
+            simulation_state_services,
+            *this->state_operation_evaluator
+        ),
+        content_registry_services(
+            behavioral_evaluation_services,
+            *this->registry,
+            *this->registry,
+            *this->registry
+        ) {}
 
-    CoreServices& Core() { return core_services; }
-    ConfigurationServices& Configuration() { return configuration_services; }
-    DomainServices& Domain() { return domain_services; }
-    RegistryServices& Registry() { return registry_services; }
-    ApplicationServices& Application() { return application_services; }
+    FoundationServices& Foundation() { return foundation_services; }
+    DataAccessServices& DataAccess() { return data_access_services; }
+    SimulationServices& SimulationState() { return simulation_state_services; }
+    BehavioralEvaluationServices& BehavioralEvaluation() { return behavioral_evaluation_services; }
+    ContentRegistryServices& ContentRegistry() { return content_registry_services; }
 };
 }
