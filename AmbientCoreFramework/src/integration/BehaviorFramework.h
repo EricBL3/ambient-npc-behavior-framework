@@ -41,9 +41,9 @@ public:
 
 private:
 
-    bool InitializeCoreServices(const std::string& log_file_path, FrameworkLogLevel log_level = FrameworkLogLevel::ERROR) const;
-    bool InitializeDomainServices(const std::string& schema_file_path,
-        const std::string& environmental_conditions_file_path ) const;
+    bool InitializeFoundationServices(const std::string& log_file_path, FrameworkLogLevel log_level = FrameworkLogLevel::ERROR) const;
+    bool InitializeSimulationStateServices(const std::string& schema_file_path,
+        const std::string& environmental_conditions_file_path, const std::string& actions_file_path) const;
 
     bool InitializeRegistry(const std::string& actions_file_path, const std::string& sequences_file_path) const;
 

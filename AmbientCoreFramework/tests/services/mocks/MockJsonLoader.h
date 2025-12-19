@@ -20,5 +20,8 @@ public:
 
     MOCK_METHOD(std::optional<EntityDtoResult>, ProcessSingleEntityConfigFile,
         (const std::string& config_file_path), (override));
+
+    MOCK_METHOD(std::optional<int64_t>, GetTimeoutIntervalFromConfigFile,
+        (const std::string& config_file_path), (override));
 };
 }

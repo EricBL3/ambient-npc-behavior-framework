@@ -150,6 +150,43 @@ std::optional<EntityDtoResult> JsonLoader::ProcessSingleEntityConfigFile(const s
     }
 }
 
+std::optional<int64_t> JsonLoader::GetTimeoutIntervalFromConfigFile(const std::string &config_file_path)
+{
+    try
+    {
+        auto config_json = LoadConfigFileJson(config_file_path);
+        if (!config_json)
+        {
+            return std::nullopt;
+        }
+
+        if (!config_json.value().contains("timeout_check_interval_ms"))
+        {
+            logger.LogError("Config file missing 'timeout_check_interval_ms' value",
+                "GetTimeoutIntervalFromConfigFile");
+
+            return std::nullopt;
+        }
+
+        return config_json.value()["timeout_check_interval_ms"].get<int64_t>();
+    }
+    catch (const nlohmann::json::type_error& e)
+    {
+        logger.LogError("Invalid type for 'timeout_check_interval_ms': " + std::string(e.what()),
+            "GetTimeoutIntervalFromConfigFile"
+        );
+
+        return std::nullopt;
+    }
+    catch (const std::exception& e)
+    {
+        logger.LogError("Unexpected error loading 'timeout_check_interval_ms': " + std::string(e.what()),
+             "GetTimeoutIntervalFromConfigFile");
+
+        return std::nullopt;
+    }
+}
+
 std::optional<nlohmann::json> JsonLoader::LoadValidConfigJsonArray(const std::string &config_file_path, const std::string &array_key)
 {
     try

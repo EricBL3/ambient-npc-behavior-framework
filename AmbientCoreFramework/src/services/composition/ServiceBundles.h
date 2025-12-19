@@ -1,4 +1,5 @@
 #pragma once
+#include "services/interfaces/IActionTimeoutManager.h"
 #include "services/interfaces/IContentProvider.h"
 #include "services/interfaces/IEntityPositionManager.h"
 #include "services/interfaces/IEntityPositionProvider.h"
@@ -43,13 +44,16 @@ struct SimulationServices {
     IEnvironmentalConditionManager& environmental_condition_manager;
     IEntityPositionManager& entity_position_manager;
     IFrameworkSchemaManager& schema_manager;
+    IActionTimeoutManager& action_timeout_manager;
 
     SimulationServices(DataAccessServices& data_access, IEnvironmentalConditionManager& environmental_condition_manager,
-        IEntityPositionManager& entity_position_manager, IFrameworkSchemaManager& schema_manager) :
+        IEntityPositionManager& entity_position_manager, IFrameworkSchemaManager& schema_manager,
+        IActionTimeoutManager& action_timeout_manager) :
         data_access(data_access),
         environmental_condition_manager(environmental_condition_manager),
         entity_position_manager(entity_position_manager),
-        schema_manager(schema_manager) {}
+        schema_manager(schema_manager),
+        action_timeout_manager(action_timeout_manager) {}
 };
 
 struct BehavioralEvaluationServices {

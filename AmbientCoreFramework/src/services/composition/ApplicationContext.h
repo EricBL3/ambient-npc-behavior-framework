@@ -28,6 +28,7 @@ private:
     std::unique_ptr<IEnvironmentalConditionManager> environmental_condition_manager;
     std::unique_ptr<IEntityPositionManager> entity_position_manager;
     std::unique_ptr<IFrameworkSchemaManager> schema_manager;
+    std::unique_ptr<IActionTimeoutManager> action_timeout_manager;
     std::unique_ptr<IStateOperationEvaluator> state_operation_evaluator;
     std::unique_ptr<FrameworkRegistry> registry;
 
@@ -67,6 +68,7 @@ private:
         std::unique_ptr<IEnvironmentalConditionManager> environmental_condition_manager,
         std::unique_ptr<IEntityPositionManager> entity_position_manager,
         std::unique_ptr<IFrameworkSchemaManager> schema_manager,
+        std::unique_ptr<IActionTimeoutManager> action_timeout_manager,
         std::unique_ptr<IStateOperationEvaluator> state_operation_evaluator);
 
     // Two phase initialization for registry

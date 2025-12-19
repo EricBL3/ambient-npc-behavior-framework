@@ -1,5 +1,6 @@
 #include <gtest/gtest.h>
 
+#include "../../mocks/MockActionTimeoutManager.h"
 #include "../../mocks/MockEnvironmentalConditionManager.h"
 #include "../../mocks/MockJsonLoader.h"
 #include "../../mocks/MockLogger.h"
@@ -25,6 +26,7 @@ protected:
     std::unique_ptr<MockFrameworkSchemaManager> mock_schema;
     std::unique_ptr<MockEnvironmentalConditionManager> mock_environment_manager;
     std::unique_ptr<MockEntityPositionManager> mock_entity_pos_manager;
+    std::unique_ptr<MockActionTimeoutManager> mock_action_timeout_manager;
     std::unique_ptr<MockStateOperationEvaluator> mock_state_operation_evaluator;
 
     std::unique_ptr<FoundationServices> foundation_services;
@@ -47,6 +49,7 @@ protected:
         mock_json_loader = std::make_unique<MockJsonLoader>();
 
         mock_schema = std::make_unique<MockFrameworkSchemaManager>();
+        mock_action_timeout_manager = std::make_unique<MockActionTimeoutManager>();
 
         mock_environment_manager = std::make_unique<MockEnvironmentalConditionManager>();
         mock_entity_pos_manager = std::make_unique<MockEntityPositionManager>();
@@ -57,7 +60,7 @@ protected:
         data_access_services = std::make_unique<DataAccessServices>(*foundation_services, *mock_json_loader);
 
         simulation_services = std::make_unique<SimulationServices>(*data_access_services,
-            *mock_environment_manager,*mock_entity_pos_manager, *mock_schema);
+            *mock_environment_manager,*mock_entity_pos_manager, *mock_schema, *mock_action_timeout_manager);
 
         behavioral_evaluation_services = std::make_unique<BehavioralEvaluationServices>(*simulation_services,
             *mock_state_operation_evaluator);

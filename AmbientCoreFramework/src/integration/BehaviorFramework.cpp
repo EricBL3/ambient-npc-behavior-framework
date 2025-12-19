@@ -16,8 +16,8 @@ void BehaviorFramework::InitializeFramework(const std::string &schema_file_path,
     {
         try
         {
-            auto success = InitializeCoreServices(log_file_path, log_level) &&
-                InitializeDomainServices(schema_file_path, environmental_conditions_file_path) &&
+            auto success = InitializeFoundationServices(log_file_path, log_level) &&
+                InitializeSimulationStateServices(schema_file_path, environmental_conditions_file_path, actions_file_path) &&
                 InitializeRegistry(actions_file_path, sequences_file_path);
             is_initialized = success;
 
@@ -35,7 +35,7 @@ void BehaviorFramework::InitializeFramework(const std::string &schema_file_path,
     }
 }
 
-bool BehaviorFramework::InitializeCoreServices(const std::string& log_file_path, FrameworkLogLevel log_level) const
+bool BehaviorFramework::InitializeFoundationServices(const std::string& log_file_path, FrameworkLogLevel log_level) const
 {
     ZoneScoped;
 
@@ -56,30 +56,48 @@ bool BehaviorFramework::InitializeCoreServices(const std::string& log_file_path,
     return false;
 }
 
-bool BehaviorFramework::InitializeDomainServices(const std::string& schema_file_path,
-    const std::string& environmental_conditions_file_path ) const
+bool BehaviorFramework::InitializeSimulationStateServices(const std::string& schema_file_path,
+    const std::string& environmental_conditions_file_path, const std::string& actions_file_path) const
 {
     ZoneScoped;
 
-    app_context->Foundation().logger.LogInfo("Loading framework schema","BehaviorFramework");
+    app_context->Foundation().logger.LogInfo("Loading framework schema",
+        "InitializeSimulationStateServices");
 
     if (!app_context->SimulationState().schema_manager.LoadFrameworkSchema(schema_file_path))
     {
-        app_context->Foundation().logger.LogError("Failed to load framework schema","BehaviorFramework");
+        app_context->Foundation().logger.LogError("Failed to load framework schema",
+            "InitializeSimulationStateServices");
+
         return false;
     }
 
-    app_context->Foundation().logger.LogInfo("Registering environmental conditions","BehaviorFramework");
+    app_context->Foundation().logger.LogInfo("Registering environmental conditions",
+        "InitializeSimulationStateServices");
 
     if (!app_context->SimulationState().environmental_condition_manager.RegisterEnvironmentalConditions(environmental_conditions_file_path))
     {
         app_context->Foundation().logger.LogError("Failed to register environmental conditions",
-            "BehaviorFramework");
+            "InitializeSimulationStateServices");
 
         return false;
     }
 
-    app_context->Foundation().logger.LogInfo("Initialized SimulationState Services","BehaviorFramework");
+    if (!app_context->SimulationState().action_timeout_manager.Initialize(actions_file_path,
+        [this](void* entity_handle, int32_t action_id, int64_t action_token)
+        {
+            this->CompleteCharacterAction(entity_handle, action_id, action_token);
+        }
+    ))
+    {
+        app_context->Foundation().logger.LogError("Failed to initialize ActionTimeoutManager",
+            "InitializeSimulationStateServices");
+
+        return false;
+    }
+
+    app_context->Foundation().logger.LogInfo("Initialized SimulationState Services",
+        "InitializeSimulationStateServices");
 
     return true;
 }
@@ -124,7 +142,7 @@ void BehaviorFramework::Update(int32_t character_batch_size, int64_t current_tim
         if (app_context->ContentRegistry().entity_registry.GetPendingCommandCount() > 0)
         {
             ProcessPendingEntityCommands(character_batch_size);
-        }
+        } //todo: call CheckTimeouts between these 2 if statements. Separate else if so that checking timeouts also sets is_processing_entity_batch to true
         else if (CanUpdateBehavioralEntities(character_batch_size))
         {
             UpdateBehavioralEntities(character_batch_size);

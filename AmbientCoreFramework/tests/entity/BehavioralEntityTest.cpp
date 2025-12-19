@@ -8,6 +8,7 @@
 #include "../services/mocks/MockEnvironmentalConditionProvider.h"
 #include "../services/mocks/MockStateOperationEvaluator.h"
 #include "../services/mocks/MockEntityPositionProvider.h"
+#include "../services/mocks/MockActionTimeoutManager.h"
 #include "../services/mocks/MockJsonLoader.h"
 #include "../services/mocks/MockFrameworkSchemaManager.h"
 #include "../services/mocks/MockEnvironmentalConditionManager.h"
@@ -18,6 +19,7 @@
 #include "entity/BehavioralEntity.h"
 
 
+namespace AmbientCharacterBehavior {
 using namespace AmbientCharacterBehavior;
 
 class BehavioralEntityTest : public testing::Test {
@@ -31,6 +33,7 @@ protected:
     std::unique_ptr<MockFrameworkSchemaManager> mock_schema;
     std::unique_ptr<MockEnvironmentalConditionManager> mock_environment_manager;
     std::unique_ptr<MockEntityPositionManager> mock_entity_pos_manager;
+    std::unique_ptr<MockActionTimeoutManager> mock_action_timeout_manager;
     std::unique_ptr<MockStateOperationEvaluator> mock_state_operation_evaluator;
     std::unique_ptr<MockContentProvider> mock_content_provider;
     std::unique_ptr<MockEntityRegistry> mock_entity_registry;
@@ -66,6 +69,7 @@ protected:
         mock_schema = std::make_unique<MockFrameworkSchemaManager>();
         mock_environment_manager = std::make_unique<MockEnvironmentalConditionManager>();
         mock_entity_pos_manager = std::make_unique<MockEntityPositionManager>();
+        mock_action_timeout_manager = std::make_unique<MockActionTimeoutManager>();
 
         mock_state_operation_evaluator = std::make_unique<MockStateOperationEvaluator>();
 
@@ -79,7 +83,7 @@ protected:
         data_access_services = std::make_unique<DataAccessServices>(*foundation_services, *mock_json_loader);
 
         simulation_state_services = std::make_unique<SimulationServices>(*data_access_services,
-            *mock_environment_manager,*mock_entity_pos_manager, *mock_schema);
+            *mock_environment_manager,*mock_entity_pos_manager, *mock_schema, *mock_action_timeout_manager);
 
         behavioral_evaluation_services = std::make_unique<BehavioralEvaluationServices>(*simulation_state_services,
             *mock_state_operation_evaluator);
@@ -773,7 +777,8 @@ TEST_F(BehavioralEntityTest, GetActionTargetEntity_AllEntitiesFailPreconditions_
     EXPECT_EQ(result_id, -1);
 }
 
-TEST_F(BehavioralEntityTest, HandleNodeExecutionCompletion_NoValidTransitions_FailsSequence) {
+TEST_F(BehavioralEntityTest, HandleNodeExecutionCompletion_NoValidTransitions_FailsSequence)
+{
     VerifyMockSetup();
     auto sequence = CreateSequenceWithInvalidTransition();
     SetupEntityWithSequenceAtNodeExecuted(sequence);
@@ -787,4 +792,5 @@ TEST_F(BehavioralEntityTest, HandleNodeExecutionCompletion_NoValidTransitions_Fa
 
     // Should transition to FAILED state
     // (This is currently a bug - you're logging error but not setting FAILED)
+}
 }

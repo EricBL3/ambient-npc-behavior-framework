@@ -2,6 +2,7 @@
 #include <memory>
 
 #include "ServiceBundles.h"
+#include "services/interfaces/IActionTimeoutManager.h"
 #include "services/interfaces/IEntityPositionManager.h"
 #include "services/interfaces/IEntityPositionProvider.h"
 #include "services/interfaces/IEnvironmentalConditionManager.h"
@@ -18,6 +19,7 @@
 #include "services/layers/0_foundation/callback_providers/EnvironmentalConditionProvider.h"
 #include "services/layers/0_foundation/callback_providers/StartCharacterActionProvider.h"
 #include "services/layers/1_data_access/JsonLoader.h"
+#include "services/layers/2_simulation/ActionTimeoutManager.h"
 #include "services/layers/2_simulation/EntityPositionManager.h"
 #include "services/layers/2_simulation/EnvironmentalConditionManager.h"
 #include "services/layers/2_simulation/FrameworkSchemaManager.h"
@@ -94,6 +96,14 @@ namespace ServiceFactories {
     )
     {
         return std::make_unique<FrameworkSchemaManager>(logger, json_loader);
+    }
+
+    inline std::unique_ptr<IActionTimeoutManager> CreateActionTimeoutManager(
+        ILogger& logger,
+        IJsonLoader& json_loader
+    )
+    {
+        return std::make_unique<ActionTimeoutManager>(logger, json_loader);
     }
 
     // Layer 3 - Behavioral Evaluation
