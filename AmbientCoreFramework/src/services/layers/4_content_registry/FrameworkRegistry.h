@@ -88,6 +88,11 @@ private:
         return services.simulation_state.entity_position_manager;
     }
 
+    IActionTimeoutManager& ActionTimeoutManager() const
+    {
+        return services.simulation_state.action_timeout_manager;
+    }
+
     IStateOperationEvaluator& StateEvaluator() const
     {
         return services.state_operation_evaluator;

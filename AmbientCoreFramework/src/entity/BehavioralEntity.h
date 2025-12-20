@@ -74,6 +74,11 @@ private:
         return services.entity_query;
     }
 
+    IActionTimeoutManager& ActionTimeoutManager() const
+    {
+        return services.behavioral_evaluation.simulation_state.action_timeout_manager;
+    }
+
 public:
     /**
      * @throw std::invalid_argument if entity_id or current_location_id < 0.

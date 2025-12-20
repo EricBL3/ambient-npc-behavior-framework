@@ -401,9 +401,11 @@ void BehavioralEntity::InitiateActionExecution(const std::shared_ptr<Action>& ac
         std::to_string(current_action_id) + " and token: " + std::to_string(current_action_token), "InitiateActionExecution");
 
     ActionProvider().StartCharacterAction(entity_handle, current_action_id, current_action_token,
-        action->GetMaxDuration(), target_entity_handle);
+        action->GetActionDuration(), target_entity_handle);
 
     sequences.top()->SetSequenceState(SequenceState::WAITING_FOR_ACTION);
+    ActionTimeoutManager().RegisterActionTimeout(entity_handle, current_action_id, current_action_token,
+        TimeManager().GetCurrentTime(), action->GetActionTimeout());
 }
 
 FrameworkEntity* BehavioralEntity::GetActionTargetEntity(const std::shared_ptr<Action>& action)
@@ -513,6 +515,7 @@ void BehavioralEntity::CompleteAction(int32_t action_id, int64_t action_token)
         Logger().LogInfo("entity with id: " + std::to_string(entity_id) + " has completed action with id: " +
             std::to_string(action_id) + " and token: " + std::to_string(action_token) ,"CompleteAction");
 
+        ActionTimeoutManager().UnregisterActionTimeout(entity_handle);
         ApplyCompletionEffects(action_id);
 
         // Reset and current_action_id to invalid value.

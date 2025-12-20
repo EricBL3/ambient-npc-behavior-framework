@@ -46,6 +46,7 @@ struct ActionDto {
     std::vector<StateOperationDto> completion_effects;
     std::vector<StateOperationDto> interruption_effects;
     int64_t action_duration_ms;
+    int64_t action_timeout_ms;
     std::string interruption_behavior_name;
 };
 

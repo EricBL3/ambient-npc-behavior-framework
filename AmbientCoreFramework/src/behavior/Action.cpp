@@ -4,18 +4,24 @@
 
 using namespace AmbientCharacterBehavior;
 
-Action::Action(int32_t action_id, std::string action_name, int64_t max_duration,
+Action::Action(int32_t action_id, std::string action_name, int64_t action_duration_ms, int64_t timeout_ms,
     InterruptionBehaviorType interruption_behavior) : action_id(action_id), action_name(std::move(action_name)),
-    action_duration_ms(max_duration), interruption_behavior(interruption_behavior)
+    action_duration_ms(action_duration_ms), action_timeout_ms(timeout_ms), interruption_behavior(interruption_behavior)
 {
     if (action_id < 0)
     {
         throw std::invalid_argument("Action: action_id cannot be negative");
     }
 
-    if (max_duration < 0)
+    if (action_duration_ms < 0)
     {
         throw std::invalid_argument("Action: action_duration_ms cannot be negative");
+    }
+
+    if (timeout_ms <= action_duration_ms)
+    {
+        throw std::invalid_argument("Action: timeout_ms (" + std::to_string(timeout_ms) + ") cannot be less than "
+            "action_duration_ms (" + std::to_string(action_duration_ms) + ").");
     }
 }
 

@@ -23,13 +23,14 @@ private:
     std::vector<StateOperation> completion_effects;
     std::vector<StateOperation> interruption_effects;
     int64_t action_duration_ms;
+    int64_t action_timeout_ms;
     InterruptionBehaviorType interruption_behavior;
 
 public:
     /**
-     * @throws std::invalid_argument if action_id or max_duration < 0.
+     * @throws std::invalid_argument if action_id or action_duration < 0 or timeout_ms <= action_duration_ms
      */
-    explicit Action(int32_t action_id, std::string action_name, int64_t max_duration,
+    explicit Action(int32_t action_id, std::string action_name, int64_t action_duration_ms, int64_t timeout_ms,
         InterruptionBehaviorType interruption_behavior);
     
     void AddPrecondition(StateOperationTarget target, const StateOperation& precondition);
@@ -45,9 +46,12 @@ public:
 
     bool GetRequiresTargetEntity() const;
 
-    int64_t GetMaxDuration() const { return action_duration_ms; }
+    int64_t GetActionDuration() const { return action_duration_ms; }
 
-    std::unordered_map<StateOperationTarget, std::vector<StateOperation>> GetAllPreconditions() const { return preconditions_by_target; }
+    int64_t GetActionTimeout() const { return action_timeout_ms; }
+
+    std::unordered_map<StateOperationTarget, std::vector<StateOperation>> GetAllPreconditions() const
+    { return preconditions_by_target; }
 
     InterruptionBehaviorType GetInterruptionBehavior() const { return interruption_behavior; }
 

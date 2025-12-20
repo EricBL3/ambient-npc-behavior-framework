@@ -1,5 +1,7 @@
 #include "ActionTimeoutManager.h"
 
+#include "../../../../cmake-build-debug/_deps/tracy-src/public/tracy/Tracy.hpp"
+
 namespace AmbientCharacterBehavior {
 bool ActionTimeoutManager::Initialize(const std::string &config_file_path, ActionCompletionCallback callback)
 {
@@ -70,6 +72,8 @@ void ActionTimeoutManager::CheckActionTimeouts(int64_t current_time)
     {
         return;
     }
+
+    ZoneScoped;
 
     logger.LogInfo("Checking all active action timeouts", "CheckActionTimeouts");
     last_check_time_ms = current_time;

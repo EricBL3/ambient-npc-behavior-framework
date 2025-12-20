@@ -254,7 +254,7 @@ bool FrameworkRegistry::GenerateActionFromDto(const ActionDto &action_dto)
 
         auto [new_action_iterator, inserted] = actions.emplace(action_dto.action_id, std::make_shared<Action>(
             Action(action_dto.action_id, action_dto.action_name, action_dto.action_duration_ms,
-                interruption_behavior)));
+                action_dto.action_timeout_ms, interruption_behavior)));
 
         if (!inserted)
         {
@@ -691,6 +691,7 @@ bool FrameworkRegistry::UnregisterBehavioralEntity(void* entity_handle)
     auto behavioral_id = GetBehavioralIdFromHandle(entity_handle);
     if (behavioral_id != -1) {
         PositionManager().UnregisterEntityPosition(entity_handle);
+        ActionTimeoutManager().UnregisterActionTimeout(entity_handle);
         RemoveEntityFromActionIndex(behavioral_id);
         handle_to_behavioral_id.erase(entity_handle);
         behavioral_id_to_handle.erase(behavioral_id);

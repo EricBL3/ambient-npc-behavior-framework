@@ -3,6 +3,7 @@
 #include <tracy/Tracy.hpp>
 
 #include "entity/BehavioralEntity.h"
+#include "services/layers/2_simulation/ActionTimeoutManager.h"
 
 using namespace AmbientCharacterBehavior;
 
@@ -142,9 +143,10 @@ void BehaviorFramework::Update(int32_t character_batch_size, int64_t current_tim
         if (app_context->ContentRegistry().entity_registry.GetPendingCommandCount() > 0)
         {
             ProcessPendingEntityCommands(character_batch_size);
-        } //todo: call CheckTimeouts between these 2 if statements. Separate else if so that checking timeouts also sets is_processing_entity_batch to true
+        }
         else if (CanUpdateBehavioralEntities(character_batch_size))
         {
+            app_context->SimulationState().action_timeout_manager.CheckActionTimeouts(current_time_ms);
             UpdateBehavioralEntities(character_batch_size);
         }
     }
@@ -221,7 +223,6 @@ void BehaviorFramework::UpdateBehavioralEntities(int32_t character_batch_size)
     ZoneValue(character_batch_size);
 
     is_processing_entity_batch = true;
-
     auto total_entities = GetTotalEntitiesCount();
     if (total_entities > 0)
     {

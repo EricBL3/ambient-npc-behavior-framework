@@ -166,6 +166,7 @@ protected:
             id,
             "TestAction_" + std::to_string(id),
             5000,   // 5 second max duration
+            10000,
             InterruptionBehaviorType::RESUMABLE
         );
     }

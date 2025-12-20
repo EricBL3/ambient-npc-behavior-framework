@@ -127,6 +127,7 @@ protected:
         action_dto.action_id = action_id;
         action_dto.action_name = "test_action";
         action_dto.action_duration_ms = 1000;
+        action_dto.action_timeout_ms = 3000;
         action_dto.interruption_behavior_name = "RESUMABLE";
 
         return action_dto;
@@ -347,7 +348,7 @@ TEST_F(FrameworkRegistryTest, RegisterActions_AddsActionToRegistry)
     EXPECT_EQ(1, registry->GetActionsCount());
     EXPECT_EQ(action_id, action->GetActionId());
     EXPECT_EQ("test_action", action->GetActionName());
-    EXPECT_EQ(1000, action->GetMaxDuration());
+    EXPECT_EQ(1000, action->GetActionDuration());
     EXPECT_EQ(InterruptionBehaviorType::RESUMABLE, action->GetInterruptionBehavior());
 }
 
