@@ -67,6 +67,7 @@ vcpkg/downloads/
 vcpkg/vcpkg_installed/
 vcpkg/vcpkg
 vcpkg/vcpkg.exe
+vcpkg_installed/
 
 # IDEs and Editors
 ../.idea/
