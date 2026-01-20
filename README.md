@@ -37,8 +37,8 @@ xcode-select --install
 
 #### 3. Bootstrap vcpkg (first time only)
 ```
-# Clone and bootstrap vcpkg
-git clone https://github.com/Microsoft/vcpkg.git
+# Initialize and bootstrap vcpkg
+git submodule update --init --recursive
 cd vcpkg
 
 # Windows
