@@ -76,6 +76,7 @@ private:
                     "completion_effects": [],
                     "interruption_effects": [],
                     "action_duration_ms": 5000,
+                    "action_timeout_ms": 15000,
                     "interruption_behavior_name": "NON_RESUMABLE"
                 }
             ]
