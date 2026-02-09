@@ -105,15 +105,19 @@ bool BehavioralEntity::CanUpdate() const
 void BehavioralEntity::ExecuteSequenceStep(SequenceState sequence_state)
 {
     ZoneScoped;
+
+    auto currentSequenceId = sequences.top()->GetSequenceId();
+
     ZoneText("entity_id", 9);
     ZoneValue(entity_id);
     ZoneText("sequence_id", 11);
-    ZoneValue(sequences.top()->GetSequenceId());
+    ZoneValue(currentSequenceId);
     ZoneText("sequence_state", 14);
     ZoneValue(static_cast<uint64_t>(sequence_state));
 
     Logger().LogInfo("Executing sequence state " + ToString(sequence_state) + " for entity: " +
-        std::to_string(entity_id), "ExecuteSequenceStep");
+        std::to_string(entity_id) + " in sequence: " + std::to_string(currentSequenceId),
+        "ExecuteSequenceStep");
 
     // ═══════════════════════════════════════════════════════════════════
     // STATE MACHINE DISPATCH
@@ -179,8 +183,8 @@ void BehavioralEntity::HandleSequenceStartup()
 {
     ZoneScoped;
 
-    Logger().LogInfo("Handling sequence startup for entity: " + std::to_string(entity_id),
-        "HandleSequenceStartup");
+    Logger().LogInfo("Handling sequence (" + std::to_string(sequences.top()->GetSequenceId()) + ") startup "
+        "for entity: " + std::to_string(entity_id), "HandleSequenceStartup");
 
     sequences.top()->SetSequenceState(SequenceState::PROCESSING_NODE);
     sequences.top()->ResetCurrentNodeToEntry();
@@ -196,7 +200,9 @@ void BehavioralEntity::ProcessCurrentNode()
 {
     ZoneScoped;
 
-    Logger().LogInfo("Processing current node for entity: " + std::to_string(entity_id),
+    auto currentNodeId = sequences.top()->GetCurrentNodeId();
+    Logger().LogInfo("Processing current node (" + std::to_string(currentNodeId) + ") in sequence (" +
+        std::to_string(sequences.top()->GetSequenceId()) + ") for entity: " + std::to_string(entity_id),
         "ProcessCurrentNode");
 
     const auto current_node = sequences.top()->FindCurrentNode();
@@ -204,7 +210,7 @@ void BehavioralEntity::ProcessCurrentNode()
     {
         HandleRuntimeFailure({
             .reason = RuntimeFailureReason::NODE_NOT_FOUND,
-            .node_id = sequences.top()->GetCurrentNodeId(),
+            .node_id = currentNodeId,
             .additional_info = "ProcessCurrentNode"
         });
 
@@ -221,26 +227,14 @@ void BehavioralEntity::ExecuteCurrentNode(const SequenceNode* current_node)
     auto current_node_type = current_node->GetNodeType();
     if (current_node_type == SequenceNodeType::ACTION_NODE)
     {
-        Logger().LogInfo("Will execute action node with id: " +
-            std::to_string(sequences.top()->GetCurrentNodeId()) + " for entity with id: " +
-            std::to_string(entity_id), "ExecuteCurrentNode");
-
         ExecuteActionNode(current_node);
     }
     else if (current_node_type == SequenceNodeType::NESTED_SEQUENCE_NODE)
     {
-        Logger().LogInfo("Will execute nested sequence node with id: " +
-            std::to_string(sequences.top()->GetCurrentNodeId()) + " for entity with id: " +
-            std::to_string(entity_id), "ExecuteCurrentNode");
-
         ExecuteNestedSequenceNode(current_node);
     }
     else if (current_node_type == SequenceNodeType::END_SEQUENCE_NODE)
     {
-        Logger().LogInfo("Will execute end node with id: " +
-            std::to_string(sequences.top()->GetCurrentNodeId()) + " for entity with id: " +
-            std::to_string(entity_id), "ExecuteCurrentNode");
-
         ExecuteEndSequenceNode(current_node);
     }
     else
@@ -267,6 +261,11 @@ void BehavioralEntity::ExecuteActionNode(const SequenceNode* current_node)
         });
         return;
     }
+
+    Logger().LogInfo("Will execute action node with id: " +
+            std::to_string(sequences.top()->GetCurrentNodeId()) + " and target action id: " +
+            std::to_string(action->GetActionId()) + " for entity with id: " +
+            std::to_string(entity_id), "ExecuteCurrentNode");
 
     // STEP 2: VALIDATE CONTEXT-FREE PRECONDITIONS
     // Check SELF and ENVIRONMENT preconditions (don't require entity)
@@ -322,6 +321,11 @@ void BehavioralEntity::ExecuteNestedSequenceNode(const SequenceNode* current_nod
         return;
     }
 
+    Logger().LogInfo("Will execute nested sequence node with id: " +
+            std::to_string(sequences.top()->GetCurrentNodeId()) + " and target sequence id: " +
+            std::to_string(nested_sequence_node->GetTargetSequenceId()) + " for entity with id: " +
+            std::to_string(entity_id), "ExecuteCurrentNode");
+
     sequences.top()->SetSequenceState(SequenceState::IN_SUBSEQUENCE);
 
     auto nested_sequence = ContentProvider().GetSequenceById(
@@ -346,8 +350,12 @@ void BehavioralEntity::ExecuteEndSequenceNode(const SequenceNode* current_node)
 {
     ZoneScoped;
 
-    Logger().LogInfo("Reached end of sequence for entity " + std::to_string(entity_id),
-                   "ExecuteEndSequenceNode");
+    Logger().LogInfo("Will execute end node with id: " +
+            std::to_string(sequences.top()->GetCurrentNodeId()) + " for entity with id: " +
+            std::to_string(entity_id), "ExecuteCurrentNode");
+
+    Logger().LogInfo("Reached end of sequence (" + std::to_string(sequences.top()->GetSequenceId()) +
+        ") for entity " + std::to_string(entity_id), "ExecuteEndSequenceNode");
 
     fallback_attempt_count = 0;
     sequences.top()->SetSequenceState(SequenceState::NODE_EXECUTED);
@@ -435,8 +443,9 @@ void BehavioralEntity::ApplyActionEffects(const std::vector<StateOperation> & ef
         StateEvaluator().ProcessStateOperation(effect, context);
     }
 
-    Logger().LogInfo("Applied " + std::to_string(effects.size()) + " effects for action processing of " +
-        " entity " + std::to_string(entity_id), "ApplyActionEffects");
+    Logger().LogInfo("Applied " + std::to_string(effects.size()) + " effects for action (" +
+        std::to_string(current_action_id) + ") processing of entity " + std::to_string(entity_id),
+        "ApplyActionEffects");
 }
 
 void BehavioralEntity::CompleteAction(int32_t action_id, int64_t action_token)
@@ -457,8 +466,6 @@ void BehavioralEntity::CompleteAction(int32_t action_id, int64_t action_token)
         if (!sequences.empty())
         {
             sequences.top()->SetSequenceState(SequenceState::NODE_EXECUTED);
-            Logger().LogInfo("entity with id: " + std::to_string(entity_id) + " is now in NODE_EXECUTED step",
-                "CompleteAction");
         }
         else
         {
@@ -542,12 +549,6 @@ FrameworkEntity* BehavioralEntity::GetActionTargetEntity(const std::shared_ptr<A
     // Retain only entities satisfying both ENTITY and DISTANCE preconditions
     for (auto* entity : entities)
     {
-        // skip current entity if we checked it above
-        if (entity->GetEntityId() == current_action_target_id)
-        {
-            continue;
-        }
-
         // Validate entity state preconditions
         if (!EvaluatePreconditions(entity_preconditions, entity))
         {
@@ -732,11 +733,6 @@ void BehavioralEntity::ProcessInterruptionImmediate(int32_t interruption_id)
             // Invalidate action token to reject late callbacks of complete action
             current_action_token++;
         }
-        else
-        {
-            Logger().LogInfo("The current action is not resumable so no context will be saved in the interruption "
-                "memory for entity " + std::to_string(entity_id), "ProcessInterruptionImmediate");
-        }
     }
 
     // Sequence State Management
@@ -750,8 +746,10 @@ void BehavioralEntity::HandleInterruptionRecovery()
 {
     ZoneScoped;
 
-    Logger().LogInfo("Handling interruption recovery for entity: " + std::to_string(entity_id),
-        "HandleInterruptionRecovery");
+    auto currentSequenceId = sequences.top()->GetSequenceId();
+
+    Logger().LogInfo("Handling interruption recovery for entity: " + std::to_string(entity_id) + " in sequence: " +
+        std::to_string(currentSequenceId), "HandleInterruptionRecovery");
 
     // Check if current node exists
     auto current_node = sequences.top()->FindCurrentNode();
@@ -759,7 +757,7 @@ void BehavioralEntity::HandleInterruptionRecovery()
     {
         HandleRuntimeFailure({
             .reason = RuntimeFailureReason::NODE_NOT_FOUND,
-            .node_id = sequences.top()->GetSequenceId(),
+            .node_id = sequences.top()->GetCurrentNodeId(),
             .additional_info = "HandleInterruptionRecovery - current node not found"
         });
 
@@ -769,8 +767,9 @@ void BehavioralEntity::HandleInterruptionRecovery()
     auto action_node = dynamic_cast<const ActionSequenceNode*>(current_node);
     if (!action_node)
     {
-        Logger().LogInfo("Interrupted sequence for entity " + std::to_string(entity_id) + " was not at an action "
-            "node. Continuing processing", "HandleInterruptionRecovery");
+        Logger().LogInfo("Interrupted sequence" + std::to_string(currentSequenceId) + " for entity " +
+            std::to_string(entity_id) + " was not at an action node. Continuing processing",
+            "HandleInterruptionRecovery");
 
         sequences.top()->SetSequenceState(SequenceState::PROCESSING_NODE);
         return;
@@ -992,10 +991,12 @@ void BehavioralEntity::HandleSequenceFailure()
         return;
     }
 
-    Logger().LogInfo("Handling sequence failure for entity: " + std::to_string(entity_id),
-        "HandleSequenceFailure");
+    auto currentSequenceId = sequences.top()->GetSequenceId();
 
-    memory.ClearSequenceInterruptionMemories(sequences.top()->GetSequenceId());
+    Logger().LogInfo("Handling sequence (" + std::to_string(currentSequenceId) + ") failure for entity: " +
+        std::to_string(entity_id), "HandleSequenceFailure");
+
+    memory.ClearSequenceInterruptionMemories(currentSequenceId);
     sequences.top()->ResetCurrentNodeToEntry();
     sequences.pop();
 

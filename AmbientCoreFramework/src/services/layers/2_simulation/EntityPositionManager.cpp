@@ -83,6 +83,16 @@ int32_t EntityPositionManager::CalculateDistance(void* entity_a_handle, void* en
     const auto& pos_a = entity_position_cache[entity_a_handle];
     const auto& pos_b = entity_position_cache[entity_b_handle];
 
+    logger.LogInfo("Pos A: (" + std::to_string(pos_a.value.x) + ", " +
+               std::to_string(pos_a.value.y) + ", " +
+               std::to_string(pos_a.value.z) + ")",
+               "CalculateDistance");
+
+    logger.LogInfo("Pos B: (" + std::to_string(pos_b.value.x) + ", " +
+                   std::to_string(pos_b.value.y) + ", " +
+                   std::to_string(pos_b.value.z) + ")",
+                   "CalculateDistance");
+
     // Calculate Manhattan distance
     auto distance_x = std::abs(pos_a.value.x - pos_b.value.x);
     auto distance_y = std::abs(pos_a.value.y - pos_b.value.y);
@@ -125,6 +135,10 @@ void EntityPositionManager::UpdateEntityPosition(void* entity_handle)
         position.last_update_ms = time_manager.GetCurrentTime();
         return;
     }
+
+    logger.LogInfo("Updating position to x: " + std::to_string(position_query.position.x) +
+        "y: " + std::to_string(position_query.position.y) + "z: " + std::to_string(position_query.position.z),
+        "UpdateEntityPosition");
 
     position.value = position_query.position;
     position.last_update_ms = time_manager.GetCurrentTime();
