@@ -549,6 +549,9 @@ FrameworkEntity* BehavioralEntity::GetActionTargetEntity(const std::shared_ptr<A
     // Retain only entities satisfying both ENTITY and DISTANCE preconditions
     for (auto* entity : entities)
     {
+        Logger().LogInfo("Evaluating preconditions for entity: " + std::to_string(entity->GetEntityId()),
+            "GetActionTargetEntity");
+
         // Validate entity state preconditions
         if (!EvaluatePreconditions(entity_preconditions, entity))
         {
@@ -562,6 +565,9 @@ FrameworkEntity* BehavioralEntity::GetActionTargetEntity(const std::shared_ptr<A
             // skip invalid entities
             continue;
         }
+
+        Logger().LogInfo("Preconditions for entity: " + std::to_string(entity_id) + " for action: " +
+            std::to_string(action->GetActionId()) + " are valid.","GetActionTargetEntity");
 
         valid_entity_ids.push_back(entity->GetEntityId());
     }

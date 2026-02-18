@@ -189,9 +189,11 @@ bool StateOperationEvaluator::EvaluateStateOperation(StateOperationType operatio
         return false;
     }
 
-    context_entity->SetStateValue(state_key, new_value);
-    logger.LogInfo("Setting state_key: " + std::to_string(state_key) + " to value " + std::to_string(new_value),
+    logger.LogInfo("Setting state_key: " + std::to_string(state_key) + " from: " + std::to_string(state_value) +
+        " to: " + std::to_string(new_value) + " for entity: " + std::to_string(context_entity->GetEntityId()),
                 "EvaluateStateOperation");
+    context_entity->SetStateValue(state_key, new_value);
+
 
     return true;
 }
