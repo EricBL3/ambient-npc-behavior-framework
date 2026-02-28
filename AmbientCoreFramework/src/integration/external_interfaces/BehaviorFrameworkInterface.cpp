@@ -34,20 +34,15 @@ extern "C" {
         if (const auto framework = static_cast<BehaviorFramework*>(framework_handle))
         {
 
-            FrameworkLogLevel framework_log_level;
-            switch (log_level)
-            {
-                case 0:
-                    framework_log_level = FrameworkLogLevel::INFO;
-                    break;
-                case 1:
-                    framework_log_level = FrameworkLogLevel::WARNING;
-                    break;
-                case 2:
-                default:
-                    framework_log_level = FrameworkLogLevel::ERROR;
-                    break;
-            }
+            auto candidate = static_cast<FrameworkLogLevel>(log_level);
+
+            const bool is_valid =
+                candidate == FrameworkLogLevel::DEBUG ||
+                candidate == FrameworkLogLevel::INFO ||
+                candidate == FrameworkLogLevel::WARNING ||
+                candidate == FrameworkLogLevel::ERROR;
+
+            FrameworkLogLevel framework_log_level = is_valid ? candidate : FrameworkLogLevel::ERROR;
 
             framework->InitializeFramework(schema_file_path, sequences_file_path, actions_file_path,
             environmental_conditions_file_path, log_file_path, framework_log_level);

@@ -61,6 +61,9 @@ void FrameworkLogger::WriteLog(FrameworkLogLevel level, const std::string &messa
     std::string level_str;
     switch (level)
     {
+        case FrameworkLogLevel::DEBUG:
+            level_str = "DEBUG";
+            break;
         case FrameworkLogLevel::INFO:
             level_str = "INFO";
             break;
