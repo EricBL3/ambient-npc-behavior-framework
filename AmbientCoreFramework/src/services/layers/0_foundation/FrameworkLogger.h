@@ -38,6 +38,9 @@ public:
     void LogInfo(const std::string& message, const std::string& component_name) override
     { WriteLog(FrameworkLogLevel::INFO, message, component_name); }
 
+    void LogDebug(const std::string& message, const std::string& component_name) override
+    { WriteLog(FrameworkLogLevel::DEBUG, message, component_name); }
+
     /**
      * @param level Can be INFO, WARNING, or ERROR
      */

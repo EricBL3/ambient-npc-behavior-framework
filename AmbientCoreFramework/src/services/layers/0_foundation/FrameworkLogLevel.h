@@ -2,8 +2,9 @@
 
 namespace AmbientCharacterBehavior {
 enum class FrameworkLogLevel {
-    INFO = 0,
-    WARNING = 1,
-    ERROR = 2,
+    DEBUG = 10, //TODO: change to 0 after tests
+    INFO = 1,
+    WARNING = 2,
+    ERROR = 3,
 };
 }

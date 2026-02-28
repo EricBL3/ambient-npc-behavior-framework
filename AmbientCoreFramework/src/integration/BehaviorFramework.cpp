@@ -233,6 +233,9 @@ void BehaviorFramework::UpdateBehavioralEntities(int32_t character_batch_size)
             auto entities_to_process = app_context->ContentRegistry().entity_registry.GetBehavioralEntitiesRange(
                 entities_range.start_index, entities_range.count);
 
+            app_context->Foundation().logger.LogDebug("PERF," + std::to_string(entities_to_process.size()) +
+                "," + std::to_string(total_entities), "UpdateBehavioralEntities");
+
             ZoneText("entities_to_process", 19);
             ZoneValue(entities_to_process.size());
 
