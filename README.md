@@ -8,11 +8,11 @@ This is part of my Master's project on ambient character behavior.
 ### Prerequisites
 - **Git**
 - **CMake 3.16+**
-- **C++17 compatible compiler**
-  - **Windows**: Visual Studio 2019+ or Visual Studio Build Tools
-  - **macOS**: Xcode Command Line Tools (`xcode-select --install`)
+- **C++20 compatible compiler**
+  - **Windows**: Visual Studio 2022 (or 2019 v16.10+)
+  - **macOS**: Xcode 13+ with Command Line Tools
     **Additionally (see macOS setup below): Homebrew, pkg-config**
-  - **Linux**: GCC 8+ or Clang 7+
+  - **Linux**: GCC 10+ or Clang 12+
 
 ### Setup Instructions
 
