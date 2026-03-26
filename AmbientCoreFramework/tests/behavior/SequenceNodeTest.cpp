@@ -1,6 +1,4 @@
-
 #include <gtest/gtest.h>
-
 #include "behavior/sequence_nodes/ActionSequenceNode.h"
 #include "behavior/sequence_nodes/EndSequenceNode.h"
 #include "behavior/sequence_nodes/NestedSequenceNode.h"

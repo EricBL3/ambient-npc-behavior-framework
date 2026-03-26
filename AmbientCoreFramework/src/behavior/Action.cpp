@@ -62,7 +62,9 @@ bool Action::GetRequiresTargetEntity() const
         requires_target =  true;
     }
 
-    const auto entity_distance_preconditions = GetPreconditionsForTarget(StateOperationTarget::DISTANCE_TO_ENTITY);
+    const auto entity_distance_preconditions = GetPreconditionsForTarget(
+        StateOperationTarget::DISTANCE_TO_ENTITY);
+
     if (entity_distance_preconditions && !entity_distance_preconditions->empty())
     {
         requires_target = true;

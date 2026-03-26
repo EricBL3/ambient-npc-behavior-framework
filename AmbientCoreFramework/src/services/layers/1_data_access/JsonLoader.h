@@ -2,12 +2,10 @@
 #include "services/json_dtos/EnvironmentalConditionDto.h"
 #include "services/json_dtos/BehavioralDtos.h"
 #include "services/json_dtos/EntityDtos.h"
-
 #include <nlohmann/json.hpp>
 #include <optional>
 #include <string>
 #include <vector>
-
 #include "services/interfaces/IJsonLoader.h"
 #include "services/interfaces/ILogger.h"
 

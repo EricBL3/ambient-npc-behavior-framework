@@ -37,8 +37,8 @@ InterruptionMemory::InterruptionMemory(
     // Validate interrupted_target_entity_id invariant (allows -1 as sentinel for "no entity")
     if(interrupted_target_entity_id < -1)
     {
-        throw std::invalid_argument("InterruptionMemory: interrupted_target_entity_id cannot be less than -1 (null/none), got " +
-            std::to_string(interrupted_target_entity_id));
+        throw std::invalid_argument("InterruptionMemory: interrupted_target_entity_id cannot be less than -1 "
+            "(null/none), got " + std::to_string(interrupted_target_entity_id));
     }
 }
 
@@ -58,7 +58,8 @@ bool InterruptionMemory::MatchesMemory(const BaseMemory &other) const
         other_transition_memory->GetInterruptedSequenceNodeId());
 }
 
-bool InterruptionMemory::MatchesMemory(int32_t other_action_id, int32_t other_sequence_id, int32_t other_sequence_node_id) const
+bool InterruptionMemory::MatchesMemory(int32_t other_action_id, int32_t other_sequence_id,
+    int32_t other_sequence_node_id) const
 {
     // Entity ID is not part of matching because it's stored context, not identity
     return this->interrupted_action_id == other_action_id &&

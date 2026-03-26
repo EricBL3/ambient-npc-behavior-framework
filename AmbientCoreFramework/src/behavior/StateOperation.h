@@ -1,6 +1,5 @@
 #pragma once
 #include <vector>
-
 #include "enums/StateOperationTarget.h"
 #include "enums/StateOperationType.h"
 

@@ -5,7 +5,6 @@
 #include <nlohmann/json.hpp>
 
 using json = nlohmann::json;
-
 using namespace AmbientCharacterBehavior;
 
 class FrameworkSchemaManagerTest : public testing::Test {
@@ -195,7 +194,7 @@ TEST_F(FrameworkSchemaManagerTest, LoadStateSchema_EmptyStateName_RejectsEntry) 
     json empty_name_json = {
         {"entity_states", {
             {{"name", ""}, {"key", 0}},
-            {{"name", "VALID_STATE"}, {"key", 1}}  // This should still work
+            {{"name", "VALID_STATE"}, {"key", 1}}
         }}
     };
 
@@ -264,12 +263,12 @@ TEST_F(FrameworkSchemaManagerTest, LoadStateSchema_NegativeKeys_RejectsEntry) {
         .WillOnce(testing::Return(negative_key_json));
 
     // Should log warning for negative key
-    EXPECT_CALL(*mock_logger, LogWarning(testing::HasSubstr("key cannot be negative, got: -1 for state: NEGATIVE_STATE"),
-                                          testing::Eq("FrameworkSchemaManager")));
+    EXPECT_CALL(*mock_logger, LogWarning(testing::HasSubstr("key cannot be negative, got: -1 for state: "
+        "NEGATIVE_STATE"), testing::Eq("FrameworkSchemaManager")));
 
     // Should log success for valid state
-    EXPECT_CALL(*mock_logger, LogInfo(testing::HasSubstr("Registered entity_states in schema. Name: VALID_STATE"),
-                                       testing::Eq("FrameworkSchemaManager")));
+    EXPECT_CALL(*mock_logger, LogInfo(testing::HasSubstr("Registered entity_states in schema. Name: "
+        "VALID_STATE"), testing::Eq("FrameworkSchemaManager")));
 
     // Final count should be 1, not 2
     EXPECT_CALL(*mock_logger, LogInfo(testing::HasSubstr("Registered 1 entity_states schemas"),

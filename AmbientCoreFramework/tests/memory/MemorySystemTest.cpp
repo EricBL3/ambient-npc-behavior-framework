@@ -237,7 +237,9 @@ TEST_F(MemorySystemTest, GetLeastRecentlyVisitedNodeReturnsEmptyForEmptyInput) {
 
 TEST_F(MemorySystemTest, GetLeastRecentlyVisitedNodeHandlesEqualTimestamps) {
     ASSERT_TRUE(memory_system->CreateTransitionMemory(0, 5, 100));
-    ASSERT_TRUE(memory_system->CreateTransitionMemory(0, 7, 100));  // Same timestamp so should pick randomly
+    // Same timestamp so should pick randomly
+    ASSERT_TRUE(memory_system->CreateTransitionMemory(0, 7, 100));
+
 
     std::vector<int> node_ids = {5, 7};
     auto selected = memory_system->SelectTransitionNodeId(0, node_ids);
@@ -477,7 +479,8 @@ TEST_F(MemorySystemTest, UpdateInterruptionMemoryStoresCorrectData) {
 
 TEST_F(MemorySystemTest, UpdateInterruptionMemoryReplacesExistingEntry) {
     ASSERT_TRUE(memory_system->CreateInterruptionMemory(5, 10, 15, 20, 100));
-    ASSERT_TRUE(memory_system->CreateInterruptionMemory(5, 10, 15, 25, 200));  // Same keys, different entity+time
+    // Same keys, different entity+time
+    ASSERT_TRUE(memory_system->CreateInterruptionMemory(5, 10, 15, 25, 200));
 
     const InterruptionMemory* found = memory_system->FindInterruptionMemory(5, 10, 15);
     ASSERT_NE(nullptr, found);
@@ -490,7 +493,7 @@ TEST_F(MemorySystemTest, UpdateInterruptionMemoryReplacesExistingEntry) {
 TEST_F(MemorySystemTest, InterruptionMemoryRespectsCapacityLimit) {
     ASSERT_TRUE(memory_system->CreateInterruptionMemory(1, 10, 11, 20, 100));
     ASSERT_TRUE(memory_system->CreateInterruptionMemory(2, 10, 12, 21, 200));
-    ASSERT_TRUE(memory_system->CreateInterruptionMemory(3, 10, 13, 22, 300));  // At capacity (2)
+    ASSERT_TRUE(memory_system->CreateInterruptionMemory(3, 10, 13, 22, 300));
 
     // This should remove the oldest (first entry)
     EXPECT_EQ(2, memory_system->GetInterruptionMemoryCount());
@@ -499,11 +502,11 @@ TEST_F(MemorySystemTest, InterruptionMemoryRespectsCapacityLimit) {
 }
 
 TEST_F(MemorySystemTest, InvalidInterruptionUpdateDoesNotRemoveExistingMemoryAndReturnsFalse) {
-    ASSERT_TRUE(memory_system->CreateInterruptionMemory(5, 10, 15, 20, 100));  // Valid memory
+    ASSERT_TRUE(memory_system->CreateInterruptionMemory(5, 10, 15, 20, 100));
     EXPECT_EQ(1, memory_system->GetInterruptionMemoryCount());
 
-    // Invalid update returns false (invalid entity_id)
-    EXPECT_FALSE(memory_system->CreateInterruptionMemory(5, 10, 15, -2, 200));  // -2 not allowed
+    // Invalid update returns false (invalid entity_id). -2 is not allowed
+    EXPECT_FALSE(memory_system->CreateInterruptionMemory(5, 10, 15, -2, 200));
 
     // Original memory should still exist (validation failed before removal)
     EXPECT_EQ(1, memory_system->GetInterruptionMemoryCount());
@@ -528,9 +531,9 @@ TEST_F(MemorySystemTest, ClearAllMemoriesResetsMemories) {
 }
 
 TEST_F(MemorySystemTest, ClearInterruptionMemoriesRemovesAllFromSequence) {
-    ASSERT_TRUE(memory_system->CreateInterruptionMemory(5, 10, 15, 20, 100));  // Sequence 10
-    ASSERT_TRUE(memory_system->CreateInterruptionMemory(6, 10, 16, 21, 200));  // Sequence 10
-    ASSERT_TRUE(memory_system->CreateInterruptionMemory(7, 12, 17, 22, 300));  // Sequence 12
+    ASSERT_TRUE(memory_system->CreateInterruptionMemory(5, 10, 15, 20, 100));
+    ASSERT_TRUE(memory_system->CreateInterruptionMemory(6, 10, 16, 21, 200));
+    ASSERT_TRUE(memory_system->CreateInterruptionMemory(7, 12, 17, 22, 300));
 
     memory_system->ClearSequenceInterruptionMemories(10);
 
@@ -569,7 +572,8 @@ TEST_F(MemorySystemTest, RemoveInterruptionMemoryReturnsFalseWhenNotSuccessful) 
 TEST_F(MemorySystemTest, DifferentMemoryTypesDoNotMatch) {
     TransitionMemory transition(0, 5, 100);
     ActionMemory action(5, 10, 100);
-    InterruptionMemory interruption(5, 0, 5, 10, 100);
+    InterruptionMemory interruption(5, 0, 5,
+        10, 100);
 
     // Different memory types should never match
     EXPECT_FALSE(transition.MatchesMemory(action));

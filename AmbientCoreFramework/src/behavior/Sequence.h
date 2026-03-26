@@ -3,7 +3,6 @@
 #include <optional>
 #include <unordered_map>
 #include <vector>
-
 #include "sequence_nodes/SequenceNode.h"
 #include "Transition.h"
 #include "enums/SequenceState.h"
@@ -108,7 +107,10 @@ public:
     std::vector<Transition> GetValidTransitionsFromCurrentNode() const;
 
     [[nodiscard]]
-    const SequenceNode* FindTransitionDestination(const Transition& transition) const { return FindNodeById(transition.GetDestinationNodeId()); }
+    const SequenceNode* FindTransitionDestination(const Transition& transition) const
+    {
+        return FindNodeById(transition.GetDestinationNodeId());
+    }
 
 };
 

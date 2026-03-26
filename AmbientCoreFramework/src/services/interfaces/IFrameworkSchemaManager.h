@@ -1,7 +1,6 @@
 #pragma once
 #include <cstdint>
 #include <string>
-
 #include "behavior/enums/StateOperationType.h"
 
 namespace AmbientCharacterBehavior {

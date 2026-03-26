@@ -1,6 +1,4 @@
-
 #include <gtest/gtest.h>
-
 #include "behavior/Action.h"
 
 using namespace AmbientCharacterBehavior;

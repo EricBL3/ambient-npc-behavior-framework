@@ -1,14 +1,15 @@
 #include "./EnvironmentalConditionManager.h"
 
 using namespace AmbientCharacterBehavior;
-
 constexpr int32_t CONDITION_QUERY_FAILED = INT32_MIN;
 
 bool EnvironmentalConditionManager::RegisterEnvironmentalConditions(const std::string& config_file_path)
 {
     try
     {
-        auto condition_dtos = json_loader.ProcessEnvironmentalConditionsConfigFile(config_file_path);
+        auto condition_dtos =
+            json_loader.ProcessEnvironmentalConditionsConfigFile(config_file_path);
+
         if (condition_dtos.empty())
         {
             logger.LogWarning("No valid environmental conditions found in config",

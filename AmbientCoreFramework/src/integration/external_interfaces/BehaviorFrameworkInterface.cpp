@@ -1,9 +1,7 @@
 #include "../include/BehaviorFrameworkInterface.h"
 #include "services/composition/ServiceBuilder.h"
 #include <stdexcept>
-
 #include <tracy/Tracy.hpp>
-
 
 using namespace AmbientCharacterBehavior;
 
@@ -60,8 +58,8 @@ extern "C" {
         if (framework_handle)
         {
             auto framework = static_cast<BehaviorFramework*>(framework_handle);
-            framework->GetServices().Foundation().logger.LogInfo("Shutting down ambient character behavior framework",
-                "BehaviorFrameworkInterface");
+            framework->GetServices().Foundation().logger.LogInfo("Shutting down ambient character behavior "
+                "framework","BehaviorFrameworkInterface");
 
             // pass -1 as batch size to process all remaining entity commands
             framework->ProcessPendingEntityCommands(-1);
@@ -79,8 +77,8 @@ extern "C" {
         }
     }
 
-    AmbientCoreFramework_API void ProcessInterruption(void* framework_handle, int32_t interruption_id, void** entity_handles,
-        int32_t count)
+    AmbientCoreFramework_API void ProcessInterruption(void* framework_handle, int32_t interruption_id,
+        void** entity_handles, int32_t count)
     {
         if (framework_handle && entity_handles && count > 0)
         {

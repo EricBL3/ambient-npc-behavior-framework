@@ -1,5 +1,4 @@
 #include <gtest/gtest.h>
-
 #include "../mocks/MockStartCharacterActionProvider.h"
 #include "integration/BehaviorFramework.h"
 #include "services/composition/ServiceBuilder.h"
@@ -11,8 +10,8 @@ static int32_t TestQueryEnvironmentalCondition(int32_t condition_key)
     return 42;
 }
 
-static void TestStartCharacterAction(void* entity_handle, int32_t action_id, int64_t action_token, int64_t action_duration_ms,
-    void* target_entity_handle)
+static void TestStartCharacterAction(void* entity_handle, int32_t action_id, int64_t action_token,
+    int64_t action_duration_ms, void* target_entity_handle)
 {
 
 }

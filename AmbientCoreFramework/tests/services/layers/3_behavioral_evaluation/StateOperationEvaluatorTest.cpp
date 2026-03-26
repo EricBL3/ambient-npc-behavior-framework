@@ -1,12 +1,9 @@
 #include <gtest/gtest.h>
-
 #include "../../mocks/MockEntityPositionManager.h"
 #include "../../mocks/MockEnvironmentalConditionManager.h"
 #include "../../mocks/MockFrameworkSchemaManager.h"
 #include "../../mocks/MockLogger.h"
-#include "../../mocks/MockFrameworkRegistry.h"
 #include "services/layers/3_behavioral_evaluation/StateOperationEvaluator.h"
-
 
 using namespace AmbientCharacterBehavior;
 
@@ -37,8 +34,11 @@ TEST_F(StateOperationEvaluatorTest, Constructor_ValidServices_CreatesStateOperat
 
 TEST_F(StateOperationEvaluatorTest, ProcessStateOperation_InvalidEnvironmentOperation_LogsWarningAndReturnsFalse) {
     StateOperation set_state_operation(StateOperationTarget::ENVIRONMENT, 0, StateOperationType::SET, 0);
-    StateOperation increment_state_operation(StateOperationTarget::ENVIRONMENT, 0, StateOperationType::INCREMENT, 0);
-    StateOperation decrement_state_operation(StateOperationTarget::ENVIRONMENT, 0, StateOperationType::DECREMENT, 0);
+    StateOperation increment_state_operation(StateOperationTarget::ENVIRONMENT, 0, StateOperationType::INCREMENT,
+        0);
+
+    StateOperation decrement_state_operation(StateOperationTarget::ENVIRONMENT, 0, StateOperationType::DECREMENT,
+        0);
 
     EXPECT_CALL(*mock_logger, LogWarning(
         testing::HasSubstr("Environment State operations can only be of comparison"),

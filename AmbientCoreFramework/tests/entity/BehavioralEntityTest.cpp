@@ -1,5 +1,4 @@
 #include <gtest/gtest.h>
-
 #include "../services/mocks/MockLogger.h"
 #include "../services/mocks/MockTimeManager.h"
 #include "../services/mocks/MockContentProvider.h"
@@ -284,8 +283,8 @@ protected:
         SetupEntityWithSequenceOnStack(sequence);
 
         // Execute to start the action
-        entity->ExecuteCurrentSequence(); // UNINITIALIZED → PROCESSING_NODE
-        test_entity->ExecuteCurrentSequence();  // PROCESSING_NODE → Execute action node
+        entity->ExecuteCurrentSequence(); // UNINITIALIZED -> PROCESSING_NODE
+        test_entity->ExecuteCurrentSequence();  // PROCESSING_NODE -> Execute action node
     }
 
     int64_t GetCurrentActionToken(const BehavioralEntity* entity) {
@@ -506,8 +505,8 @@ TEST_F(BehavioralEntityTest, ExecuteActionNode_RequiresEntity_NoValidEntities_Fa
     EXPECT_CALL(*mock_logger, LogError(testing::_,
         testing::_));
 
-    test_entity->ExecuteCurrentSequence();  // UNINITIALIZED → PROCESSING_NODE
-    test_entity->ExecuteCurrentSequence();  // PROCESSING_NODE → Execute action node
+    test_entity->ExecuteCurrentSequence();  // UNINITIALIZED -> PROCESSING_NODE
+    test_entity->ExecuteCurrentSequence();  // PROCESSING_NODE -> Execute action node
 }
 
 TEST_F(BehavioralEntityTest, ExecuteActionNode_ValidEntity_AppliesImmediateEffects) {
@@ -537,8 +536,8 @@ TEST_F(BehavioralEntityTest, ExecuteActionNode_ValidEntity_AppliesImmediateEffec
     SetupEntityWithSequenceOnStack(sequence);
 
     // Progress through states
-    test_entity->ExecuteCurrentSequence();  // UNINITIALIZED → PROCESSING_NODE
-    test_entity->ExecuteCurrentSequence();  // PROCESSING_NODE → Execute action node
+    test_entity->ExecuteCurrentSequence();  // UNINITIALIZED -> PROCESSING_NODE
+    test_entity->ExecuteCurrentSequence();  // PROCESSING_NODE -> Execute action node
 }
 
 TEST_F(BehavioralEntityTest, ExecuteActionNode_NoEntityRequired_UsesCharacterAsSelf) {
@@ -556,8 +555,8 @@ TEST_F(BehavioralEntityTest, ExecuteActionNode_NoEntityRequired_UsesCharacterAsS
 
     SetupEntityWithSequenceOnStack(sequence);
 
-    test_entity->ExecuteCurrentSequence();  // UNINITIALIZED → PROCESSING_NODE
-    test_entity->ExecuteCurrentSequence();  // PROCESSING_NODE → Execute action
+    test_entity->ExecuteCurrentSequence();  // UNINITIALIZED -> PROCESSING_NODE
+    test_entity->ExecuteCurrentSequence();  // PROCESSING_NODE -> Execute action
 }
 
 // ACTION COMPLETION TESTS
@@ -664,9 +663,6 @@ TEST_F(BehavioralEntityTest, ExecuteNestedSequenceNode_ValidSequence_PushesToSta
 
     test_entity->ExecuteCurrentSequence();
     test_entity->ExecuteCurrentSequence();
-
-    // Parent should be in IN_SUBSEQUENCE state
-    // (Verify indirectly through subsequent calls)
 }
 
 TEST_F(BehavioralEntityTest, ExecuteEndSequenceNode_PopsSequence) {
@@ -675,9 +671,6 @@ TEST_F(BehavioralEntityTest, ExecuteEndSequenceNode_PopsSequence) {
 
     test_entity->ExecuteCurrentSequence();
     test_entity->ExecuteCurrentSequence();
-
-    // Sequence should be popped
-    // If it was main sequence, should be pushed again
 }
 
 // PRECONDITION EVALUATION CONTEXT TESTS
@@ -790,8 +783,5 @@ TEST_F(BehavioralEntityTest, HandleNodeExecutionCompletion_NoValidTransitions_Fa
 
     test_entity->ExecuteCurrentSequence();
     test_entity->ExecuteCurrentSequence();
-
-    // Should transition to FAILED state
-    // (This is currently a bug - you're logging error but not setting FAILED)
 }
 }

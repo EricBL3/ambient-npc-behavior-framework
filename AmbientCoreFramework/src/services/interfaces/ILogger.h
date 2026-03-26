@@ -1,6 +1,5 @@
 #pragma once
 #include <string>
-
 #include "services/layers/0_foundation/FrameworkLogLevel.h"
 
 namespace AmbientCharacterBehavior {

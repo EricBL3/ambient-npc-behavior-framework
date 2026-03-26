@@ -18,10 +18,6 @@ public:
      */
     ActionSequenceNode(int32_t node_id, int32_t action_id) : SequenceNode(node_id), target_action_id(action_id) {}
 
-    //TODO: Missing implementation which requires a content manager class.
-    [[nodiscard]]
-    Action& GetTargetAction() const;
-
     int32_t GetTargetActionId() const { return target_action_id; }
 
     SequenceNodeType GetNodeType() const override

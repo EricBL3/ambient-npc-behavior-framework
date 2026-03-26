@@ -1,7 +1,5 @@
 #include "BehaviorFramework.h"
-
 #include <tracy/Tracy.hpp>
-
 #include "entity/BehavioralEntity.h"
 #include "services/layers/2_simulation/ActionTimeoutManager.h"
 
@@ -44,7 +42,9 @@ bool BehaviorFramework::InitializeFoundationServices(const std::string& log_file
     {
         if (app_context->Foundation().logger.Initialize(log_file_path, log_level))
         {
-            app_context->Foundation().logger.LogInfo("Initialized Foundation Services.","BehaviorFramework");
+            app_context->Foundation().logger.LogInfo("Initialized Foundation Services.",
+                "BehaviorFramework");
+
             return true;
         }
     }
@@ -76,7 +76,8 @@ bool BehaviorFramework::InitializeSimulationStateServices(const std::string& sch
     app_context->Foundation().logger.LogInfo("Registering environmental conditions",
         "InitializeSimulationStateServices");
 
-    if (!app_context->SimulationState().environmental_condition_manager.RegisterEnvironmentalConditions(environmental_conditions_file_path))
+    if (!app_context->SimulationState().environmental_condition_manager.RegisterEnvironmentalConditions(
+        environmental_conditions_file_path))
     {
         app_context->Foundation().logger.LogError("Failed to register environmental conditions",
             "InitializeSimulationStateServices");
@@ -177,8 +178,8 @@ void BehaviorFramework::ProcessPendingEntityCommands(int32_t batch_size)
 
         auto remaining_count = app_context->ContentRegistry().entity_registry.GetPendingCommandCount();
 
-        app_context->Foundation().logger.LogInfo("Processed " + std::to_string(processed_count) + " entity commands, " +
-            std::to_string(remaining_count) + " remaining", "BehaviorFramework");
+        app_context->Foundation().logger.LogInfo("Processed " + std::to_string(processed_count) +
+            " entity commands, " + std::to_string(remaining_count) + " remaining", "BehaviorFramework");
 
     }
     catch (const std::exception &e)
@@ -230,8 +231,9 @@ void BehaviorFramework::UpdateBehavioralEntities(int32_t character_batch_size)
         {
             auto entities_range = ComputeBatchRange(character_batch_size, total_entities);
 
-            auto entities_to_process = app_context->ContentRegistry().entity_registry.GetBehavioralEntitiesRange(
-                entities_range.start_index, entities_range.count);
+            auto entities_to_process =
+                app_context->ContentRegistry().entity_registry.GetBehavioralEntitiesRange(entities_range.start_index,
+                    entities_range.count);
 
             app_context->Foundation().logger.LogDebug("PERF," + std::to_string(entities_to_process.size()) +
                 "," + std::to_string(total_entities), "UpdateBehavioralEntities");
@@ -333,7 +335,8 @@ bool BehaviorFramework::ProcessInterruptionForEntity(int32_t interruption_id, vo
 
     try
     {
-        if (BehavioralEntity* entity = app_context->ContentRegistry().entity_registry.GetBehavioralEntityByHandle(entity_handle))
+        if (BehavioralEntity* entity = app_context->ContentRegistry().entity_registry.GetBehavioralEntityByHandle(
+            entity_handle))
         {
             entity->ProcessInterruption(interruption_id);
             return true;
@@ -357,7 +360,8 @@ void BehaviorFramework::RegisterEntity(void *entity_handle, const std::string &c
 
     Position3D position {entity_pos_x, entity_pos_y, entity_pos_z};
     app_context->ContentRegistry().entity_registry.QueueEntityRegistration(entity_handle, config_path, position);
-    app_context->Foundation().logger.LogInfo("Queued entity registration command" ,"BehaviorFramework");
+    app_context->Foundation().logger.LogInfo("Queued entity registration command" ,
+        "BehaviorFramework");
 }
 
 void BehaviorFramework::UnregisterEntity(void *entity_handle) const
@@ -365,7 +369,8 @@ void BehaviorFramework::UnregisterEntity(void *entity_handle) const
     ZoneScoped;
 
     app_context->ContentRegistry().entity_registry.QueueEntityUnregistration(entity_handle);
-    app_context->Foundation().logger.LogInfo("Queued entity unregistration command" ,"BehaviorFramework");
+    app_context->Foundation().logger.LogInfo("Queued entity unregistration command" ,
+        "BehaviorFramework");
 }
 
 void BehaviorFramework::CompleteCharacterAction(void *entity_handle, int32_t action_id, int64_t action_token) const
@@ -387,8 +392,9 @@ void BehaviorFramework::CompleteCharacterAction(void *entity_handle, int32_t act
         }
         else
         {
-            app_context->Foundation().logger.LogWarning("Invalid entity handle during action with id " + std::to_string(action_id) +
-                " and token " + std::to_string(action_token) + " completion","BehaviorFramework");
+            app_context->Foundation().logger.LogWarning("Invalid entity handle during action with id " +
+                std::to_string(action_id) + " and token " + std::to_string(action_token) + " completion",
+                "BehaviorFramework");
         }
     }
     catch (const std::exception &e)

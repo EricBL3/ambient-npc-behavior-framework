@@ -70,8 +70,8 @@ struct ContentRegistryServices {
     IEntityRegistry& entity_registry;
     IEntityQuery& entity_query;
 
-    ContentRegistryServices(BehavioralEvaluationServices& behavioral_evaluation, IContentProvider& content_provider, IEntityRegistry& entity_registry,
-        IEntityQuery& entity_query) :
+    ContentRegistryServices(BehavioralEvaluationServices& behavioral_evaluation, IContentProvider& content_provider,
+        IEntityRegistry& entity_registry, IEntityQuery& entity_query) :
         behavioral_evaluation(behavioral_evaluation), content_provider(content_provider), entity_registry(entity_registry),
         entity_query(entity_query) {}
 };

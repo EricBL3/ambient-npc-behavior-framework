@@ -1,8 +1,6 @@
-
 #include <filesystem>
 #include <gtest/gtest.h>
 #include <fstream>
-
 #include "services/layers/0_foundation/FrameworkLogLevel.h"
 #include "services/layers/0_foundation/FrameworkLogger.h"
 

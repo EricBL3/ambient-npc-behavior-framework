@@ -1,7 +1,5 @@
 #include "./FrameworkRegistry.h"
-
 #include <memory>
-
 #include "behavior/enums/StateOperationTarget.h"
 
 using namespace AmbientCharacterBehavior;
@@ -162,7 +160,8 @@ std::unordered_map<StateOperationTarget, std::vector<StateOperation>> FrameworkR
 
         if (target.has_value())
         {
-            state_operations[target.value()].emplace_back(GenerateStateOperationFromDto(target.value(), dto_state_operation));
+            state_operations[target.value()].emplace_back(GenerateStateOperationFromDto(target.value(),
+                dto_state_operation));
         }
         else
         {
@@ -200,7 +199,8 @@ std::optional<StateOperationTarget> FrameworkRegistry::ParseStateOperationTarget
     return std::nullopt;
 }
 
-StateOperation FrameworkRegistry::GenerateStateOperationFromDto(StateOperationTarget target, const StateOperationDto &dto_state_operation) const
+StateOperation FrameworkRegistry::GenerateStateOperationFromDto(StateOperationTarget target,
+    const StateOperationDto &dto_state_operation) const
 {
     StateOperationTarget target_id;
     int32_t state_key;
@@ -241,7 +241,8 @@ bool FrameworkRegistry::RegisterActions(const std::string &config_file_path)
         }
     }
 
-    Logger().LogInfo("Registered " + std::to_string(action_dtos.size()) + " actions.", "FrameworkRegistry");
+    Logger().LogInfo("Registered " + std::to_string(action_dtos.size()) + " actions.",
+        "FrameworkRegistry");
 
     return true;
 }
@@ -344,8 +345,8 @@ bool FrameworkRegistry::ConfigureActionWithDto(const std::shared_ptr<Action> &ne
         }
         else
         {
-            Logger().LogWarning("State operation target " + interruption_effect_dto.target_id_name + " does not exist. "
-                "The interruption effect will be skipped.", "ConfigureActionWithDto");
+            Logger().LogWarning("State operation target " + interruption_effect_dto.target_id_name + " does not "
+                "exist. The interruption effect will be skipped.", "ConfigureActionWithDto");
         }
     }
 
@@ -469,8 +470,8 @@ void FrameworkRegistry::RegisterEntity(void *entity_handle, const std::string &c
     }
     else
     {
-        Logger().LogWarning("The entity type '" + entity_dto->entity_type + " does not exist. The entity was not registered.",
-            "FrameworkRegistry");
+        Logger().LogWarning("The entity type '" + entity_dto->entity_type + " does not exist. The entity was not "
+            "registered.","FrameworkRegistry");
     }
 }
 
@@ -493,7 +494,8 @@ FrameworkEntity * FrameworkRegistry::GenerateFrameworkEntityFromDto(void *entity
         }
 
         auto [new_entity_iterator, inserted] = framework_entities.emplace(entity_dto->entity_id,
-            std::make_unique<FrameworkEntity>(FrameworkEntity(entity_handle, entity_dto->entity_id, entity_dto->entity_name)));
+            std::make_unique<FrameworkEntity>(FrameworkEntity(entity_handle, entity_dto->entity_id,
+                entity_dto->entity_name)));
 
         if (!inserted)
         {
@@ -578,8 +580,8 @@ BehavioralEntity * FrameworkRegistry::GenerateBehavioralEntityFromDto(void *enti
 
         if (!inserted)
         {
-            Logger().LogWarning("Entity '" + entity_dto->base_properties.entity_name + " ' was not added to the registry.",
-                "FrameworkRegistry");
+            Logger().LogWarning("Entity '" + entity_dto->base_properties.entity_name + " ' was not added to the "
+                "registry.","FrameworkRegistry");
 
             return nullptr;
         }
@@ -679,7 +681,8 @@ bool FrameworkRegistry::UnregisterFrameworkEntity(void* entity_handle)
         handle_to_framework_id.erase(entity_handle);
         framework_id_to_handle.erase(framework_id);
         framework_entities.erase(framework_id);
-        Logger().LogInfo("Successfully unregistered framework entity with ID: " + std::to_string(framework_id), "FrameworkRegistry");
+        Logger().LogInfo("Successfully unregistered framework entity with ID: " + std::to_string(framework_id),
+            "FrameworkRegistry");
         return true;
     }
 
@@ -696,7 +699,8 @@ bool FrameworkRegistry::UnregisterBehavioralEntity(void* entity_handle)
         handle_to_behavioral_id.erase(entity_handle);
         behavioral_id_to_handle.erase(behavioral_id);
         behavioral_entities.erase(behavioral_id);
-        Logger().LogInfo("Successfully unregistered behavioral entity with ID: " + std::to_string(behavioral_id), "FrameworkRegistry");
+        Logger().LogInfo("Successfully unregistered behavioral entity with ID: " + std::to_string(behavioral_id),
+            "FrameworkRegistry");
         return true;
     }
 
@@ -780,8 +784,8 @@ FrameworkEntity* FrameworkRegistry::GetFrameworkEntityById(int32_t entity_id) co
 {
     if (!HasFrameworkEntity(entity_id))
     {
-        Logger().LogWarning("Entity with id: " + std::to_string(entity_id) + " is not registered as a framework entity",
-            "GetFrameworkEntityById");
+        Logger().LogWarning("Entity with id: " + std::to_string(entity_id) + " is not registered as a framework "
+            "entity","GetFrameworkEntityById");
 
         return nullptr;
     }
@@ -811,8 +815,8 @@ BehavioralEntity * FrameworkRegistry::GetBehavioralEntityById(int32_t entity_id)
 {
     if (!HasBehavioralEntity(entity_id))
     {
-        Logger().LogWarning("Entity with id: " + std::to_string(entity_id) + " is not registered as a behavioral entity",
-            "GetBehavioralEntityById");
+        Logger().LogWarning("Entity with id: " + std::to_string(entity_id) + " is not registered as a behavioral "
+            "entity","GetBehavioralEntityById");
 
         return nullptr;
     }
@@ -892,7 +896,8 @@ std::vector<FrameworkEntity *> FrameworkRegistry::GetEntitiesSupportingAction(in
         else
         {
             Logger().LogWarning("Entity " + std::to_string(entity_id) + " listed in action " +
-                std::to_string(action_id) + " index but not found in registry", "GetEntitiesSupportingAction");
+                std::to_string(action_id) + " index but not found in registry",
+                "GetEntitiesSupportingAction");
         }
     }
 

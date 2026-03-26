@@ -21,7 +21,8 @@ BehavioralEntity::BehavioralEntity(
     std::string name
     ) : FrameworkEntity(entity_handle, entity_id, std::move(name)),
         services(services),
-        memory(max_transition_memories, max_action_memories, max_interruption_memories,
+        memory(max_transition_memories, max_action_memories,
+            max_interruption_memories,
             services.behavioral_evaluation.simulation_state.data_access.foundation),
         main_sequence(nullptr),
         current_action_target_id(-1),
@@ -61,22 +62,16 @@ void BehavioralEntity::AddInterruptionHandler(int32_t interruption_id, const std
 
 void BehavioralEntity::ExecuteCurrentSequence()
 {
-    // ═══════════════════════════════════════════════════════════════════
-    // INTERRUPTION-FIRST PROCESSING
     // Process pending interruptions before sequence execution to ensure
     // time-critical responses (e.g., danger reactions) aren't delayed.
-    // ═══════════════════════════════════════════════════════════════════
     if (!pending_interruptions.empty())
     {
         ProcessPendingInterruptions();
         return;
     }
 
-    // ═══════════════════════════════════════════════════════════════════
-    // SEQUENCE EXECUTION
     // Set processing flag to prevent re-entrant calls during this update.
     // This flag is checked by CanUpdate() and CompleteAction().
-    // ═══════════════════════════════════════════════════════════════════
     is_processing = true;
 
     if (sequences.empty())
@@ -119,20 +114,8 @@ void BehavioralEntity::ExecuteSequenceStep(SequenceState sequence_state)
         std::to_string(entity_id) + " in sequence: " + std::to_string(currentSequenceId),
         "ExecuteSequenceStep");
 
-    // ═══════════════════════════════════════════════════════════════════
-    // STATE MACHINE DISPATCH
     // Routes execution to specialized handlers based on current sequence state.
     // Each handler is responsible for state transition logic.
-    //
-    // State Flow Summary:
-    //   UNINITIALIZED → HandleSequenceStartup() → PROCESSING_NODE
-    //   PROCESSING_NODE → ProcessCurrentNode() → [varies by node type]
-    //   IN_SUBSEQUENCE → HandleSubsequenceCompletion() → NODE_EXECUTED
-    //   WAITING_FOR_ACTION → [no operation, awaits CompleteAction callback]
-    //   NODE_EXECUTED → HandleNodeExecutionCompletion() → PROCESSING_NODE
-    //   FAILED → HandleSequenceFailure() → [fallback] → UNINITIALIZED
-    //   INTERRUPTED → HandleInterruptionRecovery() → [resume or continue]
-    // ═══════════════════════════════════════════════════════════════════
     switch (sequence_state)
     {
         case SequenceState::UNINITIALIZED:
@@ -387,8 +370,6 @@ void BehavioralEntity::InitiateActionExecution(const std::shared_ptr<Action>& ac
     ZoneScoped;
 
     // STEP 1: APPLY IMMEDIATE EFFECTS
-    // State changes that happen when action BEGINS (not completes)
-    // Example: INCREMENT(bench, occupied_seats) when sitting starts
     ApplyActionEffects(action->GetImmediateEffects(), target_entity);
 
     // STEP 2: RECORD EXECUTION CONTEXT
@@ -526,7 +507,7 @@ bool BehavioralEntity::CompletedCurrentAction(int32_t action_id, int64_t action_
 }
 
 // ═══════════════════════════════════════════════════════════════════════════
-// MEMORY-DRIVEN SELECTION (Exploration-Exploitation)
+// MEMORY-DRIVEN SELECTION
 // ═══════════════════════════════════════════════════════════════════════════
 
 FrameworkEntity* BehavioralEntity::GetActionTargetEntity(const std::shared_ptr<Action>& action)
@@ -877,7 +858,8 @@ bool BehavioralEntity::ValidateResumptionContext(const std::shared_ptr<Action>& 
     return true;
 }
 
-void BehavioralEntity::ResumeActionWithSavedContext(const std::shared_ptr<Action>& action, const InterruptionMemory* interruption_memory)
+void BehavioralEntity::ResumeActionWithSavedContext(const std::shared_ptr<Action>& action,
+    const InterruptionMemory* interruption_memory)
 {
     FrameworkEntity* target_entity = nullptr;
     if (action->GetRequiresTargetEntity())

@@ -14,7 +14,8 @@ bool FrameworkSchemaManager::LoadFrameworkSchema(const std::string &config_file_
     }
 
     return LoadSchemaConfiguration(config_json, "entity_states", state_name_to_key, state_key_to_name) &&
-        LoadSchemaConfiguration(config_json, "interruption_handlers", interruption_name_to_key, interruption_key_to_name);
+        LoadSchemaConfiguration(config_json, "interruption_handlers", interruption_name_to_key,
+            interruption_key_to_name);
 
 }
 
@@ -140,7 +141,9 @@ StateOperationType FrameworkSchemaManager::GetStateOperationTypeId(const std::st
         return StateOperationType::DECREMENT;
     }
 
-    logger.LogWarning("Unknown operation type '" + name + "', treating as external operation", "FrameworkSchemaManager");
+    logger.LogWarning("Unknown operation type '" + name + "', treating as external operation",
+        "FrameworkSchemaManager");
+
     return StateOperationType::EXTERNAL_OPERATIONS;
 }
 

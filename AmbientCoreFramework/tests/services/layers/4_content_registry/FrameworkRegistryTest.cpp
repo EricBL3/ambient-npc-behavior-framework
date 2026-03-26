@@ -1,5 +1,4 @@
 #include <gtest/gtest.h>
-
 #include "../../mocks/MockActionTimeoutManager.h"
 #include "../../mocks/MockEnvironmentalConditionManager.h"
 #include "../../mocks/MockJsonLoader.h"
@@ -456,8 +455,8 @@ TEST_F(FrameworkRegistryTest, RegisterEntity_AddsFrameworkEntityToRegistry)
         .Times(0);
 
     EXPECT_CALL(*mock_entity_pos_manager, RegisterEntityPosition(
-        FrameworkEntityHandle(), testing::_, entity_dto.framework_entity->is_static, entity_dto.framework_entity->position_update_frequency_ms))
-        .Times(1);
+        FrameworkEntityHandle(), testing::_, entity_dto.framework_entity->is_static,
+        entity_dto.framework_entity->position_update_frequency_ms)).Times(1);
 
     registry->RegisterEntity(FrameworkEntityHandle(), "test.json", Position3D{});
 

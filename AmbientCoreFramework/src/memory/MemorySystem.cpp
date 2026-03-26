@@ -196,7 +196,7 @@ const InterruptionMemory * MemorySystem::FindInterruptionMemory(int32_t action_i
 }
 
 // =============================================================================
-// EXPLORATION-EXPLOITATION SELECTION
+// MEMORY-DRIVEN SELECTION
 // =============================================================================
 
 std::optional<int32_t> MemorySystem::SelectTransitionNodeId(int32_t sequence_id, const std::vector<int32_t> &valid_node_ids)
@@ -240,11 +240,10 @@ std::optional<int32_t> MemorySystem::SelectTransitionNodeId(int32_t sequence_id,
         }
     }
 
-    // ===== Phase 2: Exploration - prefer unused nodes =====
+    // ===== Phase 2: prefer unused nodes =====
 
     if (!unused_nodes.empty())
     {
-        // Exploration: randomly select from unused nodes
         if (unused_nodes.size() == 1)
         {
             // Only one unused, no randomization needed
@@ -255,7 +254,7 @@ std::optional<int32_t> MemorySystem::SelectTransitionNodeId(int32_t sequence_id,
         return unused_nodes[random_index];
     }
 
-    // ===== Phase 3: Exploitation - select least recently used =====
+    // ===== Phase 3: select least recently used =====
 
     if (used_transition_memories.empty())
     {
@@ -349,11 +348,10 @@ std::optional<int32_t> MemorySystem::SelectActionEntityId(int32_t action_id, con
         }
     }
 
-    // ===== Phase 2: Exploration - prefer unused entities =====
+    // ===== Phase 2:prefer unused entities =====
 
     if (!unused_entities.empty())
     {
-        // Exploration: randomly select from unused entities
         if (unused_entities.size() == 1)
         {
             // Only one unused, no randomization needed
@@ -364,7 +362,7 @@ std::optional<int32_t> MemorySystem::SelectActionEntityId(int32_t action_id, con
         return unused_entities[random_index];
     }
 
-    // ===== Phase 3: Exploitation - select least recently used =====
+    // ===== Phase 3: select least recently used =====
 
     if (used_action_memories.empty())
     {

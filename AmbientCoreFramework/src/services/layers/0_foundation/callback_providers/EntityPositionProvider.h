@@ -19,7 +19,6 @@ public:
     PositionQuery QueryEntityPosition(void *entity_handle) override
     {
         int32_t xyz[3] = {0, 0, 0};
-
         bool success = query_callback(entity_handle, xyz);
 
         return PositionQuery{Position3D(xyz[0], xyz[1], xyz[2]), success};

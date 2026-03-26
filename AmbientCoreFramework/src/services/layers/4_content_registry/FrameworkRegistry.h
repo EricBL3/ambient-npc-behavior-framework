@@ -4,7 +4,6 @@
 #include <queue>
 #include <unordered_map>
 #include <concepts>
-
 #include "behavior/Action.h"
 #include "behavior/Sequence.h"
 #include "entity/BehavioralEntity.h"
@@ -219,8 +218,8 @@ private:
                 action_to_entities_index[action_id].insert(entity_id);
                 entity_to_actions_index[entity_id].insert(action_id);
 
-                Logger().LogInfo("Registered action " + std::to_string(action_id) + " for entity " + std::to_string(entity_id),
-                              "RegisterActionForEntity");
+                Logger().LogInfo("Registered action " + std::to_string(action_id) + " for entity " +
+                    std::to_string(entity_id),"RegisterActionForEntity");
             }
             else
             {

@@ -2,7 +2,6 @@
 #include <queue>
 #include <stack>
 #include <unordered_map>
-
 #include "RuntimeFailureReason.h"
 #include "FrameworkEntity.h"
 #include "behavior/Sequence.h"
@@ -42,7 +41,7 @@ private:
     std::vector<std::shared_ptr<Sequence>> fallback_sequences;
     std::unordered_map<int32_t, std::shared_ptr<Sequence>> interruption_handlers;
 
-    // Action execution context
+    //-------- Action execution context --------------
 
     // The entity being used in the current action (-1 if none)
     int32_t current_action_target_id;
@@ -53,7 +52,7 @@ private:
     // Prevents late callbacks from stale actions
     int64_t current_action_token;
 
-    // Flow control
+    //--------- Flow control ---------------
 
     // Prevents reentrant ExecuteCurrentSequence calls
     bool is_processing;
@@ -199,13 +198,13 @@ private:
      * @brief Core state machine. Dispatches to handlers based on SequenceState.
      *
      * STATE TRANSITIONS:
-     * - UNINITIALIZED     → HandleSequenceStartup() → PROCESSING_NODE
-     * - PROCESSING_NODE   → ProcessCurrentNode() → [varies by node type]
-     * - IN_SUBSEQUENCE    → HandleSubsequenceCompletion() → NODE_EXECUTED
-     * - WAITING_FOR_ACTION→ [no operation, waits for CompleteAction callback]
-     * - NODE_EXECUTED     → HandleNodeExecutionCompletion() → PROCESSING_NODE
-     * - FAILED            → HandleSequenceFailure() → UNINITIALIZED (fallback)
-     * - INTERRUPTED       → HandleInterruptionRecovery() → [attempts resumption]
+     * - UNINITIALIZED     -> HandleSequenceStartup() -> PROCESSING_NODE
+     * - PROCESSING_NODE   -> ProcessCurrentNode() -> [varies by node type]
+     * - IN_SUBSEQUENCE    -> HandleSubsequenceCompletion() -> NODE_EXECUTED
+     * - WAITING_FOR_ACTION -> [no operation, waits for CompleteAction callback]
+     * - NODE_EXECUTED     -> HandleNodeExecutionCompletion() -> PROCESSING_NODE
+     * - FAILED            -> HandleSequenceFailure() -> UNINITIALIZED (fallback)
+     * - INTERRUPTED       -> HandleInterruptionRecovery() -> [attempts resumption]
      *
      * @param sequence_state Current state of the top sequence on the stack
      */
@@ -231,9 +230,9 @@ private:
      * @brief Processes the current node of the active sequence.
      *
      * Dispatches to specialized executors based on node type:
-     * - ACTION_NODE → ExecuteActionNode()
-     * - NESTED_SEQUENCE_NODE → ExecuteNestedSequenceNode()
-     * - END_SEQUENCE_NODE → ExecuteEndSequenceNode()
+     * - ACTION_NODE -> ExecuteActionNode()
+     * - NESTED_SEQUENCE_NODE -> ExecuteNestedSequenceNode()
+     * - END_SEQUENCE_NODE -> ExecuteEndSequenceNode()
      */
     void ProcessCurrentNode();
 

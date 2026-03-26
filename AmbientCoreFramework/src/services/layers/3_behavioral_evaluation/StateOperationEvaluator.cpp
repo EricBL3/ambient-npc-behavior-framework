@@ -1,6 +1,4 @@
 #include "StateOperationEvaluator.h"
-
-#include <algorithm>
 #include <limits>
 
 namespace AmbientCharacterBehavior {
@@ -47,9 +45,9 @@ bool StateOperationEvaluator::IsValidStateOperation(StateOperationTarget target,
 {
     if (target == StateOperationTarget::ENVIRONMENT && IsModificationOperation(operation_type))
     {
-        logger.LogWarning("Environment State operations can only be of comparison. The state operation will not be processed. "
-                          "Attempted operation_type: " + schema_manager.GetStateOperationTypeName(operation_type),
-                          "StateOperationEvaluator");
+        logger.LogWarning("Environment State operations can only be of comparison. The state operation will not "
+            "be processed. Attempted operation_type: " + schema_manager.GetStateOperationTypeName(operation_type),
+            "StateOperationEvaluator");
 
         return false;
     }
@@ -65,16 +63,16 @@ bool StateOperationEvaluator::IsValidStateOperation(StateOperationTarget target,
 
     if (target == StateOperationTarget::SELF && context.self_entity == nullptr)
     {
-        logger.LogWarning("No self entity was passed for the evaluation. The state operation will not be processed.",
-              "StateOperationEvaluator");
+        logger.LogWarning("No self entity was passed for the evaluation. The state operation will not be "
+            "processed.","StateOperationEvaluator");
 
         return false;
     }
 
     if (RequiresTargetEntity(target) && context.target_entity == nullptr)
     {
-        logger.LogWarning("No target entity was passed for the evaluation. The state operation will not be processed.",
-            "StateOperationEvaluator");
+        logger.LogWarning("No target entity was passed for the evaluation. The state operation will not be "
+            "processed.","StateOperationEvaluator");
 
         return false;
     }
@@ -143,23 +141,23 @@ bool StateOperationEvaluator::EvaluateStateOperation(StateOperationType operatio
     {
         case StateOperationType::EQUALS:
             res = state_value == value;
-            logger.LogInfo("Evaluating state_value: " + std::to_string(state_value) + " == " + std::to_string(value),
-                "EvaluateStateOperation");
+            logger.LogInfo("Evaluating state_value: " + std::to_string(state_value) + " == " +
+                std::to_string(value),"EvaluateStateOperation");
             break;
         case StateOperationType::NOT_EQUALS:
             res = state_value != value;
-            logger.LogInfo("Evaluating state_value: " + std::to_string(state_value) + " != " + std::to_string(value),
-                "EvaluateStateOperation");
+            logger.LogInfo("Evaluating state_value: " + std::to_string(state_value) + " != " +
+                std::to_string(value),"EvaluateStateOperation");
             break;
         case StateOperationType::GREATER_THAN:
             res = state_value > value;
-            logger.LogInfo("Evaluating state_value: " + std::to_string(state_value) + " > " + std::to_string(value),
-                "EvaluateStateOperation");
+            logger.LogInfo("Evaluating state_value: " + std::to_string(state_value) + " > " +
+                std::to_string(value),"EvaluateStateOperation");
             break;
         case StateOperationType::LESS_THAN:
             res = state_value < value;
-            logger.LogInfo("Evaluating state_value: " + std::to_string(state_value) + " < " + std::to_string(value),
-                "EvaluateStateOperation");
+            logger.LogInfo("Evaluating state_value: " + std::to_string(state_value) + " < " +
+                std::to_string(value),"EvaluateStateOperation");
             break;
         case StateOperationType::SET:
             new_value = value;
@@ -171,8 +169,9 @@ bool StateOperationEvaluator::EvaluateStateOperation(StateOperationType operatio
             new_value = SafeSubtract(state_value, value);
             break;
         default:
-            logger.LogWarning("The operation type: " + schema_manager.GetStateOperationTypeName(operation_type) + " is "
-                "currently not supported. The state operation will not be processed", "StateOperationEvaluator");
+            logger.LogWarning("The operation type: " + schema_manager.GetStateOperationTypeName(operation_type) +
+                " is currently not supported. The state operation will not be processed",
+                "StateOperationEvaluator");
             return false;
     }
 
@@ -200,11 +199,15 @@ bool StateOperationEvaluator::EvaluateStateOperation(StateOperationType operatio
 
 int32_t StateOperationEvaluator::SafeAdd(int32_t a, int32_t b) {
     if (b > 0 && a > std::numeric_limits<int32_t>::max() - b) {
-        logger.LogWarning("Addition would overflow, clamping to maximum", "StateOperationEvaluator");
+        logger.LogWarning("Addition would overflow, clamping to maximum",
+            "StateOperationEvaluator");
+
         return std::numeric_limits<int32_t>::max();
     }
     if (b < 0 && a < std::numeric_limits<int32_t>::min() - b) {
-        logger.LogWarning("Addition would underflow, clamping to minimum", "StateOperationEvaluator");
+        logger.LogWarning("Addition would underflow, clamping to minimum",
+            "StateOperationEvaluator");
+
         return std::numeric_limits<int32_t>::min();
     }
     return a + b;
@@ -212,11 +215,15 @@ int32_t StateOperationEvaluator::SafeAdd(int32_t a, int32_t b) {
 
 int32_t StateOperationEvaluator::SafeSubtract(int32_t a, int32_t b) {
     if (b > 0 && a < std::numeric_limits<int32_t>::min() + b) {
-        logger.LogWarning("Subtraction would underflow, clamping to minimum", "StateOperationEvaluator");
+        logger.LogWarning("Subtraction would underflow, clamping to minimum",
+            "StateOperationEvaluator");
+
         return std::numeric_limits<int32_t>::min();
     }
     if (b < 0 && a > std::numeric_limits<int32_t>::max() + b) {
-        logger.LogWarning("Subtraction would overflow, clamping to maximum", "StateOperationEvaluator");
+        logger.LogWarning("Subtraction would overflow, clamping to maximum",
+            "StateOperationEvaluator");
+
         return std::numeric_limits<int32_t>::max();
     }
     return a - b;

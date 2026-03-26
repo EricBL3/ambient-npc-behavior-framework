@@ -2,5 +2,6 @@
   "name": "ambient-core-framework",
   "dependencies": [
     "gtest"
-  ]
+  ],
+  "version": "1.0"
 }

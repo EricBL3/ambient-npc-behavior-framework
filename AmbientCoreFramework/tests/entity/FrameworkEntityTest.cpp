@@ -1,5 +1,4 @@
 #include <gtest/gtest.h>
-
 #include "entity/FrameworkEntity.h"
 
 using namespace AmbientCharacterBehavior;

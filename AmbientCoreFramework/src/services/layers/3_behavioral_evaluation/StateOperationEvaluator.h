@@ -1,6 +1,5 @@
 #pragma once
 #include <optional>
-
 #include "services/interfaces/IEntityPositionManager.h"
 #include "services/interfaces/IEnvironmentalConditionManager.h"
 #include "services/interfaces/IFrameworkSchemaManager.h"

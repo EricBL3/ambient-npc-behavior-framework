@@ -7,7 +7,8 @@ TransitionMemory::TransitionMemory(int32_t sequence_id, int32_t node_id, int64_t
     // Validate sequence_id invariant
     if(sequence_id < 0)
     {
-        throw std::invalid_argument("TransitionMemory: sequence_id cannot be negative, got " + std::to_string(sequence_id));
+        throw std::invalid_argument("TransitionMemory: sequence_id cannot be negative, got " +
+            std::to_string(sequence_id));
     }
 
     // Validate node_id invariant

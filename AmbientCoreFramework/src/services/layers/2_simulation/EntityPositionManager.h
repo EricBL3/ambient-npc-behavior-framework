@@ -1,6 +1,5 @@
 #pragma once
 #include <unordered_map>
-
 #include "EntityPosition.h"
 #include "services/interfaces/IEntityPositionManager.h"
 #include "services/interfaces/IEntityPositionProvider.h"

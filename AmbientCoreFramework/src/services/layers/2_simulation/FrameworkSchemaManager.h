@@ -2,7 +2,6 @@
 #include <cstdint>
 #include <string>
 #include <unordered_map>
-
 #include "services/interfaces/IJsonLoader.h"
 #include "services/interfaces/ILogger.h"
 #include "services/interfaces/IFrameworkSchemaManager.h"
@@ -37,9 +36,11 @@ public:
 
 private:
     bool LoadSchemaConfiguration(const std::optional<nlohmann::json> &config_json, const std::string& schema_name,
-        std::unordered_map<std::string, int32_t>& name_to_key_map, std::unordered_map<int32_t, std::string>& key_to_name_map) const;
+        std::unordered_map<std::string, int32_t>& name_to_key_map, std::unordered_map<int32_t,
+        std::string>& key_to_name_map) const;
 
     bool IsValidForCreation(const std::string& name, int32_t key,
-        std::unordered_map<std::string, int32_t>& name_to_key_map, std::unordered_map<int32_t, std::string>& key_to_name_map) const;
+        std::unordered_map<std::string, int32_t>& name_to_key_map, std::unordered_map<int32_t,
+        std::string>& key_to_name_map) const;
 };
 }

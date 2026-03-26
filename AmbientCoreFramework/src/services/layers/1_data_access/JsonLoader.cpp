@@ -1,9 +1,7 @@
 #include "JsonLoader.h"
-
 #include <fstream>
 
 using json = nlohmann::json;
-
 namespace AmbientCharacterBehavior {
 
 NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(EnvironmentalConditionDto, condition_key, name, update_frequency_ms);
@@ -14,11 +12,14 @@ NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(SequenceDto, sequence_id, sequence_name, entr
 NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(ActionDto, action_id, action_name, preconditions, immediate_effects,
     completion_effects, interruption_effects, action_duration_ms, action_timeout_ms, interruption_behavior_name);
 
-NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(FrameworkEntityDto, entity_id, entity_name, accepted_actions_ids, initial_state, is_static,
-    position_update_frequency_ms);
+NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(FrameworkEntityDto, entity_id, entity_name, accepted_actions_ids, initial_state,
+    is_static, position_update_frequency_ms);
 
-NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(MemoryLimitsDto, max_transition_memories, max_action_memories, max_interruption_memories);
-NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(BehavioralEntityDto, main_sequence_id, fallback_sequences, interruption_handlers, memory_limits);
+NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(MemoryLimitsDto, max_transition_memories, max_action_memories,
+    max_interruption_memories);
+
+NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(BehavioralEntityDto, main_sequence_id, fallback_sequences, interruption_handlers,
+    memory_limits);
 
 std::optional<nlohmann::json> JsonLoader::LoadConfigFileJson(const std::string &config_file_path)
 {
@@ -45,7 +46,8 @@ std::optional<nlohmann::json> JsonLoader::LoadConfigFileJson(const std::string &
     }
 }
 
-std::vector<EnvironmentalConditionDto> JsonLoader::ProcessEnvironmentalConditionsConfigFile(const std::string& config_file_path)
+std::vector<EnvironmentalConditionDto> JsonLoader::ProcessEnvironmentalConditionsConfigFile(
+    const std::string& config_file_path)
 {
     return ProcessConfigFile<EnvironmentalConditionDto>(config_file_path, "environmental_conditions");
 }
@@ -187,7 +189,8 @@ std::optional<int64_t> JsonLoader::GetTimeoutIntervalFromConfigFile(const std::s
     }
 }
 
-std::optional<nlohmann::json> JsonLoader::LoadValidConfigJsonArray(const std::string &config_file_path, const std::string &array_key)
+std::optional<nlohmann::json> JsonLoader::LoadValidConfigJsonArray(const std::string &config_file_path,
+    const std::string &array_key)
 {
     try
     {

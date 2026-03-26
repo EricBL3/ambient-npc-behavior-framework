@@ -2,7 +2,6 @@
 #include <cstdint>
 #include <memory>
 #include <string>
-
 #include "behavior/Action.h"
 #include "behavior/Sequence.h"
 

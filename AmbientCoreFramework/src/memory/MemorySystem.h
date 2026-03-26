@@ -19,9 +19,6 @@ namespace AmbientCharacterBehavior {
  * 2. Selection: Implements exploration-exploitation algorithms for decision-making
  * 3. Management: Enforces capacity limits and handles memory lifecycle
  *
- * Design Philosophy:
- * - Uses std::deque for O(1) front-removal in FIFO pattern while still allowing type specific matching criteria.
- * - Provides separate methods for each memory type to maintain type safety
  *
  * Memory Capacity:
  * Each memory has independent configurable capacity limits. When limits are exceeded, oldest memories are removed (FIFO).
@@ -84,7 +81,8 @@ public:
      * @param max_interruptions Maximum number of interruption memories to store (must be > 0)
      * @param services The foundation services of the framework. The memory system uses only logging.
      */
-    explicit MemorySystem(int32_t max_transitions, int32_t max_actions, int32_t max_interruptions, FoundationServices& services);
+    explicit MemorySystem(int32_t max_transitions, int32_t max_actions, int32_t max_interruptions,
+        FoundationServices& services);
 
     // =============================================================================
     // Capacity Configuration
@@ -121,8 +119,8 @@ public:
     /**
      * @brief Create a new transition memory
      *
-     * If a memory already exists for this (sequence_id, node_id) pair, it is removed before adding the new one. This ensures
-     * each memory is recorded only once with its most recent timestamp.
+     * If a memory already exists for this (sequence_id, node_id) pair, it is removed before adding the new one.
+     * This ensures each memory is recorded only once with its most recent timestamp.
      *
      * @param sequence_id Sequence containing the node
      * @param target_node_id Node that was visited
@@ -157,18 +155,19 @@ public:
      * @param current_time Timestamp of the memory
      * @return true if creation succeeded, false if validation failed
      */
-    bool CreateInterruptionMemory(int32_t action_id, int32_t sequence_id, int32_t node_id, int32_t entity_id, int64_t current_time);
+    bool CreateInterruptionMemory(int32_t action_id, int32_t sequence_id, int32_t node_id, int32_t entity_id,
+        int64_t current_time);
 
     // =============================================================================
-    // Exploration-Exploitation Selection
+    // Memory-Driven Selection
     // =============================================================================
 
     /**
-     * @brief Select a transition node using exploration-exploitation strategy
+     * @brief Select a transition node using memory-driven strategy
      *
-     * Implements the memory-driven exploration-exploitation algorithm:
-     * 1. Exploration: If any nodes are unused (not in memory), randomly select from them
-     * 2. Exploitation: Otherwise, select from least recently used node(s)
+     * Implements the memory-driven selection algorithm:
+     * 1. If any nodes are unused (not in memory), randomly select from them
+     * 2. Otherwise, select from least recently used node(s)
      * 3. Tie-breaking: Randomly select among equal-priority options
      *
      * This creates behavioral variety by:

@@ -1,4 +1,3 @@
-
 #include "EnvironmentalCondition.h"
 #include <stdexcept>
 

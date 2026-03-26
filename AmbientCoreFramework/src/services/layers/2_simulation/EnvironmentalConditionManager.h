@@ -1,11 +1,9 @@
 #pragma once
 #include "EnvironmentalCondition.h"
 #include "services/json_dtos/EnvironmentalConditionDto.h"
-
 #include <cstdint>
 #include <unordered_map>
 #include <vector>
-
 #include "services/interfaces/IEnvironmentalConditionManager.h"
 #include "services/interfaces/IEnvironmentalConditionProvider.h"
 #include "services/interfaces/IJsonLoader.h"
@@ -57,7 +55,8 @@ private:
     void CreateSingleEnvironmentalCondition(const EnvironmentalConditionDto& dto);
 
     /**
-     * @brief Determines if the value needs to be updated by checking the current time against the last update and the update frequency.
+     * @brief Determines if the value needs to be updated by checking the current time against the last update and the
+     * update frequency.
      * @return True if the environmental condition value needs to be updated, false if not.
      */
     bool NeedsToBeUpdated(const EnvironmentalCondition& condition) const;

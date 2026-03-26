@@ -2,8 +2,6 @@
 project(AmbientCoreFramework LANGUAGES CXX)
 
 # Automatically find all source files
-
-
 file(GLOB_RECURSE INTERNAL_SOURCES "src/*.cpp")
 file(GLOB_RECURSE INTERNAL_HEADERS "src/*.h")
 

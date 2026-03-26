@@ -10,7 +10,8 @@ private:
 
 public:
 
-    explicit EnvironmentalConditionProvider(QueryEnvironmentalConditionCallback query_callback) : query_callback(query_callback)
+    explicit EnvironmentalConditionProvider(QueryEnvironmentalConditionCallback query_callback) :
+    query_callback(query_callback)
     {
         if (!query_callback)
         {

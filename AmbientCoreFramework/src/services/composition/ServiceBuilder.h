@@ -1,6 +1,5 @@
 #pragma once
 #include <memory>
-
 #include "ApplicationContext.h"
 #include "../include/BehaviorFrameworkInterface.h"
 #include "integration/BehaviorFramework.h"
@@ -8,8 +7,6 @@
 namespace AmbientCharacterBehavior {
 
 class ServiceBuilder {
-private:
-
 public:
 
     static std::unique_ptr<ApplicationContext> CreateApplicationContext(

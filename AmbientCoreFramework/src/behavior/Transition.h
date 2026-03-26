@@ -2,7 +2,6 @@
 #include <cstdint>
 #include <unordered_map>
 #include <vector>
-
 #include "sequence_nodes/SequenceNode.h"
 #include "StateOperation.h"
 

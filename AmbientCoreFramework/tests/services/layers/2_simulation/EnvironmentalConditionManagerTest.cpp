@@ -1,13 +1,11 @@
 #include <filesystem>
 #include <fstream>
 #include <gtest/gtest.h>
-
 #include "../../mocks/MockEnvironmentalConditionProvider.h"
 #include "../../mocks/MockJsonLoader.h"
 #include "../../mocks/MockLogger.h"
 #include "../../mocks/MockTimeManager.h"
 #include "services/layers/2_simulation/EnvironmentalConditionManager.h"
-
 
 using namespace AmbientCharacterBehavior;
 
@@ -152,9 +150,6 @@ TEST_F(EnvironmentalConditionManagerTest, GetEnvironmentalConditionValue_Conditi
     EXPECT_CALL(*mock_json_loader, ProcessEnvironmentalConditionsConfigFile(testing::_))
         .WillOnce(testing::Return(conditions));
     manager->RegisterEnvironmentalConditions("config.json");
-
-    // Mock that condition needs update (you'll need to ensure EnvironmentalCondition.NeedsToBeUpdated() returns true)
-    // This might require setting up time manager to return appropriate parameters
 
     EXPECT_CALL(*mock_provider, QueryEnvironmentalCondition(1))
         .WillOnce(testing::Return(75));

@@ -1,6 +1,5 @@
 #pragma once
 #include <memory>
-
 #include "ServiceBundles.h"
 #include "services/interfaces/IActionTimeoutManager.h"
 #include "services/interfaces/IEntityPositionManager.h"

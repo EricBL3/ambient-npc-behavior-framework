@@ -4,7 +4,8 @@
 
 namespace AmbientCharacterBehavior {
 /**
- * @brief Represents an environmental condition present in the game or simulation. Generated through a JSON configuration file.
+ * @brief Represents an environmental condition present in the game or simulation. Generated through a JSON
+ * configuration file.
  */
 class EnvironmentalCondition {
     int32_t condition_key;

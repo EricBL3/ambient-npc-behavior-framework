@@ -9,7 +9,8 @@ private:
 
 public:
 
-    explicit StartCharacterActionProvider(StartCharacterActionCallback start_action_callback) : start_action_callback(start_action_callback)
+    explicit StartCharacterActionProvider(StartCharacterActionCallback start_action_callback) :
+    start_action_callback(start_action_callback)
     {
         if (!start_action_callback)
         {

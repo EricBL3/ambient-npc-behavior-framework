@@ -1,6 +1,5 @@
 #include "ActionTimeoutManager.h"
-
-#include "../../../../cmake-build-debug/_deps/tracy-src/public/tracy/Tracy.hpp"
+#include <tracy/Tracy.hpp>
 
 namespace AmbientCharacterBehavior {
 bool ActionTimeoutManager::Initialize(const std::string &config_file_path, ActionCompletionCallback callback)

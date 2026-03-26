@@ -1,5 +1,4 @@
 #include "FrameworkLogger.h"
-
 #include <chrono>
 #include <stdexcept>
 #include <fstream>
@@ -28,7 +27,7 @@ FrameworkLogger::FrameworkLogger(const std::string &log_file_path)
     }
 }
 
-bool FrameworkLogger::Initialize(const std::string &log_file_path, FrameworkLogLevel log_level)
+bool FrameworkLogger::Initialize(const std::string &log_file_path, FrameworkLogLevel start_log_level)
 {
     if (!log_file_path.empty())
     {
@@ -41,7 +40,7 @@ bool FrameworkLogger::Initialize(const std::string &log_file_path, FrameworkLogL
 
         is_logging_enabled = true;
 
-        SetLogLevel(log_level);
+        SetLogLevel(start_log_level);
     }
     else
     {

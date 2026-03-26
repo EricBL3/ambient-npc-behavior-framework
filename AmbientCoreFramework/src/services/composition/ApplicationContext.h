@@ -1,6 +1,5 @@
 #pragma once
 #include <memory>
-
 #include "services/interfaces/IEnvironmentalConditionManager.h"
 #include "services/interfaces/IEnvironmentalConditionProvider.h"
 #include "services/interfaces/IFrameworkSchemaManager.h"

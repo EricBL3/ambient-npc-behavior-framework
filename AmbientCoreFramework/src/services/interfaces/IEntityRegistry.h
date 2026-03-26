@@ -1,7 +1,6 @@
 #pragma once
 #include <cstdint>
 #include <string>
-
 #include "entity/FrameworkEntity.h"
 #include "services/layers/2_simulation/EntityPosition.h"
 

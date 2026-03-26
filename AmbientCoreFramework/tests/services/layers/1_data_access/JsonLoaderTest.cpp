@@ -1,7 +1,6 @@
 #include <filesystem>
 #include <fstream>
 #include <gtest/gtest.h>
-
 #include "../../mocks/MockLogger.h"
 #include "services/layers/1_data_access/JsonLoader.h"
 
@@ -247,7 +246,8 @@ TEST_F(JsonLoaderTest, ProcessEnvironmentalConditionsConfigFile_ValidFile_Return
     EXPECT_CALL(*mock_logger, LogError(testing::_, testing::_))
         .Times(0);
 
-    auto result = loader.ProcessEnvironmentalConditionsConfigFile(valid_environmental_conditions_file);
+    auto result = loader.ProcessEnvironmentalConditionsConfigFile(
+        valid_environmental_conditions_file);
 
     EXPECT_EQ(result.size(), 1);
     EXPECT_EQ(result[0].condition_key, 0);
@@ -287,7 +287,9 @@ TEST_F(JsonLoaderTest, ProcessEnvironmentalConditionsConfigFile_MissingFields_Lo
         testing::Eq("JsonLoader")))
         .Times(testing::AtLeast(1));
 
-    auto result = loader.ProcessEnvironmentalConditionsConfigFile(missing_fields_environmental_conditions_file);
+    auto result = loader.ProcessEnvironmentalConditionsConfigFile(
+        missing_fields_environmental_conditions_file);
+
     // Should return empty since it failed to parse
     EXPECT_TRUE(result.empty());
 }

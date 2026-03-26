@@ -1,5 +1,4 @@
 #include "Sequence.h"
-
 #include <algorithm>
 #include <utility>
 #include "sequence_nodes/ActionSequenceNode.h"
@@ -44,7 +43,8 @@ Sequence::Sequence(const Sequence &other) : sequence_id(other.sequence_id), sequ
         std::vector<Transition> copied_transitions;
         for (const auto& transition: transition_list)
         {
-            copied_transitions.emplace_back(transition.GetTransitionId(), transition.GetDestinationNodeId(), transition.GetAllPreconditions());
+            copied_transitions.emplace_back(transition.GetTransitionId(), transition.GetDestinationNodeId(),
+                transition.GetAllPreconditions());
         }
 
         transitions[from_node] = copied_transitions;
@@ -87,7 +87,9 @@ bool Sequence::TryAddTransition(int32_t transition_id, int32_t from_node_id, int
 {
     if (HasNode(from_node_id) && HasNode(to_node_id))
     {
-        transitions[from_node_id].emplace_back(transition_id, to_node_id, std::move(preconditions_by_target));
+        transitions[from_node_id].emplace_back(transition_id, to_node_id,
+            std::move(preconditions_by_target));
+
         return true;
     }
 
