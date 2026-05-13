@@ -1,7 +1,11 @@
 # Ambient Character Core Framework
 
-A C++ implementation of a framework for creating realistic ambient character behavior.
-This is part of my Master's project on ambient character behavior.
+A C++ framework for memory-driven ambient NPC behavior, implemented as a Dynamic Link Library (DLL) for engine-agnostic integration. 
+The framework selects actions for ambient NPCs using a memory-driven algorithm that produces behavioral variety without per-character scripting. 
+It has been validated in both Unity and Unreal Engine.
+
+Developed as part of a Master's thesis in Computer Science at Western University. 
+Full documentation, build prerequisites, and integration guides are available at [https://www.csd.uwo.ca/~ebuitron/](https://www.csd.uwo.ca/~ebuitron/).
 
 ## 🚀 Quick Start
 
@@ -118,6 +122,24 @@ cmake --build build --config Debug
 # Run tests with verbose output
 cd build && ctest --verbose && cd ..
 ```
+
+## Usage
+
+The framework is initialized with three engine-provided callbacks, loaded from four JSON configuration files, and driven by a single update call per game loop tick.
+
+```cpp
+FrameworkHandle handle = CreateAmbientBehaviorFramework(envConditionCallback, startActionCallback, queryPositionCallback);
+InitializeAmbientBehaviorFramework(handle, schemePath, sequencesPath, actionsPath, conditionsPath, logConfig);
+
+// Per tick:
+Update(handle, batchSize, currentTime);
+
+// Shutdown:
+ShutdownAmbientBehaviorFramework(handle);
+```
+
+For full integration instructions, configuration file reference, and engine-specific setup guides, see the [project webpage](https://www.csd.uwo.ca/~ebuitron/).
+
 ## Generating Documentation
 1. Install Doxygen in your system.
 2. Run `doxygen Doxyfile` in the project root (AmbientCoreFramework folder).
@@ -127,3 +149,7 @@ cd build && ctest --verbose && cd ..
   xdg-open docs/doxygen/html/index.html # Linux
   start docs\doxygen\html\index.html   # Windows (PowerShell or CMD)
   ```
+
+## License
+
+This project is licensed under the Apache License 2.0. See [LICENSE](LICENSE) for details.
