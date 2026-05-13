@@ -4,7 +4,8 @@ A C++ framework for memory-driven ambient NPC behavior, implemented as a Dynamic
 The framework selects actions for ambient NPCs using a memory-driven algorithm that produces behavioral variety without per-character scripting. 
 It has been validated in both Unity and Unreal Engine.
 
-Developed as part of a Master's thesis in Computer Science at Western University. 
+Developed as part of a Master's thesis in Computer Science at Western University, supervised by Dr. Roberto Solis-Oba. 
+An associated paper has been accepted at the IEEE Conference on Games 2026. 
 Full documentation, build prerequisites, and integration guides are available at [https://www.csd.uwo.ca/~ebuitron/](https://www.csd.uwo.ca/~ebuitron/).
 
 ## 🚀 Quick Start
