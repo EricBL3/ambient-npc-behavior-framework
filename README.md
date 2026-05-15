@@ -12,7 +12,7 @@ Full documentation, video demos and sample projects are available at [https://ww
 
 Ambient NPCs in open-world games are expected to populate environments with varied, believable behavior across potentially hundreds of characters, while remaining within strict per-frame CPU budgets. This framework addresses that challenge using a memory-driven action selection algorithm: behaviors are defined as directed graphs, and a bounded memory mechanism biases selection toward untried or least-recently-used transitions, producing variety without per-character scripting or online planning.
 
-The framework exposes a plain C API and loads behavior configurations from JSON files, making it independent of any specific engine or scripting system. Integration requires placing the compiled library in the engine's plugin or binary folder and implementing the public C API. No other files from this repository are needed to use the framework.
+The framework exposes a plain C API and loads behavior configurations from JSON files, making it independent of any specific engine or scripting system. Integration requires placing the compiled library in the engine's plugin or binary folder and writing a thin wrapper that calls the public C API. No other files from this repository are needed to use the framework.
 
 ## 🚀 Quick Start
 
@@ -31,7 +31,7 @@ The framework exposes a plain C API and loads behavior configurations from JSON 
 
 #### 1. Clone Repository
 ```bash
-git clone https://github.com/EricBL3/ambient-behavior-core-framework.git
+git clone https://github.com/EricBL3/ambient-npc-behavior-framework.git
 cd AmbientCoreFramework
 ```
 
