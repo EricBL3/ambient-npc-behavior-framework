@@ -1,12 +1,18 @@
-# Ambient Character Core Framework
+# Ambient NPC Behavior Framework
 
-A C++ framework for memory-driven ambient NPC behavior, implemented as a Dynamic Link Library (DLL) for engine-agnostic integration. 
+A C++ framework for memory-driven ambient NPC behavior, implemented as a shared library for engine-agnostic integration. 
 The framework selects actions for ambient NPCs using a memory-driven algorithm that produces behavioral variety without per-character scripting. 
 It has been validated in both Unity and Unreal Engine.
 
 Developed as part of a Master's thesis in Computer Science at Western University, supervised by Dr. Roberto Solis-Oba. 
 An associated paper has been accepted at the IEEE Conference on Games 2026. 
-Full documentation, build prerequisites, and integration guides are available at [https://www.csd.uwo.ca/~ebuitron/](https://www.csd.uwo.ca/~ebuitron/).
+Full documentation, video demos and sample projects are available at [https://www.csd.uwo.ca/~ebuitron/](https://www.csd.uwo.ca/~ebuitron/).
+
+## Overview
+
+Ambient NPCs in open-world games are expected to populate environments with varied, believable behavior across potentially hundreds of characters, while remaining within strict per-frame CPU budgets. This framework addresses that challenge using a memory-driven action selection algorithm: behaviors are defined as directed graphs, and a bounded memory mechanism biases selection toward untried or least-recently-used transitions, producing variety without per-character scripting or online planning.
+
+The framework exposes a plain C API and loads behavior configurations from JSON files, making it independent of any specific engine or scripting system. Integration requires placing the compiled library in the engine's plugin or binary folder and implementing the public C API. No other files from this repository are needed to use the framework.
 
 ## 🚀 Quick Start
 
@@ -18,12 +24,14 @@ Full documentation, build prerequisites, and integration guides are available at
   - **macOS**: Xcode 13+ with Command Line Tools
     **Additionally (see macOS setup below): Homebrew, pkg-config**
   - **Linux**: GCC 10+ or Clang 12+
+    
+> **Note:** Precompiled releases are provided for Windows (x64) and macOS (arm64 / Apple Silicon only). Linux builds are supported from source using the instructions below.
 
 ### Setup Instructions
 
 #### 1. Clone Repository
 ```bash
-git clone repo-link (https or ssh)
+git clone https://github.com/EricBL3/ambient-behavior-core-framework.git
 cd AmbientCoreFramework
 ```
 
@@ -140,6 +148,24 @@ ShutdownAmbientBehaviorFramework(handle);
 ```
 
 For full integration instructions, configuration file reference, and engine-specific setup guides, see the [project webpage](https://www.csd.uwo.ca/~ebuitron/).
+
+## Citation
+
+If you use this framework in your research, please cite the associated paper:
+
+Eric Buitron-Lopez and Roberto Solis-Oba, "A Memory-Driven Action Selection Framework for Scalable Ambient NPC Behavior," to appear in *Proceedings of the 2026 IEEE Conference on Games (CoG)*, Madrid, Spain, September 1–4, 2026.
+
+```bibtex
+@inproceedings{buitronlopez2026,
+    author    = {Buitron-Lopez, Eric and Solis-Oba, Roberto},
+    title     = {A Memory-Driven Action Selection Framework for Scalable Ambient {NPC} Behavior},
+    booktitle = {Proceedings of the 2026 IEEE Conference on Games (CoG)},
+    year      = {2026},
+    note      = {To appear}
+}
+```
+
+This entry will be updated with final page numbers and DOI once the proceedings are published.
 
 ## Generating Documentation
 1. Install Doxygen in your system.
