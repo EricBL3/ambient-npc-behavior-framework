@@ -11,6 +11,7 @@ public:
     MOCK_METHOD(void, LogWarning, (const std::string& message, const std::string& component_name), (override));
     MOCK_METHOD(void, LogInfo, (const std::string& message, const std::string& component_name), (override));
     MOCK_METHOD(void, LogDebug, (const std::string& message, const std::string& component_name), (override));
+    MOCK_METHOD(void, LogMetric, (const std::string& message, const std::string& component_name), (override));
     MOCK_METHOD(void, SetLogLevel, (FrameworkLogLevel level), (override));
     MOCK_METHOD(void, SetLoggingEnabled, (bool enabled), (override));
     MOCK_METHOD(bool, IsLoggingEnabled, (), (const, override));

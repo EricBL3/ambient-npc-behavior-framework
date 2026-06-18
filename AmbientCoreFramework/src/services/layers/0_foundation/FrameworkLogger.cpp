@@ -72,6 +72,9 @@ void FrameworkLogger::WriteLog(FrameworkLogLevel level, const std::string &messa
         case FrameworkLogLevel::ERROR:
             level_str = "ERROR";
             break;
+        case FrameworkLogLevel::METRIC:
+            level_str = "METRIC";
+            break;
     }
 
     auto now = std::chrono::system_clock::now();
