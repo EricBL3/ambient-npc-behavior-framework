@@ -428,6 +428,13 @@ void BehavioralEntity::ApplyActionEffects(const std::vector<StateOperation> & ef
     {
         StateOperationContext context(this, target_entity);
         StateEvaluator().ProcessStateOperation(effect, context);
+
+        // Log state change event as:
+        // event_type, npc_id, state_name, new_value, action_id
+        auto state_name = SchemaManager().GetStateName(effect.GetStateKey());
+        Logger().LogMetric("state_change" + std::to_string(entity_id) + ", " + state_name +
+            std::to_string(effect.GetValue()) + std::to_string(current_action_id),
+            "ApplyActionEffects");
     }
 
     Logger().LogInfo("Applied " + std::to_string(effects.size()) + " effects for action (" +

@@ -95,6 +95,12 @@ private:
     }
 
     [[nodiscard]]
+    IFrameworkSchemaManager& SchemaManager() const
+    {
+        return services.behavioral_evaluation.simulation_state.schema_manager;
+    }
+
+    [[nodiscard]]
     IStateOperationEvaluator& StateEvaluator() const
     {
         return services.behavioral_evaluation.state_operation_evaluator;
