@@ -81,9 +81,9 @@ void FrameworkLogger::WriteLog(FrameworkLogLevel level, const std::string &messa
     auto time_t = std::chrono::system_clock::to_time_t(now);
 
     // Metrics will be logged as csv starting with the timestamp
-    if (log_level == FrameworkLogLevel::METRIC)
+    if (level == FrameworkLogLevel::METRIC)
     {
-        *log_file << std::put_time(std::localtime(&time_t), "%Y-%m-%d %H:%M:%S") << ", " << message << std::endl;
+        *log_file << message << std::endl;
     } else
     {
         *log_file << "[" << std::put_time(std::localtime(&time_t), "%Y-%m-%d %H:%M:%S") << "] ";

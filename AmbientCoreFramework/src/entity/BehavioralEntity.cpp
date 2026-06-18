@@ -1,6 +1,8 @@
 #include "BehavioralEntity.h"
 #include <algorithm>
 #include <tracy/Tracy.hpp>
+
+#include "EntityMetricInfo.h"
 #include "../behavior/sequence_nodes/ActionSequenceNode.h"
 #include "../behavior/sequence_nodes/NestedSequenceNode.h"
 #include "services/composition/ServiceBuilder.h"
@@ -399,10 +401,18 @@ void BehavioralEntity::InitiateActionExecution(const std::shared_ptr<Action>& ac
         "InitiateActionExecution");
 
     // Log action event as:
-    // event_type, npc_id, event_type, action_id, target_entity_id, action_token
-    Logger().LogMetric("action" + std::to_string(entity_id) + ", start, " + std::to_string(current_action_id) +
-        ", " + std::to_string(current_action_target_id) + ", " + std::to_string(current_action_token),
-        "InitiateActionExecution");
+    // event, timestamp, npc_id, event_type, action_id, target_entity_id, action_token
+    nlohmann::json action_event = {
+        {"event", "action"},
+        { "ts", TimeManager().GetCurrentTime() },
+        { "npc_id", entity_id},
+        {"event_type", "start"},
+        {"action_id", current_action_id},
+        { "target_entity_id", current_action_target_id},
+        { "action_token", current_action_token}
+    };
+
+    Logger().LogMetric(action_event);
 
     // STEP 4: DELEGATE TO GAME ENGINE
     // The game engine handles animation, pathfinding, audio, etc.
@@ -430,11 +440,18 @@ void BehavioralEntity::ApplyActionEffects(const std::vector<StateOperation> & ef
         StateEvaluator().ProcessStateOperation(effect, context);
 
         // Log state change event as:
-        // event_type, npc_id, state_name, new_value, action_id
+        // event, timestamp, npc_id, state_name, new_value, action_id
         auto state_name = SchemaManager().GetStateName(effect.GetStateKey());
-        Logger().LogMetric("state_change" + std::to_string(entity_id) + ", " + state_name +
-            std::to_string(effect.GetValue()) + std::to_string(current_action_id),
-            "ApplyActionEffects");
+        nlohmann::json event = {
+            {"event", "state_change"},
+            { "ts", TimeManager().GetCurrentTime() },
+            { "npc_id", entity_id},
+            {"state_name", state_name},
+            {"new_value", effect.GetValue()},
+            { "action_id", current_action_id}
+        };
+
+        Logger().LogMetric(event);
     }
 
     Logger().LogInfo("Applied " + std::to_string(effects.size()) + " effects for action (" +
@@ -451,10 +468,18 @@ void BehavioralEntity::CompleteAction(int32_t action_id, int64_t action_token)
             std::to_string(action_id) + " and token: " + std::to_string(action_token) ,"CompleteAction");
 
         // Log action event as:
-        // event_type, npc_id, event_type, action_id, target_entity_id, action_token
-        Logger().LogMetric("action" + std::to_string(entity_id) + ", complete, " + std::to_string(current_action_id) +
-            ", " + std::to_string(current_action_target_id) + ", " + std::to_string(current_action_token),
-            "InitiateActionExecution");
+        // event, timestamp, npc_id, event_type, action_id, target_entity_id, action_token
+        nlohmann::json action_event = {
+            {"event", "action"},
+            { "ts", TimeManager().GetCurrentTime() },
+            { "npc_id", entity_id},
+            {"event_type", "complete"},
+            {"action_id", current_action_id},
+            { "target_entity_id", current_action_target_id},
+            { "action_token", current_action_token}
+        };
+
+        Logger().LogMetric(action_event);
 
         ActionTimeoutManager().UnregisterActionTimeout(entity_handle);
         ApplyCompletionEffects(action_id);
@@ -573,7 +598,11 @@ FrameworkEntity* BehavioralEntity::GetActionTargetEntity(const std::shared_ptr<A
     }
 
     // PHASE 3: MEMORY-BASED SELECTION
-    auto selected_entity_id = memory.SelectActionEntityId(action->GetActionId(), valid_entity_ids);
+
+    auto metric_info = new EntityMetricInfo{entity_id, name};
+    auto selected_entity_id = memory.SelectActionEntityId(action->GetActionId(), valid_entity_ids,
+        *metric_info);
+
     return selected_entity_id ? EntityQuery().GetEntityFromId(selected_entity_id.value()) : nullptr;
 }
 
