@@ -7,6 +7,7 @@
 #include "ActionMemory.h"
 #include "InterruptionMemory.h"
 #include "TransitionMemory.h"
+#include "entity/EntityMetricInfo.h"
 #include "services/composition/ServiceBundles.h"
 #include "services/interfaces/ILogger.h"
 
@@ -64,6 +65,11 @@ private:
     ILogger& Logger() const
     {
         return services.logger;
+    }
+
+    ITimeManager& TimeManager() const
+    {
+        return services.time_manager;
     }
 
     // Random number generator for tie-breaking
@@ -191,7 +197,8 @@ public:
      * @return Selected entity id, or std::nullopt if valid_entity_ids is empty
      */
     [[nodiscard]]
-    std::optional<int32_t> SelectActionEntityId(int32_t action_id, const std::vector<int32_t>& valid_entity_ids);
+    std::optional<int32_t> SelectActionEntityId(int32_t action_id, const std::vector<int32_t>& valid_entity_ids,
+        const EntityMetricInfo& metric_info);
 
     // =============================================================================
     // Memory Query

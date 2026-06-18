@@ -306,7 +306,8 @@ std::optional<int32_t> MemorySystem::SelectTransitionNodeId(int32_t sequence_id,
     return oldest_nodes[random_index];
 }
 
-std::optional<int32_t> MemorySystem::SelectActionEntityId(int32_t action_id, const std::vector<int32_t> &valid_entity_ids)
+std::optional<int32_t> MemorySystem::SelectActionEntityId(int32_t action_id, const std::vector<int32_t> &valid_entity_ids,
+        const EntityMetricInfo& metric_info)
 {
     // Performance profiling marker
     ZoneScoped;
@@ -324,6 +325,32 @@ std::optional<int32_t> MemorySystem::SelectActionEntityId(int32_t action_id, con
         // Only one option, no selection needed
         return valid_entity_ids[0];
     }
+
+    // Prepare metric log as:
+    // event, timestamp, system_used, npc_id, npc_name, decision_type, action_id, available_options, memory_state, branch_fired, selected_option
+
+    nlohmann::json memories = nlohmann::json::array();
+    for (const auto& memory : action_memories)
+    {
+        memories.push_back({
+            {"action_id", memory.GetActionId()},
+            {"target_entity_id", memory.GetTargetEntityId()},
+            {"creation_time", memory.GetCreationTime()}
+        });
+    }
+
+    nlohmann::json event =
+    {
+        {"event", "decision"},
+        { "ts", TimeManager().GetCurrentTime() },
+        { "system_used", "memory"},
+        { "npc_id", metric_info.npc_id},
+        {"npc_name", metric_info.npc_name},
+        {"decision_type", "entity"},
+        {"action_id", action_id},
+        {"available_options", valid_entity_ids},
+        {"memory_state", memories}
+    };
 
     // ===== Phase 1: Separate unused from used entities =====
 
@@ -355,10 +382,18 @@ std::optional<int32_t> MemorySystem::SelectActionEntityId(int32_t action_id, con
         if (unused_entities.size() == 1)
         {
             // Only one unused, no randomization needed
+            event["branch_fired"] = "unused";
+            event["selected_option"] = unused_entities[0];
+            Logger().LogMetric(event);
+
             return unused_entities[0];
         }
 
         auto random_index = GetRandomIndex(static_cast<int32_t>(unused_entities.size()));
+        event["branch_fired"] = "unused_random";
+        event["selected_option"] = random_index;
+        Logger().LogMetric(event);
+
         return unused_entities[random_index];
     }
 
@@ -404,10 +439,18 @@ std::optional<int32_t> MemorySystem::SelectActionEntityId(int32_t action_id, con
     if (oldest_entities.size() == 1)
     {
         // Only one oldest, no randomization needed
+        event["branch_fired"] = "LRU";
+        event["selected_option"] = oldest_entities[0];
+        Logger().LogMetric(event);
+
         return oldest_entities[0];
     }
 
     auto random_index = GetRandomIndex(static_cast<int32_t>(oldest_entities.size()));
+    event["branch_fired"] = "LRU_random";
+    event["selected_option"] = random_index;
+    Logger().LogMetric(event);
+
     return oldest_entities[random_index];
 }
 
