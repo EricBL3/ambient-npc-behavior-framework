@@ -398,6 +398,12 @@ void BehavioralEntity::InitiateActionExecution(const std::shared_ptr<Action>& ac
         "id: " + std::to_string(current_action_id) + " and token: " + std::to_string(current_action_token),
         "InitiateActionExecution");
 
+    // Log action event as:
+    // event_type, npc_id, event_type, action_id, target_entity_id, action_token
+    Logger().LogMetric("action" + std::to_string(entity_id) + ", start, " + std::to_string(current_action_id) +
+        ", " + std::to_string(current_action_target_id) + ", " + std::to_string(current_action_token),
+        "InitiateActionExecution");
+
     // STEP 4: DELEGATE TO GAME ENGINE
     // The game engine handles animation, pathfinding, audio, etc.
     // Will call back to CompleteAction() when done (or timeout triggers)
@@ -436,6 +442,12 @@ void BehavioralEntity::CompleteAction(int32_t action_id, int64_t action_token)
     {
         Logger().LogInfo("entity with id: " + std::to_string(entity_id) + " has completed action with id: " +
             std::to_string(action_id) + " and token: " + std::to_string(action_token) ,"CompleteAction");
+
+        // Log action event as:
+        // event_type, npc_id, event_type, action_id, target_entity_id, action_token
+        Logger().LogMetric("action" + std::to_string(entity_id) + ", complete, " + std::to_string(current_action_id) +
+            ", " + std::to_string(current_action_target_id) + ", " + std::to_string(current_action_token),
+            "InitiateActionExecution");
 
         ActionTimeoutManager().UnregisterActionTimeout(entity_handle);
         ApplyCompletionEffects(action_id);

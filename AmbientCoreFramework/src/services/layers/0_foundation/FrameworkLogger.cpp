@@ -80,8 +80,16 @@ void FrameworkLogger::WriteLog(FrameworkLogLevel level, const std::string &messa
     auto now = std::chrono::system_clock::now();
     auto time_t = std::chrono::system_clock::to_time_t(now);
 
-    *log_file << "[" << std::put_time(std::localtime(&time_t), "%Y-%m-%d %H:%M:%S") << "] ";
-    *log_file << "[" << level_str << "] [" << component_name << "] " << message << std::endl;
+    // Metrics will be logged as csv starting with the timestamp
+    if (log_level == FrameworkLogLevel::METRIC)
+    {
+        *log_file << std::put_time(std::localtime(&time_t), "%Y-%m-%d %H:%M:%S") << ", " << message << std::endl;
+    } else
+    {
+        *log_file << "[" << std::put_time(std::localtime(&time_t), "%Y-%m-%d %H:%M:%S") << "] ";
+        *log_file << "[" << level_str << "] [" << component_name << "] " << message << std::endl;
+    }
+
 
     log_file->flush();
 }
