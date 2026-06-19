@@ -186,7 +186,8 @@ public:
      * @return The selected node id, or std::nullopt if valid_node_ids is empty
      */
     [[nodiscard]]
-    std::optional<int32_t> SelectTransitionNodeId(int32_t sequence_id, const std::vector<int32_t>& valid_node_ids);
+    std::optional<int32_t> SelectTransitionNodeId(int32_t sequence_id, int32_t current_node_id,
+        const std::vector<int32_t>& valid_node_ids, const EntityMetricInfo& metric_info);
 
     /**
      * @brief Select an action target entity using exploration-exploitation strategy

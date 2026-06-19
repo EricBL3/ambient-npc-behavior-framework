@@ -199,21 +199,57 @@ const InterruptionMemory * MemorySystem::FindInterruptionMemory(int32_t action_i
 // MEMORY-DRIVEN SELECTION
 // =============================================================================
 
-std::optional<int32_t> MemorySystem::SelectTransitionNodeId(int32_t sequence_id, const std::vector<int32_t> &valid_node_ids)
+std::optional<int32_t> MemorySystem::SelectTransitionNodeId(int32_t sequence_id, int32_t current_node_id,
+    const std::vector<int32_t> &valid_node_ids, const EntityMetricInfo& metric_info)
 {
     // Performance profiling marker
     ZoneScoped;
+
+    // Prepare metric log as:
+    // event, timestamp, system_used, npc_id, npc_name, decision_type, action_id, available_options, memory_state, branch_fired, selected_option
+
+    nlohmann::json memories = nlohmann::json::array();
+    for (const auto& memory : transition_memories)
+    {
+        memories.push_back({
+            {"sequence_id", memory.GetSequenceId()},
+            {"target_node_id", memory.GetTargetNodeId()},
+            {"creation_time", memory.GetCreationTime()}
+        });
+    }
+
+    nlohmann::json event =
+    {
+        {"event", "decision"},
+        { "ts", TimeManager().GetCurrentTime() },
+        { "system_used", "memory"},
+        { "npc_id", metric_info.npc_id},
+        {"npc_name", metric_info.npc_name},
+        {"decision_type", "transition"},
+        {"sequence_id", sequence_id},
+        {"current_node_id", current_node_id},
+        {"available_options", valid_node_ids},
+        {"memory_state", memories}
+    };
 
     // ===== Early returns for trivial cases =====
 
     if (valid_node_ids.empty())
     {
         // No options available
+        event["branch_fired"] = "no_options";
+        event["selected_option"] = -1;
+        Logger().LogMetric(event);
+
         return std::nullopt;
     }
 
     if (valid_node_ids.size() == 1) {
         // Only one option, no selection needed
+        event["branch_fired"] = "one_option";
+        event["selected_option"] = valid_node_ids[0];
+        Logger().LogMetric(event);
+
         return valid_node_ids[0];
     }
 
@@ -247,10 +283,18 @@ std::optional<int32_t> MemorySystem::SelectTransitionNodeId(int32_t sequence_id,
         if (unused_nodes.size() == 1)
         {
             // Only one unused, no randomization needed
+            event["branch_fired"] = "unused";
+            event["selected_option"] = unused_nodes[0];
+            Logger().LogMetric(event);
+
             return unused_nodes[0];
         }
 
         auto random_index = GetRandomIndex(static_cast<int32_t>(unused_nodes.size()));
+        event["branch_fired"] = "unused_random";
+        event["selected_option"] = random_index;
+        Logger().LogMetric(event);
+
         return unused_nodes[random_index];
     }
 
@@ -299,10 +343,18 @@ std::optional<int32_t> MemorySystem::SelectTransitionNodeId(int32_t sequence_id,
     if (oldest_nodes.size() == 1)
     {
         // Only one oldest, no randomization needed
+        event["branch_fired"] = "LRU";
+        event["selected_option"] = oldest_nodes[0];
+        Logger().LogMetric(event);
+
         return oldest_nodes[0];
     }
 
     auto random_index = GetRandomIndex(static_cast<int32_t>(oldest_nodes.size()));
+    event["branch_fired"] = "LRU_random";
+    event["selected_option"] = oldest_nodes[0];
+    Logger().LogMetric(event);
+
     return oldest_nodes[random_index];
 }
 
@@ -312,19 +364,6 @@ std::optional<int32_t> MemorySystem::SelectActionEntityId(int32_t action_id, con
     // Performance profiling marker
     ZoneScoped;
 
-    // ===== Early returns for trivial cases =====
-
-    if (valid_entity_ids.empty())
-    {
-        // No options available
-        return std::nullopt;
-    }
-
-    if (valid_entity_ids.size() == 1)
-    {
-        // Only one option, no selection needed
-        return valid_entity_ids[0];
-    }
 
     // Prepare metric log as:
     // event, timestamp, system_used, npc_id, npc_name, decision_type, action_id, available_options, memory_state, branch_fired, selected_option
@@ -351,6 +390,28 @@ std::optional<int32_t> MemorySystem::SelectActionEntityId(int32_t action_id, con
         {"available_options", valid_entity_ids},
         {"memory_state", memories}
     };
+
+    // ===== Early returns for trivial cases =====
+
+    if (valid_entity_ids.empty())
+    {
+        // No options available
+        event["branch_fired"] = "no_options";
+        event["selected_option"] = -1;
+        Logger().LogMetric(event);
+
+        return std::nullopt;
+    }
+
+    if (valid_entity_ids.size() == 1)
+    {
+        // Only one option, no selection needed
+        event["branch_fired"] = "one-option";
+        event["selected_option"] = valid_entity_ids[0];
+        Logger().LogMetric(event);
+
+        return valid_entity_ids[0];
+    }
 
     // ===== Phase 1: Separate unused from used entities =====
 

@@ -632,7 +632,9 @@ std::optional<int32_t> BehavioralEntity::GetNodeIdForNextTransition()
         valid_node_ids.emplace_back(transition.GetDestinationNodeId());
     }
 
-    return memory.SelectTransitionNodeId(sequences.top()->GetSequenceId(), valid_node_ids);
+    auto metric_info = new EntityMetricInfo{entity_id, name};
+    return memory.SelectTransitionNodeId(sequences.top()->GetSequenceId(), sequences.top()->GetCurrentNodeId(),
+        valid_node_ids, *metric_info);
 }
 
 // ═══════════════════════════════════════════════════════════════════════════

@@ -213,7 +213,8 @@ TEST_F(MemorySystemTest, GetLeastRecentlyVisitedNodePrefersNeverUsed) {
     ASSERT_TRUE(memory_system->CreateTransitionMemory(0, 7, 200));
 
     std::vector<int> node_ids = {5, 7, 9};  // 9 never used
-    auto selected = memory_system->SelectTransitionNodeId(0, node_ids);
+    EntityMetricInfo metric_info;
+    auto selected = memory_system->SelectTransitionNodeId(0, 0, node_ids, metric_info);
 
     EXPECT_EQ(9, selected);
 }
@@ -223,14 +224,16 @@ TEST_F(MemorySystemTest, GetLeastRecentlyVisitedNodeSelectsOldestTimestamp) {
     ASSERT_TRUE(memory_system->CreateTransitionMemory(0, 7, 200));  // Newer
 
     std::vector<int> node_ids = {5, 7};
-    auto selected = memory_system->SelectTransitionNodeId(0, node_ids);
+    EntityMetricInfo metric_info;
+    auto selected = memory_system->SelectTransitionNodeId(0, 0, node_ids, metric_info);
 
     EXPECT_EQ(5, selected);
 }
 
 TEST_F(MemorySystemTest, GetLeastRecentlyVisitedNodeReturnsEmptyForEmptyInput) {
     std::vector<int> empty_list;
-    auto selected = memory_system->SelectTransitionNodeId(0, empty_list);
+    EntityMetricInfo metric_info;
+    auto selected = memory_system->SelectTransitionNodeId(0, 0, empty_list, metric_info);
 
     EXPECT_FALSE(selected.has_value());
 }
@@ -242,14 +245,16 @@ TEST_F(MemorySystemTest, GetLeastRecentlyVisitedNodeHandlesEqualTimestamps) {
 
 
     std::vector<int> node_ids = {5, 7};
-    auto selected = memory_system->SelectTransitionNodeId(0, node_ids);
+    EntityMetricInfo metric_info;
+    auto selected = memory_system->SelectTransitionNodeId(0, 0, node_ids, metric_info);
 
     EXPECT_TRUE(selected == 5 || selected == 7);
 }
 
 TEST_F(MemorySystemTest, SelectTransitionNodeIdReturnsSingleElement) {
     std::vector<int32_t> single_node = {42};
-    auto selected = memory_system->SelectTransitionNodeId(0, single_node);
+    EntityMetricInfo metric_info;
+    auto selected = memory_system->SelectTransitionNodeId(0, 0, single_node, metric_info);
 
     ASSERT_TRUE(selected.has_value());
     EXPECT_EQ(42, *selected);  // Should return the only option
@@ -261,20 +266,22 @@ TEST_F(MemorySystemTest, UpdateRefreshesRecencyForExistingMemory) {
 
     // Node 5 is older, should be selected
     std::vector<int32_t> nodes = {5, 7};
-    EXPECT_EQ(5, memory_system->SelectTransitionNodeId(0, nodes));
+    EntityMetricInfo metric_info;
+    EXPECT_EQ(5, memory_system->SelectTransitionNodeId(0, 0, nodes, metric_info));
 
     // Update node 5 with newer timestamp
     ASSERT_TRUE(memory_system->CreateTransitionMemory(0, 5, 300));
 
     // Now node 7 is older, should be selected
-    EXPECT_EQ(7, memory_system->SelectTransitionNodeId(0, nodes));
+    EXPECT_EQ(7, memory_system->SelectTransitionNodeId(0, 0, nodes, metric_info));
 }
 
 TEST_F(MemorySystemTest, SelectionPrefersUnusedOverOldest) {
     ASSERT_TRUE(memory_system->CreateTransitionMemory(0, 5, 1));  // Very old timestamp
 
+    EntityMetricInfo metric_info;
     std::vector<int32_t> nodes = {5, 7, 9};  // 5=ancient, 7&9=unused
-    auto selected = memory_system->SelectTransitionNodeId(0, nodes);
+    auto selected = memory_system->SelectTransitionNodeId(0, 0, nodes, metric_info);
 
     // Should select from unused (7 or 9), NOT the very old used one (5)
     ASSERT_TRUE(selected.has_value());
@@ -289,7 +296,8 @@ TEST_F(MemorySystemTest, SelectionIsUnbiasedForUnusedNodes) {
     for (int i = 0; i < trials; ++i) {
         MemorySystem temp_system(10, 10, 10, *services);
         std::vector<int32_t> unused_nodes = {1, 2, 3};
-        auto selected = temp_system.SelectTransitionNodeId(0, unused_nodes);
+        EntityMetricInfo metric_info;
+        auto selected = temp_system.SelectTransitionNodeId(0, 0, unused_nodes, metric_info);
 
         ASSERT_TRUE(selected.has_value());
         selection_counts[*selected]++;
@@ -390,7 +398,8 @@ TEST_F(MemorySystemTest, GetLeastRecentlyUsedEntityPrefersNeverUsed) {
     ASSERT_TRUE(memory_system->CreateActionMemory(3, 11, 200));
 
     std::vector<int> entity_ids = {10, 11, 12};  // 12 never used
-    auto selected = memory_system->SelectActionEntityId(3, entity_ids);
+    EntityMetricInfo metric_info;
+    auto selected = memory_system->SelectActionEntityId(3, entity_ids, metric_info);
 
     EXPECT_EQ(12, selected);
 }
@@ -400,14 +409,16 @@ TEST_F(MemorySystemTest, GetLeastRecentlyUsedEntitySelectsOldestTimestamp) {
     ASSERT_TRUE(memory_system->CreateActionMemory(3, 11, 200));  // Newer
 
     std::vector<int> entity_ids = {10, 11};
-    auto selected = memory_system->SelectActionEntityId(3, entity_ids);
+    EntityMetricInfo metric_info;
+    auto selected = memory_system->SelectActionEntityId(3, entity_ids, metric_info);
 
     EXPECT_EQ(10, selected);
 }
 
 TEST_F(MemorySystemTest, GetLeastRecentlyUsedEntityReturnsMinusOneForEmptyInput) {
     std::vector<int> empty_list;
-    auto selected = memory_system->SelectActionEntityId(3, empty_list);
+    EntityMetricInfo metric_info;
+    auto selected = memory_system->SelectActionEntityId(3, empty_list, metric_info);
 
     EXPECT_FALSE(selected.has_value());
 }
@@ -417,14 +428,16 @@ TEST_F(MemorySystemTest, GetLeastRecentlyUsedEntityHandlesEqualTimestamps) {
     ASSERT_TRUE(memory_system->CreateActionMemory(3, 11, 100)); // Same timestamp so should pick randomly
 
     std::vector<int> entity_ids = {10, 11};
-    auto selected = memory_system->SelectActionEntityId(3, entity_ids);
+    EntityMetricInfo metric_info;
+    auto selected = memory_system->SelectActionEntityId(3, entity_ids, metric_info);
 
     EXPECT_TRUE(selected == 10 || selected == 11);
 }
 
 TEST_F(MemorySystemTest, SelectActionEntityIdReturnsSingleElement) {
     std::vector<int32_t> single_entity = {99};
-    auto selected = memory_system->SelectActionEntityId(5, single_entity);
+    EntityMetricInfo metric_info;
+    auto selected = memory_system->SelectActionEntityId(5, single_entity, metric_info);
 
     ASSERT_TRUE(selected.has_value());
     EXPECT_EQ(99, *selected);
