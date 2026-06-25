@@ -41,7 +41,7 @@ bool StateOperationEvaluator::ProcessStateOperation(StateOperation state_operati
 }
 
 bool StateOperationEvaluator::IsValidStateOperation(StateOperationTarget target, StateOperationType operation_type,
-    StateOperationContext context) const
+    StateOperationContext context)
 {
     if (target == StateOperationTarget::ENVIRONMENT && IsModificationOperation(operation_type))
     {
@@ -80,7 +80,7 @@ bool StateOperationEvaluator::IsValidStateOperation(StateOperationTarget target,
     return true;
 }
 
-bool StateOperationEvaluator::IsComparisonOperation(StateOperationType operation) const
+bool StateOperationEvaluator::IsComparisonOperation(StateOperationType operation)
 {
     return operation == StateOperationType::EQUALS ||
         operation == StateOperationType::NOT_EQUALS ||
@@ -88,7 +88,7 @@ bool StateOperationEvaluator::IsComparisonOperation(StateOperationType operation
         operation == StateOperationType::LESS_THAN;
 }
 
-bool StateOperationEvaluator::IsModificationOperation(StateOperationType operation) const
+bool StateOperationEvaluator::IsModificationOperation(StateOperationType operation)
 {
     return operation == StateOperationType::SET ||
         operation == StateOperationType::INCREMENT ||

@@ -371,6 +371,10 @@ void BehavioralEntity::InitiateActionExecution(const std::shared_ptr<Action>& ac
 {
     ZoneScoped;
 
+    current_action_id = action->GetActionId();
+    // Invalidates any stale callbacks
+    current_action_token++;
+
     // STEP 1: APPLY IMMEDIATE EFFECTS
     ApplyActionEffects(action->GetImmediateEffects(), target_entity);
 
@@ -387,10 +391,6 @@ void BehavioralEntity::InitiateActionExecution(const std::shared_ptr<Action>& ac
         // Self-targeted action
         current_action_target_id = -1;
     }
-
-    current_action_id = action->GetActionId();
-    // Invalidates any stale callbacks
-    current_action_token++;
 
     // STEP 3: RECORD IN MEMORY
     // Track this action-entity pair for future selection diversity
@@ -436,22 +436,29 @@ void BehavioralEntity::ApplyActionEffects(const std::vector<StateOperation> & ef
 
     for (const auto& effect: effects)
     {
+
         StateOperationContext context(this, target_entity);
         StateEvaluator().ProcessStateOperation(effect, context);
 
-        // Log state change event as:
-        // event, timestamp, npc_id, state_name, new_value, action_id
-        auto state_name = SchemaManager().GetStateName(effect.GetStateKey());
-        nlohmann::json event = {
-            {"event", "state_change"},
-            { "ts", TimeManager().GetCurrentTime() },
-            { "npc_id", entity_id},
-            {"state_name", state_name},
-            {"new_value", effect.GetValue()},
-            { "action_id", current_action_id}
-        };
+        if (effect.GetTarget() == StateOperationTarget::SELF && StateEvaluator().IsModificationOperation(effect.GetOperationType()))
+        {
 
-        Logger().LogMetric(event);
+            auto new_state_value = state[effect.GetStateKey()];
+
+            // Log state change event as:
+            // event, timestamp, npc_id, state_name, new_value, action_id
+            auto state_name = SchemaManager().GetStateName(effect.GetStateKey());
+            nlohmann::json event = {
+                {"event", "state_change"},
+                { "ts", TimeManager().GetCurrentTime() },
+                { "npc_id", entity_id},
+                {"state_name", state_name},
+                {"new_value", new_state_value},
+                { "action_id", current_action_id}
+            };
+
+            Logger().LogMetric(event);
+        }
     }
 
     Logger().LogInfo("Applied " + std::to_string(effects.size()) + " effects for action (" +

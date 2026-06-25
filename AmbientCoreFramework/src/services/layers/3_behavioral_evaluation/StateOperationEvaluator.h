@@ -25,12 +25,14 @@ public:
      */
     bool ProcessStateOperation(StateOperation state_operation, StateOperationContext context) override;
 
+    bool IsComparisonOperation(StateOperationType operation) override;
+    bool IsModificationOperation(StateOperationType operation) override;
+
 private:
     bool IsValidStateOperation(StateOperationTarget target, StateOperationType operation_type,
-        StateOperationContext context) const;
+        StateOperationContext context);
 
-    bool IsComparisonOperation(StateOperationType operation) const;
-    bool IsModificationOperation(StateOperationType operation) const;
+
     bool RequiresTargetEntity(StateOperationTarget target) const;
 
     std::optional<int32_t> GetStateOperationValue(StateOperationTarget target, int32_t state_key,

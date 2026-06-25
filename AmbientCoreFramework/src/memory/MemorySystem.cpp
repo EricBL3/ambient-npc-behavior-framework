@@ -292,7 +292,7 @@ std::optional<int32_t> MemorySystem::SelectTransitionNodeId(int32_t sequence_id,
 
         auto random_index = GetRandomIndex(static_cast<int32_t>(unused_nodes.size()));
         event["branch_fired"] = "unused_random";
-        event["selected_option"] = random_index;
+        event["selected_option"] = unused_nodes[random_index];
         Logger().LogMetric(event);
 
         return unused_nodes[random_index];
@@ -303,7 +303,7 @@ std::optional<int32_t> MemorySystem::SelectTransitionNodeId(int32_t sequence_id,
     if (used_transition_memories.empty())
     {
         // Should be impossible: we have valid nodes but neither unused nor used
-        Logger().LogWarning("All nodes unused but exploration failed",
+        Logger().LogWarning("All nodes unused but exploration failed.",
             "MemorySystem");
 
         return std::nullopt;
@@ -352,7 +352,7 @@ std::optional<int32_t> MemorySystem::SelectTransitionNodeId(int32_t sequence_id,
 
     auto random_index = GetRandomIndex(static_cast<int32_t>(oldest_nodes.size()));
     event["branch_fired"] = "LRU_random";
-    event["selected_option"] = oldest_nodes[0];
+    event["selected_option"] = oldest_nodes[random_index];
     Logger().LogMetric(event);
 
     return oldest_nodes[random_index];
@@ -406,7 +406,7 @@ std::optional<int32_t> MemorySystem::SelectActionEntityId(int32_t action_id, con
     if (valid_entity_ids.size() == 1)
     {
         // Only one option, no selection needed
-        event["branch_fired"] = "one-option";
+        event["branch_fired"] = "one_option";
         event["selected_option"] = valid_entity_ids[0];
         Logger().LogMetric(event);
 
@@ -452,7 +452,7 @@ std::optional<int32_t> MemorySystem::SelectActionEntityId(int32_t action_id, con
 
         auto random_index = GetRandomIndex(static_cast<int32_t>(unused_entities.size()));
         event["branch_fired"] = "unused_random";
-        event["selected_option"] = random_index;
+        event["selected_option"] = unused_entities[random_index];
         Logger().LogMetric(event);
 
         return unused_entities[random_index];
@@ -509,7 +509,7 @@ std::optional<int32_t> MemorySystem::SelectActionEntityId(int32_t action_id, con
 
     auto random_index = GetRandomIndex(static_cast<int32_t>(oldest_entities.size()));
     event["branch_fired"] = "LRU_random";
-    event["selected_option"] = random_index;
+    event["selected_option"] = oldest_entities[random_index];
     Logger().LogMetric(event);
 
     return oldest_entities[random_index];
