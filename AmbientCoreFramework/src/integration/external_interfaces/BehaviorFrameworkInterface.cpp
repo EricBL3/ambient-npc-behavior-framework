@@ -38,7 +38,8 @@ extern "C" {
                 candidate == FrameworkLogLevel::DEBUG ||
                 candidate == FrameworkLogLevel::INFO ||
                 candidate == FrameworkLogLevel::WARNING ||
-                candidate == FrameworkLogLevel::ERROR;
+                candidate == FrameworkLogLevel::ERROR ||
+                candidate == FrameworkLogLevel::METRIC;
 
             FrameworkLogLevel framework_log_level = is_valid ? candidate : FrameworkLogLevel::ERROR;
 
