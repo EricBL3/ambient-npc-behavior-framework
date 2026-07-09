@@ -73,6 +73,11 @@ private:
         return services.time_manager;
     }
 
+    ISelectionAlgorithmManager& SelectionAlgorithmManager() const
+    {
+        return services.selection_algorithm_manager;
+    }
+
     // Random number generator for tie-breaking
     std::mt19937 rng;
 

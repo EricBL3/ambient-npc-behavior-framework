@@ -294,92 +294,83 @@ std::optional<int32_t> MemorySystem::SelectTransitionNodeId(const std::vector<in
     // Performance profiling marker
     ZoneScoped;
 
-    // ===== Early returns for trivial cases =====
-
-    // No options available
-    if (valid_node_ids.empty())
-    {
-        nlohmann::json event =
-        {
-            {"event", "decision"},
-            { "ts", TimeManager().GetCurrentTime() },
-            { "system_used", "none"},
-            { "npc_id", selection_algorithm_info.npc_id},
-            {"npc_name", selection_algorithm_info.npc_name},
-            {"decision_type", "transition"},
-            {"sequence_id", selection_algorithm_info.sequence_id},
-            {"current_node_id", selection_algorithm_info.current_node_id},
-            {"available_options", valid_node_ids},
-            {"branch_fired", "no_options"},
-            {"selected_option", -1}
-        };
-
-        Logger().LogMetric(event);
-        return std::nullopt;
-    }
-
-    // Only one option, no selection needed
-    if (valid_node_ids.size() == 1) {
-        nlohmann::json event =
-        {
-            {"event", "decision"},
-            { "ts", TimeManager().GetCurrentTime() },
-            { "system_used", "none"},
-            { "npc_id", selection_algorithm_info.npc_id},
-            {"npc_name", selection_algorithm_info.npc_name},
-            {"decision_type", "transition"},
-            {"sequence_id", selection_algorithm_info.sequence_id},
-            {"current_node_id", selection_algorithm_info.current_node_id},
-            {"available_options", valid_node_ids},
-            {"branch_fired", "one_option"},
-            {"selected_option", valid_node_ids[0]}
-        };
-
-        Logger().LogMetric(event);
-        return valid_node_ids[0];
-    }
-
+    SelectionResult result;
     // Build base event
-    nlohmann::json memories = nlohmann::json::array();
-    for (const auto& memory : transition_memories)
-    {
-        memories.push_back({
-            {"sequence_id", memory.GetSequenceId()},
-            {"target_node_id", memory.GetTargetNodeId()},
-            {"creation_time", memory.GetCreationTime()}
-        });
-    }
-
     nlohmann::json event =
     {
         {"event", "decision"},
         { "ts", TimeManager().GetCurrentTime() },
-        { "system_used", "memory"},
         { "npc_id", selection_algorithm_info.npc_id},
         {"npc_name", selection_algorithm_info.npc_name},
         {"decision_type", "transition"},
         {"sequence_id", selection_algorithm_info.sequence_id},
         {"current_node_id", selection_algorithm_info.current_node_id},
         {"available_options", valid_node_ids},
-        {"memory_state", memories}
     };
 
-    // ===== Build candidates (type specific memory lookup) =====
+    // ===== Early returns for trivial cases =====
 
-    std::vector<RecencyCandidate> candidates;
-    candidates.reserve(valid_node_ids.size());
-
-    // Single-pass separation: check each node for existing memory
-    for (auto node_id : valid_node_ids)
+    // No options available
+    if (valid_node_ids.empty())
     {
-        const auto transition_memory = FindTransitionMemory(selection_algorithm_info.sequence_id, node_id);
-        candidates.push_back(RecencyCandidate{
-            node_id,
-            transition_memory ? std::optional<int64_t>(transition_memory->GetCreationTime()) : std::nullopt
-        });
+        result = SelectionResult{.selected_id = std::nullopt, .branch_fired = "no_options"};
+        event["system_used"] = "none";
+    }
+    // Only one option, no selection needed
+    else if (valid_node_ids.size() == 1) {
+
+        result = SelectionResult{.selected_id = valid_node_ids[0], .branch_fired = "one_option"};
+        event["system_used"] = "none";
+    }
+    else
+    {
+        switch (SelectionAlgorithmManager().GetSelectionAlgorithmOption())
+        {
+            case SelectionAlgorithmOption::UNIFORM_RANDOM:
+            {
+                event["system_used"] = "uniform_random";
+                auto random_index = GetRandomIndex(static_cast<int32_t>(valid_node_ids.size()));
+                result = SelectionResult{ .selected_id = valid_node_ids[random_index], .branch_fired = "random" };
+                break;
+            }
+            case SelectionAlgorithmOption::MEMORY_BASED:
+            default:
+            {
+                // Build event
+                nlohmann::json memories = nlohmann::json::array();
+                for (const auto& memory : transition_memories)
+                {
+                    memories.push_back({
+                        {"sequence_id", memory.GetSequenceId()},
+                        {"target_node_id", memory.GetTargetNodeId()},
+                        {"creation_time", memory.GetCreationTime()}
+                    });
+                }
+
+                event["system_used"] = "memory";
+                event["memory_state"] = memories;
+
+                // ===== Build candidates (type specific memory lookup) =====
+                std::vector<RecencyCandidate> candidates;
+                candidates.reserve(valid_node_ids.size());
+
+                // Single-pass separation: check each node for existing memory
+                for (auto node_id : valid_node_ids)
+                {
+                    const auto transition_memory = FindTransitionMemory(selection_algorithm_info.sequence_id, node_id);
+                    candidates.push_back(RecencyCandidate{
+                        node_id,
+                        transition_memory ? std::optional<int64_t>(
+                            transition_memory->GetCreationTime()) : std::nullopt
+                    });
+                }
+
+                result = SelectByRecency(candidates);
+                break;
+            }
+        }
     }
 
-    auto result = SelectByRecency(candidates);
     FinalizeSelectionLog(event, result);
     return result.selected_id;
 }
@@ -390,89 +381,81 @@ std::optional<int32_t> MemorySystem::SelectActionEntityId(const std::vector<int3
     // Performance profiling marker
     ZoneScoped;
 
-    // ===== Early returns for trivial cases =====
-
-    // No options available
-    if (valid_entity_ids.empty())
-    {
-        nlohmann::json event =
-        {
-            {"event", "decision"},
-            { "ts", TimeManager().GetCurrentTime() },
-            { "system_used", "none"},
-            { "npc_id", selection_algorithm_info.npc_id},
-            {"npc_name", selection_algorithm_info.npc_name},
-            {"decision_type", "entity"},
-            {"action_id", selection_algorithm_info.action_id},
-            {"available_options", valid_entity_ids},
-            {"branch_fired", "no_options"},
-            {"selected_option", -1}
-        };
-
-        Logger().LogMetric(event);
-        return std::nullopt;
-    }
-
-    // Only one option, no selection needed
-    if (valid_entity_ids.size() == 1)
-    {
-        nlohmann::json event =
-        {
-            {"event", "decision"},
-            { "ts", TimeManager().GetCurrentTime() },
-            { "system_used", "none"},
-            { "npc_id", selection_algorithm_info.npc_id},
-            {"npc_name", selection_algorithm_info.npc_name},
-            {"decision_type", "entity"},
-            {"action_id", selection_algorithm_info.action_id},
-            {"available_options", valid_entity_ids},
-            {"branch_fired", "one_option"},
-            {"selected_option", valid_entity_ids[0]}
-        };
-
-        Logger().LogMetric(event);
-        return valid_entity_ids[0];
-    }
-
+    SelectionResult result;
     // Build base event
-    nlohmann::json memories = nlohmann::json::array();
-    for (const auto& memory : action_memories)
-    {
-        memories.push_back({
-            {"action_id", memory.GetActionId()},
-            {"target_entity_id", memory.GetTargetEntityId()},
-            {"creation_time", memory.GetCreationTime()}
-        });
-    }
-
     nlohmann::json event =
     {
         {"event", "decision"},
         { "ts", TimeManager().GetCurrentTime() },
-        { "system_used", "memory"},
         { "npc_id", selection_algorithm_info.npc_id},
         {"npc_name", selection_algorithm_info.npc_name},
         {"decision_type", "entity"},
         {"action_id", selection_algorithm_info.action_id},
         {"available_options", valid_entity_ids},
-        {"memory_state", memories}
     };
 
-    // ===== Build candidates (type specific memory lookup) =====
-    std::vector<RecencyCandidate> candidates;
-    candidates.reserve(valid_entity_ids.size());
+    // ===== Early returns for trivial cases =====
 
-    for (auto entity_id : valid_entity_ids)
+    // No options available
+    if (valid_entity_ids.empty())
     {
-        const auto action_memory = FindActionMemory(selection_algorithm_info.action_id, entity_id);
+        result = SelectionResult{.selected_id = std::nullopt, .branch_fired = "no_options"};
+        event["system_used"] = "none";
+    }
+    // Only one option, no selection needed
+    else if (valid_entity_ids.size() == 1)
+    {
+        result = SelectionResult{.selected_id = valid_entity_ids[0], .branch_fired = "one_option"};
+        event["system_used"] = "none";
+    }
+    else
+    {
+        switch (SelectionAlgorithmManager().GetSelectionAlgorithmOption())
+        {
+            case SelectionAlgorithmOption::UNIFORM_RANDOM:
+            {
+                event["system_used"] = "uniform_random";
+                auto random_index = GetRandomIndex(static_cast<int32_t>(valid_entity_ids.size()));
+                result = SelectionResult{ .selected_id = valid_entity_ids[random_index], .branch_fired = "random"};
+                break;
+            }
+            case SelectionAlgorithmOption::MEMORY_BASED:
+            default:
+            {
+                // Build base event
+                nlohmann::json memories = nlohmann::json::array();
+                for (const auto& memory : action_memories)
+                {
+                    memories.push_back({
+                        {"action_id", memory.GetActionId()},
+                        {"target_entity_id", memory.GetTargetEntityId()},
+                        {"creation_time", memory.GetCreationTime()}
+                    });
+                }
 
-        candidates.push_back(RecencyCandidate{
-            entity_id,
-            action_memory ? std::optional<int64_t>(action_memory->GetCreationTime()) : std::nullopt
-        });
+                event["system_used"] = "memory";
+                event["memory_state"] = memories;
+
+                // ===== Build candidates (type specific memory lookup) =====
+                std::vector<RecencyCandidate> candidates;
+                candidates.reserve(valid_entity_ids.size());
+
+                for (auto entity_id : valid_entity_ids)
+                {
+                    const auto action_memory = FindActionMemory(selection_algorithm_info.action_id, entity_id);
+
+                    candidates.push_back(RecencyCandidate{
+                        entity_id,
+                        action_memory ? std::optional<int64_t>(action_memory->GetCreationTime()) : std::nullopt
+                    });
+                }
+
+                result = SelectByRecency(candidates);
+                break;
+            }
+        }
     }
 
-    auto result = SelectByRecency(candidates);
     FinalizeSelectionLog(event, result);
     return result.selected_id;
 }
