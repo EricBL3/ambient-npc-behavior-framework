@@ -3,6 +3,8 @@
 #include <stdexcept>
 #include <tracy/Tracy.hpp>
 
+#include "services/layers/0_foundation/SelectionAlgorithmOption.h"
+
 using namespace AmbientCharacterBehavior;
 
 extern "C" {
@@ -26,25 +28,34 @@ extern "C" {
 
     AmbientCoreFramework_API bool InitializeAmbientBehaviorFramework(void* framework_handle, const char* schema_file_path,
         const char* sequences_file_path, const char* actions_file_path,
-        const char* environmental_conditions_file_path, const char*  log_file_path, int32_t log_level)
+        const char* environmental_conditions_file_path, const char*  log_file_path, int32_t log_level,
+        int32_t selection_algorithm_option)
     {
 
         if (const auto framework = static_cast<BehaviorFramework*>(framework_handle))
         {
 
-            auto candidate = static_cast<FrameworkLogLevel>(log_level);
+            auto log_level_candidate = static_cast<FrameworkLogLevel>(log_level);
 
-            const bool is_valid =
-                candidate == FrameworkLogLevel::DEBUG ||
-                candidate == FrameworkLogLevel::INFO ||
-                candidate == FrameworkLogLevel::WARNING ||
-                candidate == FrameworkLogLevel::ERROR ||
-                candidate == FrameworkLogLevel::METRIC;
+            const bool is_log_level_valid =
+                log_level_candidate == FrameworkLogLevel::DEBUG ||
+                log_level_candidate == FrameworkLogLevel::INFO ||
+                log_level_candidate == FrameworkLogLevel::WARNING ||
+                log_level_candidate == FrameworkLogLevel::ERROR ||
+                log_level_candidate == FrameworkLogLevel::METRIC;
 
-            FrameworkLogLevel framework_log_level = is_valid ? candidate : FrameworkLogLevel::ERROR;
+            FrameworkLogLevel framework_log_level = is_log_level_valid ? log_level_candidate : FrameworkLogLevel::ERROR;
+
+            auto selection_algorithm_option_candidate = static_cast<SelectionAlgorithmOption>(selection_algorithm_option);
+            const bool is_selection_algorithm_option_valid =
+                selection_algorithm_option_candidate == SelectionAlgorithmOption::MEMORY_BASED ||
+                selection_algorithm_option_candidate == SelectionAlgorithmOption::UNIFORM_RANDOM;
+
+            SelectionAlgorithmOption selection_algorithm = is_selection_algorithm_option_valid ?
+            selection_algorithm_option_candidate : SelectionAlgorithmOption::MEMORY_BASED;
 
             framework->InitializeFramework(schema_file_path, sequences_file_path, actions_file_path,
-            environmental_conditions_file_path, log_file_path, framework_log_level);
+            environmental_conditions_file_path, log_file_path, framework_log_level, selection_algorithm);
 
             return framework->IsInitialized();
         }

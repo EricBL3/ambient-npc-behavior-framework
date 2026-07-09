@@ -5,6 +5,7 @@
 #include "../services/mocks/MockEnvironmentalConditionProvider.h"
 #include "../services/mocks/MockStartCharacterActionProvider.h"
 #include "../services/mocks/MockEntityPositionProvider.h"
+#include "../services/mocks/MockSelectionAlgorithmManager.h"
 
 using namespace AmbientCharacterBehavior;
 
@@ -12,6 +13,7 @@ class MemorySystemTest : public testing::Test {
 protected:
     std::unique_ptr<MockLogger> mock_logger;
     std::unique_ptr<MockTimeManager> mock_time_manager;
+    std::unique_ptr<MockSelectionAlgorithmManager> mock_selection_algorithm_manager;
     std::unique_ptr<MockEnvironmentalConditionProvider> mock_environmental_condition_provider;
     std::unique_ptr<MockStartCharacterActionProvider> mock_action_provider;
     std::unique_ptr<MockEntityPositionProvider> mock_entity_pos_provider;
@@ -22,12 +24,14 @@ protected:
     void SetUp() override {
         mock_logger = std::make_unique<MockLogger>();
         mock_time_manager = std::make_unique<MockTimeManager>();
+        mock_selection_algorithm_manager = std::make_unique<MockSelectionAlgorithmManager>();
         mock_environmental_condition_provider = std::make_unique<MockEnvironmentalConditionProvider>();
         mock_action_provider = std::make_unique<MockStartCharacterActionProvider>();
         mock_entity_pos_provider = std::make_unique<MockEntityPositionProvider>();
 
         services = std::make_unique<FoundationServices>(*mock_logger, *mock_time_manager,
-            *mock_environmental_condition_provider,*mock_action_provider, *mock_entity_pos_provider);
+        *mock_selection_algorithm_manager,
+        *mock_environmental_condition_provider,*mock_action_provider, *mock_entity_pos_provider);
 
         memory_system = std::make_unique<MemorySystem>(3, 3, 2, *services);
     }

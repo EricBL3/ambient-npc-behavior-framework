@@ -14,6 +14,7 @@ std::unique_ptr<ApplicationContext> ApplicationContext::Create(
     // Layer 0 - Foundation
     auto logger = CreateLogger();
     auto time_manager = CreateTimeManager();
+    auto selection_algorithm_manager = CreateSelectionAlgorithmManager();
     auto env_provider = CreateEnvironmentalConditionProvider(query_env_callback);
     auto action_provider = CreateStartCharacterActionProvider(start_action_callback);
     auto pos_provider = CreateEntityPositionProvider(query_position_callback);
@@ -37,6 +38,7 @@ std::unique_ptr<ApplicationContext> ApplicationContext::Create(
     auto context = std::unique_ptr<ApplicationContext>(new ApplicationContext(
         std::move(logger),
         std::move(time_manager),
+        std::move(selection_algorithm_manager),
         std::move(env_provider),
         std::move(action_provider),
         std::move(pos_provider),
@@ -58,6 +60,7 @@ std::unique_ptr<ApplicationContext> ApplicationContext::Create(
 ApplicationContext::ApplicationContext(
     std::unique_ptr<ILogger> logger,
     std::unique_ptr<ITimeManager> time_manager,
+    std::unique_ptr<ISelectionAlgorithmManager> selection_algorithm_manager,
     std::unique_ptr<IEnvironmentalConditionProvider> environmental_condition_provider,
     std::unique_ptr<IStartCharacterActionProvider> start_character_action_provider,
     std::unique_ptr<IEntityPositionProvider> entity_position_provider,
@@ -70,6 +73,7 @@ ApplicationContext::ApplicationContext(
 ) :
     logger(std::move(logger)),
     time_manager(std::move(time_manager)),
+    selection_algorithm_manager(std::move(selection_algorithm_manager)),
     environmental_condition_provider(std::move(environmental_condition_provider)),
     start_character_action_provider(std::move(start_character_action_provider)),
     entity_position_provider(std::move(entity_position_provider)),
@@ -83,6 +87,7 @@ ApplicationContext::ApplicationContext(
     foundation_services(
         *this->logger,
         *this->time_manager,
+        *this->selection_algorithm_manager,
         *this->environmental_condition_provider,
         *this->start_character_action_provider,
         *this->entity_position_provider

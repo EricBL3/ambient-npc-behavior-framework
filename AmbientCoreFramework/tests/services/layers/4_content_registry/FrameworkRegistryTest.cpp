@@ -11,6 +11,7 @@
 #include "../../mocks/MockStartCharacterActionProvider.h"
 #include "../../mocks/MockTimeManager.h"
 #include "../../mocks/MockStateOperationEvaluator.h"
+#include "../../mocks/MockSelectionAlgorithmManager.h"
 
 using namespace AmbientCharacterBehavior;
 
@@ -18,6 +19,7 @@ class FrameworkRegistryTest : public testing::Test {
 protected:
     std::unique_ptr<MockLogger> mock_logger;
     std::unique_ptr<MockTimeManager> mock_time_manager;
+    std::unique_ptr<MockSelectionAlgorithmManager> mock_selection_algorithm_manager;
     std::unique_ptr<MockEnvironmentalConditionProvider> mock_environmental_condition_provider;
     std::unique_ptr<MockStartCharacterActionProvider> mock_action_provider;
     std::unique_ptr<MockEntityPositionProvider> mock_entity_pos_provider;
@@ -41,6 +43,7 @@ protected:
     void SetUp() override {
         mock_logger = std::make_unique<MockLogger>();
         mock_time_manager = std::make_unique<MockTimeManager>();
+        mock_selection_algorithm_manager = std::make_unique<MockSelectionAlgorithmManager>();
         mock_environmental_condition_provider = std::make_unique<MockEnvironmentalConditionProvider>();
         mock_action_provider = std::make_unique<MockStartCharacterActionProvider>();
         mock_entity_pos_provider = std::make_unique<MockEntityPositionProvider>();
@@ -54,6 +57,7 @@ protected:
         mock_entity_pos_manager = std::make_unique<MockEntityPositionManager>();
 
         foundation_services = std::make_unique<FoundationServices>(*mock_logger, *mock_time_manager,
+            *mock_selection_algorithm_manager,
             *mock_environmental_condition_provider,*mock_action_provider, *mock_entity_pos_provider);
 
         data_access_services = std::make_unique<DataAccessServices>(*foundation_services, *mock_json_loader);

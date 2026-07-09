@@ -10,6 +10,7 @@
 #include "services/interfaces/IFrameworkSchemaManager.h"
 #include "services/interfaces/IJsonLoader.h"
 #include "services/interfaces/ILogger.h"
+#include "services/interfaces/ISelectionAlgorithmManager.h"
 #include "services/interfaces/IStartCharacterActionProvider.h"
 #include "services/interfaces/IStateOperationEvaluator.h"
 #include "services/interfaces/ITimeManager.h"
@@ -19,14 +20,16 @@ namespace AmbientCharacterBehavior {
 struct FoundationServices {
     ILogger& logger;
     ITimeManager& time_manager;
+    ISelectionAlgorithmManager& selection_algorithm_manager;
     IEnvironmentalConditionProvider& environmental_condition_provider;
     IStartCharacterActionProvider& start_character_action_provider;
     IEntityPositionProvider& entity_position_provider;
 
-    FoundationServices(ILogger& logger, ITimeManager& time_manager,
+    FoundationServices(ILogger& logger, ITimeManager& time_manager, ISelectionAlgorithmManager& selection_algorithm_manager,
         IEnvironmentalConditionProvider& environmental_condition_provider,
         IStartCharacterActionProvider& start_character_action_provider, IEntityPositionProvider& entity_position_provider) :
-        logger(logger), time_manager(time_manager), environmental_condition_provider(environmental_condition_provider),
+        logger(logger), time_manager(time_manager), selection_algorithm_manager(selection_algorithm_manager),
+        environmental_condition_provider(environmental_condition_provider),
         start_character_action_provider(start_character_action_provider),
         entity_position_provider(entity_position_provider){}
 };
