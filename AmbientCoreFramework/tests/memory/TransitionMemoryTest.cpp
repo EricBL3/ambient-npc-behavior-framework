@@ -1,5 +1,5 @@
 ﻿#include <gtest/gtest.h>
-#include "memory/TransitionMemory.h"
+#include "../../src/memory/memory_types/TransitionMemory.h"
 
 using namespace AmbientCharacterBehavior;
 

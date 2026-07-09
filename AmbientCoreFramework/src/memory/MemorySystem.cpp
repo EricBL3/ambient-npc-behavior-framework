@@ -199,15 +199,147 @@ const InterruptionMemory * MemorySystem::FindInterruptionMemory(int32_t action_i
 // MEMORY-DRIVEN SELECTION
 // =============================================================================
 
-std::optional<int32_t> MemorySystem::SelectTransitionNodeId(int32_t sequence_id, int32_t current_node_id,
-    const std::vector<int32_t> &valid_node_ids, const EntityMetricInfo& metric_info)
+SelectionResult MemorySystem::SelectByRecency(const std::vector<RecencyCandidate>& candidates)
+{
+    // ===== Phase 1: Separate unused from used candidates =====
+
+    std::vector<int32_t> unused_ids;
+    unused_ids.reserve(candidates.size());
+    std::vector<const RecencyCandidate*> used_candidates;
+    used_candidates.reserve(candidates.size());
+
+    for (const auto& candidate : candidates)
+    {
+        if (!candidate.last_used.has_value())
+        {
+            unused_ids.emplace_back(candidate.id);
+        }
+        else
+        {
+            used_candidates.push_back(&candidate);
+        }
+    }
+
+    // ===== Phase 2: prefer unused candidates =====
+
+    if (!unused_ids.empty())
+    {
+        if (unused_ids.size() == 1)
+        {
+            return SelectionResult{ unused_ids[0], "unused" };
+        }
+
+        auto random_index = GetRandomIndex(static_cast<int32_t>(unused_ids.size()));
+        return SelectionResult{ unused_ids[random_index], "unused_random" };
+    }
+
+    // ===== Phase 3: select least recently used =====
+
+    if (used_candidates.empty())
+    {
+        // Should be impossible: we have candidates but neither unused nor used
+        Logger().LogWarning("All candidates unused but exploration failed.",
+            "MemorySystem");
+
+        return SelectionResult{ std::nullopt, "no_used_or_unused" };
+    }
+
+    std::vector<int32_t> oldest_ids;
+    oldest_ids.reserve(used_candidates.size());
+    int64_t oldest_time = INT64_MAX;
+
+    for (const auto* candidate : used_candidates)
+    {
+        int64_t current_time = candidate->last_used.value();
+
+        if (current_time < oldest_time)
+        {
+            oldest_time = current_time;
+            oldest_ids.clear();
+            oldest_ids.emplace_back(candidate->id);
+        }
+        else if (current_time == oldest_time)
+        {
+            oldest_ids.emplace_back(candidate->id);
+        }
+    }
+
+    // Defensive check: should never happen since used_candidates is non-empty
+    if (oldest_ids.empty())
+    {
+        return SelectionResult{ std::nullopt, "no_oldest_found" };
+    }
+
+    // ===== Phase 4: Random tie-breaking =====
+
+    if (oldest_ids.size() == 1)
+    {
+        return SelectionResult{ oldest_ids[0], "LRU" };
+    }
+
+    auto random_index = GetRandomIndex(static_cast<int32_t>(oldest_ids.size()));
+    return SelectionResult{ oldest_ids[random_index], "LRU_random" };
+}
+
+void MemorySystem::FinalizeSelectionLog(nlohmann::json event, const SelectionResult& result) const
+{
+    event["branch_fired"] = result.branch_fired;
+    event["selected_option"] = result.selected_id.value_or(-1);
+    Logger().LogMetric(event);
+}
+
+std::optional<int32_t> MemorySystem::SelectTransitionNodeId(const std::vector<int32_t> &valid_node_ids,
+    const SelectionAlgorithmInfo& selection_algorithm_info)
 {
     // Performance profiling marker
     ZoneScoped;
 
-    // Prepare metric log as:
-    // event, timestamp, system_used, npc_id, npc_name, decision_type, action_id, available_options, memory_state, branch_fired, selected_option
+    // ===== Early returns for trivial cases =====
 
+    // No options available
+    if (valid_node_ids.empty())
+    {
+        nlohmann::json event =
+        {
+            {"event", "decision"},
+            { "ts", TimeManager().GetCurrentTime() },
+            { "system_used", "none"},
+            { "npc_id", selection_algorithm_info.npc_id},
+            {"npc_name", selection_algorithm_info.npc_name},
+            {"decision_type", "transition"},
+            {"sequence_id", selection_algorithm_info.sequence_id},
+            {"current_node_id", selection_algorithm_info.current_node_id},
+            {"available_options", valid_node_ids},
+            {"branch_fired", "no_options"},
+            {"selected_option", -1}
+        };
+
+        Logger().LogMetric(event);
+        return std::nullopt;
+    }
+
+    // Only one option, no selection needed
+    if (valid_node_ids.size() == 1) {
+        nlohmann::json event =
+        {
+            {"event", "decision"},
+            { "ts", TimeManager().GetCurrentTime() },
+            { "system_used", "none"},
+            { "npc_id", selection_algorithm_info.npc_id},
+            {"npc_name", selection_algorithm_info.npc_name},
+            {"decision_type", "transition"},
+            {"sequence_id", selection_algorithm_info.sequence_id},
+            {"current_node_id", selection_algorithm_info.current_node_id},
+            {"available_options", valid_node_ids},
+            {"branch_fired", "one_option"},
+            {"selected_option", valid_node_ids[0]}
+        };
+
+        Logger().LogMetric(event);
+        return valid_node_ids[0];
+    }
+
+    // Build base event
     nlohmann::json memories = nlohmann::json::array();
     for (const auto& memory : transition_memories)
     {
@@ -223,151 +355,86 @@ std::optional<int32_t> MemorySystem::SelectTransitionNodeId(int32_t sequence_id,
         {"event", "decision"},
         { "ts", TimeManager().GetCurrentTime() },
         { "system_used", "memory"},
-        { "npc_id", metric_info.npc_id},
-        {"npc_name", metric_info.npc_name},
+        { "npc_id", selection_algorithm_info.npc_id},
+        {"npc_name", selection_algorithm_info.npc_name},
         {"decision_type", "transition"},
-        {"sequence_id", sequence_id},
-        {"current_node_id", current_node_id},
+        {"sequence_id", selection_algorithm_info.sequence_id},
+        {"current_node_id", selection_algorithm_info.current_node_id},
         {"available_options", valid_node_ids},
         {"memory_state", memories}
     };
 
-    // ===== Early returns for trivial cases =====
+    // ===== Build candidates (type specific memory lookup) =====
 
-    if (valid_node_ids.empty())
-    {
-        // No options available
-        event["branch_fired"] = "no_options";
-        event["selected_option"] = -1;
-        Logger().LogMetric(event);
-
-        return std::nullopt;
-    }
-
-    if (valid_node_ids.size() == 1) {
-        // Only one option, no selection needed
-        event["branch_fired"] = "one_option";
-        event["selected_option"] = valid_node_ids[0];
-        Logger().LogMetric(event);
-
-        return valid_node_ids[0];
-    }
-
-    // ===== Phase 1: Separate unused from used nodes =====
-
-    std::vector<int32_t> unused_nodes;
-    unused_nodes.reserve(valid_node_ids.size());
-    std::vector<const TransitionMemory*> used_transition_memories;
-    used_transition_memories.reserve(valid_node_ids.size());
+    std::vector<RecencyCandidate> candidates;
+    candidates.reserve(valid_node_ids.size());
 
     // Single-pass separation: check each node for existing memory
     for (auto node_id : valid_node_ids)
     {
-        const auto transition_memory = FindTransitionMemory(sequence_id, node_id);
-        if (!transition_memory)
-        {
-            // No memory = unused
-            unused_nodes.emplace_back(node_id);
-        }
-        else
-        {
-            // Store memory pointer for least recently used selection
-            used_transition_memories.push_back(transition_memory);
-        }
+        const auto transition_memory = FindTransitionMemory(selection_algorithm_info.sequence_id, node_id);
+        candidates.push_back(RecencyCandidate{
+            node_id,
+            transition_memory ? std::optional<int64_t>(transition_memory->GetCreationTime()) : std::nullopt
+        });
     }
 
-    // ===== Phase 2: prefer unused nodes =====
-
-    if (!unused_nodes.empty())
-    {
-        if (unused_nodes.size() == 1)
-        {
-            // Only one unused, no randomization needed
-            event["branch_fired"] = "unused";
-            event["selected_option"] = unused_nodes[0];
-            Logger().LogMetric(event);
-
-            return unused_nodes[0];
-        }
-
-        auto random_index = GetRandomIndex(static_cast<int32_t>(unused_nodes.size()));
-        event["branch_fired"] = "unused_random";
-        event["selected_option"] = unused_nodes[random_index];
-        Logger().LogMetric(event);
-
-        return unused_nodes[random_index];
-    }
-
-    // ===== Phase 3: select least recently used =====
-
-    if (used_transition_memories.empty())
-    {
-        // Should be impossible: we have valid nodes but neither unused nor used
-        Logger().LogWarning("All nodes unused but exploration failed.",
-            "MemorySystem");
-
-        return std::nullopt;
-    }
-
-    // Find node(s) with oldest timestamp
-    std::vector<int32_t> oldest_nodes;
-    oldest_nodes.reserve(used_transition_memories.size());
-    int64_t oldest_time = INT64_MAX;
-
-    for (const auto transition_memory : used_transition_memories)
-    {
-        int64_t current_time {transition_memory->GetCreationTime()};
-
-        if (current_time < oldest_time)
-        {
-            // Found new oldest - restart collection
-            oldest_time = current_time;
-            oldest_nodes.clear();
-            oldest_nodes.emplace_back(transition_memory->GetTargetNodeId());
-        } // If there is a tie, we just add it to the existing oldest_nodes vector.
-        else if (current_time == oldest_time)
-        {
-            // Tie with current oldest - add to collection
-            oldest_nodes.emplace_back(transition_memory->GetTargetNodeId());
-        }
-    }
-
-    // Defensive check: should never happen since used_transition_memories is non-empty
-    if (oldest_nodes.empty())
-    {
-        return std::nullopt;
-    }
-
-    // ===== Phase 4: Random tie-breaking =====
-
-    if (oldest_nodes.size() == 1)
-    {
-        // Only one oldest, no randomization needed
-        event["branch_fired"] = "LRU";
-        event["selected_option"] = oldest_nodes[0];
-        Logger().LogMetric(event);
-
-        return oldest_nodes[0];
-    }
-
-    auto random_index = GetRandomIndex(static_cast<int32_t>(oldest_nodes.size()));
-    event["branch_fired"] = "LRU_random";
-    event["selected_option"] = oldest_nodes[random_index];
-    Logger().LogMetric(event);
-
-    return oldest_nodes[random_index];
+    auto result = SelectByRecency(candidates);
+    FinalizeSelectionLog(event, result);
+    return result.selected_id;
 }
 
-std::optional<int32_t> MemorySystem::SelectActionEntityId(int32_t action_id, const std::vector<int32_t> &valid_entity_ids,
-        const EntityMetricInfo& metric_info)
+std::optional<int32_t> MemorySystem::SelectActionEntityId(const std::vector<int32_t> &valid_entity_ids,
+        const SelectionAlgorithmInfo& selection_algorithm_info)
 {
     // Performance profiling marker
     ZoneScoped;
 
+    // ===== Early returns for trivial cases =====
 
-    // Prepare metric log as:
-    // event, timestamp, system_used, npc_id, npc_name, decision_type, action_id, available_options, memory_state, branch_fired, selected_option
+    // No options available
+    if (valid_entity_ids.empty())
+    {
+        nlohmann::json event =
+        {
+            {"event", "decision"},
+            { "ts", TimeManager().GetCurrentTime() },
+            { "system_used", "none"},
+            { "npc_id", selection_algorithm_info.npc_id},
+            {"npc_name", selection_algorithm_info.npc_name},
+            {"decision_type", "entity"},
+            {"action_id", selection_algorithm_info.action_id},
+            {"available_options", valid_entity_ids},
+            {"branch_fired", "no_options"},
+            {"selected_option", -1}
+        };
 
+        Logger().LogMetric(event);
+        return std::nullopt;
+    }
+
+    // Only one option, no selection needed
+    if (valid_entity_ids.size() == 1)
+    {
+        nlohmann::json event =
+        {
+            {"event", "decision"},
+            { "ts", TimeManager().GetCurrentTime() },
+            { "system_used", "none"},
+            { "npc_id", selection_algorithm_info.npc_id},
+            {"npc_name", selection_algorithm_info.npc_name},
+            {"decision_type", "entity"},
+            {"action_id", selection_algorithm_info.action_id},
+            {"available_options", valid_entity_ids},
+            {"branch_fired", "one_option"},
+            {"selected_option", valid_entity_ids[0]}
+        };
+
+        Logger().LogMetric(event);
+        return valid_entity_ids[0];
+    }
+
+    // Build base event
     nlohmann::json memories = nlohmann::json::array();
     for (const auto& memory : action_memories)
     {
@@ -383,136 +450,31 @@ std::optional<int32_t> MemorySystem::SelectActionEntityId(int32_t action_id, con
         {"event", "decision"},
         { "ts", TimeManager().GetCurrentTime() },
         { "system_used", "memory"},
-        { "npc_id", metric_info.npc_id},
-        {"npc_name", metric_info.npc_name},
+        { "npc_id", selection_algorithm_info.npc_id},
+        {"npc_name", selection_algorithm_info.npc_name},
         {"decision_type", "entity"},
-        {"action_id", action_id},
+        {"action_id", selection_algorithm_info.action_id},
         {"available_options", valid_entity_ids},
         {"memory_state", memories}
     };
 
-    // ===== Early returns for trivial cases =====
+    // ===== Build candidates (type specific memory lookup) =====
+    std::vector<RecencyCandidate> candidates;
+    candidates.reserve(valid_entity_ids.size());
 
-    if (valid_entity_ids.empty())
-    {
-        // No options available
-        event["branch_fired"] = "no_options";
-        event["selected_option"] = -1;
-        Logger().LogMetric(event);
-
-        return std::nullopt;
-    }
-
-    if (valid_entity_ids.size() == 1)
-    {
-        // Only one option, no selection needed
-        event["branch_fired"] = "one_option";
-        event["selected_option"] = valid_entity_ids[0];
-        Logger().LogMetric(event);
-
-        return valid_entity_ids[0];
-    }
-
-    // ===== Phase 1: Separate unused from used entities =====
-
-    std::vector<int32_t> unused_entities;
-    unused_entities.reserve(valid_entity_ids.size());
-    std::vector<const ActionMemory*> used_action_memories;
-    used_action_memories.reserve(valid_entity_ids.size());
-
-    // Single-pass separation: check each entity for existing memory
     for (auto entity_id : valid_entity_ids)
     {
-        const auto memory = FindActionMemory(action_id, entity_id);
-        if (!memory)
-        {
-            // No memory = unused
-            unused_entities.emplace_back(entity_id);
-        }
-        else
-        {
-            // Store pointer for least recently used selection
-            used_action_memories.push_back(memory);
-        }
+        const auto action_memory = FindActionMemory(selection_algorithm_info.action_id, entity_id);
+
+        candidates.push_back(RecencyCandidate{
+            entity_id,
+            action_memory ? std::optional<int64_t>(action_memory->GetCreationTime()) : std::nullopt
+        });
     }
 
-    // ===== Phase 2:prefer unused entities =====
-
-    if (!unused_entities.empty())
-    {
-        if (unused_entities.size() == 1)
-        {
-            // Only one unused, no randomization needed
-            event["branch_fired"] = "unused";
-            event["selected_option"] = unused_entities[0];
-            Logger().LogMetric(event);
-
-            return unused_entities[0];
-        }
-
-        auto random_index = GetRandomIndex(static_cast<int32_t>(unused_entities.size()));
-        event["branch_fired"] = "unused_random";
-        event["selected_option"] = unused_entities[random_index];
-        Logger().LogMetric(event);
-
-        return unused_entities[random_index];
-    }
-
-    // ===== Phase 3: select least recently used =====
-
-    if (used_action_memories.empty())
-    {
-        // Should be impossible: we have valid entities but neither unused nor used
-        return std::nullopt;
-    }
-
-    // Find entity(s) with oldest timestamp
-    std::vector<int32_t> oldest_entities;
-    oldest_entities.reserve(used_action_memories.size());
-    int64_t oldest_time = INT64_MAX;
-
-    for (const auto memory : used_action_memories)
-    {
-        int64_t current_time {memory->GetCreationTime()};
-
-        if (current_time < oldest_time)
-        {
-            // Found new oldest - restart collection
-            oldest_time = current_time;
-            oldest_entities.clear();
-            oldest_entities.emplace_back(memory->GetTargetEntityId());
-        }
-        else if (current_time == oldest_time)
-        {
-            // Tie with current oldest - add to collection
-            oldest_entities.emplace_back(memory->GetTargetEntityId());
-        }
-    }
-
-    // Defensive check: should never happen since used_action_memories is non-empty
-    if (oldest_entities.empty())
-    {
-        return std::nullopt;
-    }
-
-    // ===== Phase 4: Random tie-breaking =====
-
-    if (oldest_entities.size() == 1)
-    {
-        // Only one oldest, no randomization needed
-        event["branch_fired"] = "LRU";
-        event["selected_option"] = oldest_entities[0];
-        Logger().LogMetric(event);
-
-        return oldest_entities[0];
-    }
-
-    auto random_index = GetRandomIndex(static_cast<int32_t>(oldest_entities.size()));
-    event["branch_fired"] = "LRU_random";
-    event["selected_option"] = oldest_entities[random_index];
-    Logger().LogMetric(event);
-
-    return oldest_entities[random_index];
+    auto result = SelectByRecency(candidates);
+    FinalizeSelectionLog(event, result);
+    return result.selected_id;
 }
 
 // =============================================================================

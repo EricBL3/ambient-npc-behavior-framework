@@ -1,5 +1,5 @@
 #include <gtest/gtest.h>
-#include "memory/InterruptionMemory.h"
+#include "../../src/memory/memory_types/InterruptionMemory.h"
 
 using namespace AmbientCharacterBehavior;
 

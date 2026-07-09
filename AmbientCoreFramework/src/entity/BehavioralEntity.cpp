@@ -2,7 +2,7 @@
 #include <algorithm>
 #include <tracy/Tracy.hpp>
 
-#include "EntityMetricInfo.h"
+#include "../memory/SelectionAlgorithmInfo.h"
 #include "../behavior/sequence_nodes/ActionSequenceNode.h"
 #include "../behavior/sequence_nodes/NestedSequenceNode.h"
 #include "services/composition/ServiceBuilder.h"
@@ -606,9 +606,13 @@ FrameworkEntity* BehavioralEntity::GetActionTargetEntity(const std::shared_ptr<A
 
     // PHASE 3: MEMORY-BASED SELECTION
 
-    auto metric_info = new EntityMetricInfo{entity_id, name};
-    auto selected_entity_id = memory.SelectActionEntityId(action->GetActionId(), valid_entity_ids,
-        *metric_info);
+    auto action_entity_info = new SelectionAlgorithmInfo{
+        .npc_id = entity_id,
+        .npc_name = name,
+        .action_id = action->GetActionId()
+    };
+
+    auto selected_entity_id = memory.SelectActionEntityId(valid_entity_ids, *action_entity_info);
 
     return selected_entity_id ? EntityQuery().GetEntityFromId(selected_entity_id.value()) : nullptr;
 }
@@ -639,9 +643,14 @@ std::optional<int32_t> BehavioralEntity::GetNodeIdForNextTransition()
         valid_node_ids.emplace_back(transition.GetDestinationNodeId());
     }
 
-    auto metric_info = new EntityMetricInfo{entity_id, name};
-    return memory.SelectTransitionNodeId(sequences.top()->GetSequenceId(), sequences.top()->GetCurrentNodeId(),
-        valid_node_ids, *metric_info);
+    auto transition_info = new SelectionAlgorithmInfo{
+        .npc_id = entity_id,
+        .npc_name = name,
+        .sequence_id = sequences.top()->GetSequenceId(),
+        .current_node_id = sequences.top()->GetCurrentNodeId()
+    };
+
+    return memory.SelectTransitionNodeId(valid_node_ids, *transition_info);
 }
 
 // ═══════════════════════════════════════════════════════════════════════════

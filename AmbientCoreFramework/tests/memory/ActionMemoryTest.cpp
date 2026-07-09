@@ -1,5 +1,5 @@
 #include <gtest/gtest.h>
-#include "memory/ActionMemory.h"
+#include "../../src/memory/memory_types/ActionMemory.h"
 
 using namespace AmbientCharacterBehavior;
 

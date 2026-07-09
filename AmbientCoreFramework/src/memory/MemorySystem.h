@@ -4,10 +4,12 @@
 #include <random>
 #include <vector>
 
-#include "ActionMemory.h"
-#include "InterruptionMemory.h"
-#include "TransitionMemory.h"
-#include "entity/EntityMetricInfo.h"
+#include "memory_types/ActionMemory.h"
+#include "memory_types/InterruptionMemory.h"
+#include "RecencyCandidate.h"
+#include "memory_types/TransitionMemory.h"
+#include "SelectionAlgorithmInfo.h"
+#include "SelectionResult.h"
 #include "services/composition/ServiceBundles.h"
 #include "services/interfaces/ILogger.h"
 
@@ -19,7 +21,6 @@ namespace AmbientCharacterBehavior {
  * 1. Storage: Maintains bounded collections of transition, action, and interruption memories
  * 2. Selection: Implements exploration-exploitation algorithms for decision-making
  * 3. Management: Enforces capacity limits and handles memory lifecycle
- *
  *
  * Memory Capacity:
  * Each memory has independent configurable capacity limits. When limits are exceeded, oldest memories are removed (FIFO).
@@ -181,25 +182,26 @@ public:
      * - Distributing usage over time (least recently used selection)
      * - Preventing systematic bias (random tie-breaking)
      *
-     * @param sequence_id Current sequence (for memory lookup)
      * @param valid_node_ids Nodes that satisfy the transition preconditions
+     * @param selection_algorithm_info The data used by the selection algorithm. sequence_id and current_node_id
+     * are necessary for this method.
      * @return The selected node id, or std::nullopt if valid_node_ids is empty
      */
     [[nodiscard]]
-    std::optional<int32_t> SelectTransitionNodeId(int32_t sequence_id, int32_t current_node_id,
-        const std::vector<int32_t>& valid_node_ids, const EntityMetricInfo& metric_info);
+    std::optional<int32_t> SelectTransitionNodeId(const std::vector<int32_t>& valid_node_ids,
+        const SelectionAlgorithmInfo& selection_algorithm_info);
 
     /**
      * @brief Select an action target entity using exploration-exploitation strategy
      *
      * Same algorithm SelectTransitionNodeId but for entity selection.
-     * @param action_id Current action (for memory lookup)
      * @param valid_entity_ids Entities that satisfy preconditions of the action
+    * * @param selection_algorithm_info The data used by the selection algorithm. action_id is necessary for this method.
      * @return Selected entity id, or std::nullopt if valid_entity_ids is empty
      */
     [[nodiscard]]
-    std::optional<int32_t> SelectActionEntityId(int32_t action_id, const std::vector<int32_t>& valid_entity_ids,
-        const EntityMetricInfo& metric_info);
+    std::optional<int32_t> SelectActionEntityId(const std::vector<int32_t>& valid_entity_ids,
+        const SelectionAlgorithmInfo& selection_algorithm_info);
 
     // =============================================================================
     // Memory Query
@@ -284,6 +286,27 @@ private:
      * Uses pop_front() for O(1) removal. Called after each memory creation.
      */
     void EnforceMaxInterruptionMemories();
+
+    // =============================================================================
+    // Memory-Driven Selection
+    // =============================================================================
+
+    /**
+     * @brief Selects a candidate using the memory selection algorithm.
+     * 1. If any nodes are unused (not in memory), randomly select from them
+     * 2. Otherwise, select from least recently used node(s)
+     * 3. Tie-breaking: Randomly select among equal-priority options
+     *
+     * This creates behavioral variety by:
+     * - Encouraging exploration of new paths (unused nodes)
+     * - Distributing usage over time (least recently used selection)
+     * - Preventing systematic bias (random tie-breaking)
+     * @param candidates
+     * @return
+     */
+    SelectionResult SelectByRecency(const std::vector<RecencyCandidate>& candidates);
+
+    void FinalizeSelectionLog(nlohmann::json event, const SelectionResult& result) const;
 
     // =============================================================================
     // Memory Deduplication
