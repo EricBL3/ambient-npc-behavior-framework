@@ -21,6 +21,7 @@ private:
     std::unique_ptr<ILogger> logger;
     std::unique_ptr<ITimeManager> time_manager;
     std::unique_ptr<ISelectionAlgorithmManager> selection_algorithm_manager;
+    std::unique_ptr<ISeedManager> seed_manager;
     std::unique_ptr<IEnvironmentalConditionProvider> environmental_condition_provider;
     std::unique_ptr<IStartCharacterActionProvider> start_character_action_provider;
     std::unique_ptr<IEntityPositionProvider> entity_position_provider;
@@ -62,6 +63,7 @@ private:
         std::unique_ptr<ILogger> logger,
         std::unique_ptr<ITimeManager> time_manager,
         std::unique_ptr<ISelectionAlgorithmManager> selection_algorithm_manager,
+        std::unique_ptr<ISeedManager> seed_manager,
         std::unique_ptr<IEnvironmentalConditionProvider> environmental_condition_provider,
         std::unique_ptr<IStartCharacterActionProvider> start_character_action_provider,
         std::unique_ptr<IEntityPositionProvider> entity_position_provider,

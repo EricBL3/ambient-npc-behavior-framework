@@ -9,11 +9,13 @@
 #include "services/interfaces/IFrameworkSchemaManager.h"
 #include "services/interfaces/IJsonLoader.h"
 #include "services/interfaces/ILogger.h"
+#include "services/interfaces/ISeedManager.h"
 #include "services/interfaces/ISelectionAlgorithmManager.h"
 #include "services/interfaces/IStartCharacterActionProvider.h"
 #include "services/interfaces/IStateOperationEvaluator.h"
 #include "services/interfaces/ITimeManager.h"
 #include "services/layers/0_foundation/FrameworkLogger.h"
+#include "services/layers/0_foundation/SeedManager.h"
 #include "services/layers/0_foundation/SelectionAlgorithmManager.h"
 #include "services/layers/0_foundation/TimeManager.h"
 #include "services/layers/0_foundation/callback_providers/EntityPositionProvider.h"
@@ -48,6 +50,11 @@ namespace ServiceFactories {
     inline std::unique_ptr<ISelectionAlgorithmManager> CreateSelectionAlgorithmManager()
     {
         return std::make_unique<SelectionAlgorithmManager>();
+    }
+
+    inline std::unique_ptr<ISeedManager> CreateSeedManager()
+    {
+        return std::make_unique<SeedManager>();
     }
 
     inline std::unique_ptr<IEnvironmentalConditionProvider> CreateEnvironmentalConditionProvider(

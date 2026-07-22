@@ -26,7 +26,8 @@ public:
     void InitializeFramework(const std::string &schema_file_path, const std::string &sequences_file_path,
         const std::string &actions_file_path, const std::string &environmental_conditions_file_path,
         const std::string& log_file_path, FrameworkLogLevel log_level = FrameworkLogLevel::ERROR,
-        SelectionAlgorithmOption selection_algorithm = SelectionAlgorithmOption::MEMORY_BASED);
+        SelectionAlgorithmOption selection_algorithm = SelectionAlgorithmOption::MEMORY_BASED,
+        std::optional<uint32_t> seed = std::nullopt);
 
     bool IsInitialized() const { return is_initialized; }
 
@@ -45,7 +46,8 @@ private:
 
     bool InitializeFoundationServices(const std::string& log_file_path,
         FrameworkLogLevel log_level = FrameworkLogLevel::ERROR,
-        SelectionAlgorithmOption selection_algorithm  = SelectionAlgorithmOption::MEMORY_BASED) const;
+        SelectionAlgorithmOption selection_algorithm  = SelectionAlgorithmOption::MEMORY_BASED,
+        std::optional<uint32_t> seed = std::nullopt) const;
 
     bool InitializeSimulationStateServices(const std::string& schema_file_path,
         const std::string& environmental_conditions_file_path, const std::string& actions_file_path) const;

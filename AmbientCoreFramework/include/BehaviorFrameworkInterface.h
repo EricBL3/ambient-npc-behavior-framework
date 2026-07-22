@@ -83,12 +83,14 @@ extern "C" {
      * @param log_level                         Logging verbosity: 0 = debug, 1 = info, 2 = warning,
      *                                          3 = error.
      * @param selection_algorithm_option        Selection algorithm to use: 0 = memory_based, 1 = uniform_random
+     * @param seed                              Seed used for random generation. Use a value of -1 for not setting a seed.
      * @return                                  True if all configuration files were loaded successfully.
      */
     AmbientCoreFramework_API bool InitializeAmbientBehaviorFramework(void* framework_handle, const char* schema_file_path,
         const char* sequences_file_path, const char* actions_file_path,
         const char* environmental_conditions_file_path, const char*  log_file_path, int32_t log_level,
-        int32_t selection_algorithm_option);
+        int32_t selection_algorithm_option,
+        int64_t seed);
 
     /**
      * Shuts down the framework, processing any remaining pending entity commands

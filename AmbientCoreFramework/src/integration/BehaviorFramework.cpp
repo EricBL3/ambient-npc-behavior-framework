@@ -7,7 +7,8 @@ using namespace AmbientCharacterBehavior;
 
 void BehaviorFramework::InitializeFramework(const std::string &schema_file_path, const std::string &sequences_file_path,
     const std::string &actions_file_path, const std::string &environmental_conditions_file_path,
-    const std::string& log_file_path, FrameworkLogLevel log_level, SelectionAlgorithmOption selection_algorithm)
+    const std::string& log_file_path, FrameworkLogLevel log_level, SelectionAlgorithmOption selection_algorithm,
+    std::optional<uint32_t> seed)
 {
     ZoneScoped;
 
@@ -15,7 +16,7 @@ void BehaviorFramework::InitializeFramework(const std::string &schema_file_path,
     {
         try
         {
-            auto success = InitializeFoundationServices(log_file_path, log_level, selection_algorithm) &&
+            auto success = InitializeFoundationServices(log_file_path, log_level, selection_algorithm, seed) &&
                 InitializeSimulationStateServices(schema_file_path, environmental_conditions_file_path, actions_file_path) &&
                 InitializeRegistry(actions_file_path, sequences_file_path);
             is_initialized = success;
@@ -35,7 +36,7 @@ void BehaviorFramework::InitializeFramework(const std::string &schema_file_path,
 }
 
 bool BehaviorFramework::InitializeFoundationServices(const std::string& log_file_path, FrameworkLogLevel log_level,
-    SelectionAlgorithmOption selection_algorithm) const
+    SelectionAlgorithmOption selection_algorithm, std::optional<uint32_t> seed) const
 {
     ZoneScoped;
 
@@ -44,6 +45,7 @@ bool BehaviorFramework::InitializeFoundationServices(const std::string& log_file
         if (app_context->Foundation().logger.Initialize(log_file_path, log_level))
         {
             app_context->Foundation().selection_algorithm_manager.SetSelectionAlgorithmOption(selection_algorithm);
+            app_context->Foundation().seed_manager.SetSeed(seed);
             app_context->Foundation().logger.LogInfo("Initialized Foundation Services.",
                 "BehaviorFramework");
 

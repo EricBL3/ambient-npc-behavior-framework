@@ -8,9 +8,10 @@ using namespace AmbientCharacterBehavior;
 // CONSTRUCTION & CONFIGURATION
 // =============================================================================
 
-MemorySystem::MemorySystem(int32_t max_transitions, int32_t max_actions, int32_t max_interruptions, FoundationServices& services) :
+MemorySystem::MemorySystem(int32_t max_transitions, int32_t max_actions, int32_t max_interruptions,
+    FoundationServices& services, std::optional<uint32_t> seed) :
     max_transition_memories(0), max_action_memories(0), max_interruption_memories(0), services(services),
-    rng(std::random_device{}()) // Seed RNG with random device
+    rng(seed.value_or(std::random_device{}()))
 {
     ConfigureMaxTransitionMemories(max_transitions);
     ConfigureMaxActionMemories(max_actions);

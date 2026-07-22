@@ -62,6 +62,11 @@ private:
         return services.simulation_state.data_access.foundation.time_manager;
     }
 
+    ISeedManager& SeedManager() const
+    {
+        return services.simulation_state.data_access.foundation.seed_manager;
+    }
+
     IStartCharacterActionProvider& ActionProvider() const
     {
         return services.simulation_state.data_access.foundation.start_character_action_provider;

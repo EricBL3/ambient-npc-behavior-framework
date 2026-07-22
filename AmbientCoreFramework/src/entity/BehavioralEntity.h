@@ -137,6 +137,7 @@ public:
      * @param max_action_memories Capacity for action-entity pair history
      * @param max_interruption_memories Capacity for interruption context storage
      * @param name (Optional) The name of the character. Used mostly for logging purposes.
+     * @param seed (Optional) The seed for random number generation
      * @throw std::invalid_argument if entity_id < 0.
      */
     explicit BehavioralEntity(
@@ -146,7 +147,8 @@ public:
         int32_t max_transition_memories,
         int32_t max_action_memories,
         int32_t max_interruption_memories,
-        std::string name = ""
+        std::string name = "",
+        std::optional<uint32_t> seed = std::nullopt
     );
 
     /**

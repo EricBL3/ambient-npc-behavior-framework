@@ -20,12 +20,14 @@ BehavioralEntity::BehavioralEntity(
     int32_t max_transition_memories,
     int32_t max_action_memories,
     int32_t max_interruption_memories,
-    std::string name
+    std::string name,
+    std::optional<uint32_t> seed
     ) : FrameworkEntity(entity_handle, entity_id, std::move(name)),
         services(services),
         memory(max_transition_memories, max_action_memories,
             max_interruption_memories,
-            services.behavioral_evaluation.simulation_state.data_access.foundation),
+            services.behavioral_evaluation.simulation_state.data_access.foundation,
+            seed),
         main_sequence(nullptr),
         current_action_target_id(-1),
         is_processing(false),
@@ -1062,7 +1064,8 @@ void BehavioralEntity::HandleSequenceFailure()
         return;
     }
 
-    auto fallback_sequence_template = fallback_sequences[rand() % fallback_sequences.size()];
+    auto rand_index = memory.GetRandomIndex(static_cast<int32_t>(fallback_sequences.size()));
+    auto fallback_sequence_template = fallback_sequences[rand_index];
     auto fallback_instance = fallback_sequence_template->CreateInstance();
 
     Logger().LogInfo("Entity with id: " + std::to_string(entity_id) + " will now follow fallback sequence with "

@@ -29,14 +29,14 @@ extern "C" {
     AmbientCoreFramework_API bool InitializeAmbientBehaviorFramework(void* framework_handle, const char* schema_file_path,
         const char* sequences_file_path, const char* actions_file_path,
         const char* environmental_conditions_file_path, const char*  log_file_path, int32_t log_level,
-        int32_t selection_algorithm_option)
+        int32_t selection_algorithm_option,
+        int64_t seed)
     {
 
         if (const auto framework = static_cast<BehaviorFramework*>(framework_handle))
         {
-
+            // Set log level
             auto log_level_candidate = static_cast<FrameworkLogLevel>(log_level);
-
             const bool is_log_level_valid =
                 log_level_candidate == FrameworkLogLevel::DEBUG ||
                 log_level_candidate == FrameworkLogLevel::INFO ||
@@ -46,6 +46,7 @@ extern "C" {
 
             FrameworkLogLevel framework_log_level = is_log_level_valid ? log_level_candidate : FrameworkLogLevel::ERROR;
 
+            // Set selection algorithm option
             auto selection_algorithm_option_candidate = static_cast<SelectionAlgorithmOption>(selection_algorithm_option);
             const bool is_selection_algorithm_option_valid =
                 selection_algorithm_option_candidate == SelectionAlgorithmOption::MEMORY_BASED ||
@@ -54,8 +55,21 @@ extern "C" {
             SelectionAlgorithmOption selection_algorithm = is_selection_algorithm_option_valid ?
             selection_algorithm_option_candidate : SelectionAlgorithmOption::MEMORY_BASED;
 
+            // Set seed value if valid (not negative)
+            std::optional<uint32_t> framework_seed;
+            if (seed >= 0)
+            {
+                framework_seed = static_cast<uint32_t>(seed);
+            }
+            else
+            {
+                framework_seed = std::nullopt;
+            }
+
+
             framework->InitializeFramework(schema_file_path, sequences_file_path, actions_file_path,
-            environmental_conditions_file_path, log_file_path, framework_log_level, selection_algorithm);
+            environmental_conditions_file_path, log_file_path, framework_log_level, selection_algorithm,
+            framework_seed);
 
             return framework->IsInitialized();
         }

@@ -567,6 +567,16 @@ BehavioralEntity * FrameworkRegistry::GenerateBehavioralEntityFromDto(void *enti
             return nullptr;
         }
 
+        // Generate entity seed
+        std::optional<uint32_t> entity_seed;
+        if (auto master_seed = SeedManager().GetSeed())
+        {
+            std::seed_seq seq{*master_seed, static_cast<uint32_t>(entity_dto->base_properties.entity_id)};
+            uint32_t derived;
+            seq.generate(&derived, &derived + 1);
+            entity_seed = derived;
+        }
+
         auto [new_entity_iterator, inserted] = behavioral_entities.emplace(entity_dto->base_properties.entity_id,
             std::make_unique<BehavioralEntity>(BehavioralEntity(
                 *self_bundle,
@@ -575,7 +585,8 @@ BehavioralEntity * FrameworkRegistry::GenerateBehavioralEntityFromDto(void *enti
                 entity_dto->memory_limits.max_transition_memories,
                 entity_dto->memory_limits.max_action_memories,
                 entity_dto->memory_limits.max_interruption_memories,
-                entity_dto->base_properties.entity_name
+                entity_dto->base_properties.entity_name,
+                entity_seed
             )));
 
         if (!inserted)

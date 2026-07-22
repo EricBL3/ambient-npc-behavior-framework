@@ -94,7 +94,8 @@ public:
      * @param services The foundation services of the framework. The memory system uses only logging.
      */
     explicit MemorySystem(int32_t max_transitions, int32_t max_actions, int32_t max_interruptions,
-        FoundationServices& services);
+    FoundationServices& services,
+    std::optional<uint32_t> seed = std::nullopt);
 
     // =============================================================================
     // Capacity Configuration
@@ -266,6 +267,17 @@ public:
     [[nodiscard]]
     size_t GetInterruptionMemoryCount() const { return interruption_memories.size(); }
 
+    // =============================================================================
+    // Random Selection Helper
+    // =============================================================================
+
+    /**
+     * @brief Generate random index for tie-breaking
+     * @param max_exclusive Upper bound (exclusive)
+     * @return Random index in [0, max_exclusive)
+     */
+    int32_t GetRandomIndex(int32_t max_exclusive);
+
 private:
     // =============================================================================
     // Capacity Enforcement
@@ -333,16 +345,6 @@ private:
      */
     void RemoveExistingActionMemory(int32_t action_id, int32_t target_entity_id);
 
-    // =============================================================================
-    // Random Selection Helper
-    // =============================================================================
-
-    /**
-     * @brief Generate random index for tie-breaking
-     * @param max_exclusive Upper bound (exclusive)
-     * @return Random index in [0, max_exclusive)
-     */
-    int32_t GetRandomIndex(int32_t max_exclusive);
 };
 
 }
