@@ -23,10 +23,9 @@ MemorySystem::MemorySystem(int32_t max_transitions, int32_t max_actions, int32_t
 void MemorySystem::ConfigureMaxTransitionMemories(int32_t max_transitions)
 {
     // Validate new capacity
-    if (max_transitions < 0 || max_transitions == max_transition_memories)
+    if (max_transitions < 0)
     {
-        Logger().LogWarning("max_transitions must be >= 0 and different from the current "
-                        "maximum. Keeping current value", "MemorySystem");
+        Logger().LogWarning("max_transitions must be >= 0", "MemorySystem");
 
         return;
     }
@@ -39,10 +38,9 @@ void MemorySystem::ConfigureMaxTransitionMemories(int32_t max_transitions)
 void MemorySystem::ConfigureMaxActionMemories(int32_t max_actions)
 {
     // Validate new capacity
-    if (max_actions < 0 || max_actions == max_action_memories)
+    if (max_actions < 0)
     {
-        Logger().LogWarning("max_actions must be >= 0, and different from the current "
-                        "maximum. Keeping current value", "MemorySystem");
+        Logger().LogWarning("max_actions must be >= 0", "MemorySystem");
 
         return;
     }
@@ -56,10 +54,9 @@ void MemorySystem::ConfigureMaxActionMemories(int32_t max_actions)
 void MemorySystem::ConfigureMaxInterruptionMemories(int32_t max_interruptions)
 {
     // Validate new capacity
-    if (max_interruptions < 0 || max_interruptions == max_interruption_memories)
+    if (max_interruptions < 0)
     {
-        Logger().LogWarning("max_interruptions must be >= 0, and different from the current maximum. "
-                 "Keeping current value", "MemorySystem");
+        Logger().LogWarning("max_interruptions must be >= 0", "MemorySystem");
         return;
     }
 
@@ -346,6 +343,19 @@ std::optional<int32_t> MemorySystem::SelectTransitionNodeId(const std::vector<in
                 result = SelectionResult{ .selected_id = valid_node_ids[random_index], .branch_fired = "random" };
                 break;
             }
+            case SelectionAlgorithmOption::CYCLIC:
+            {
+                event["system_used"] = "cyclic";
+
+                std::optional<int32_t> last;
+                const auto key = std::make_pair(selection_algorithm_info.sequence_id,
+                                                selection_algorithm_info.current_node_id);
+                if (const auto it = last_cyclic_transition.find(key); it != last_cyclic_transition.end())
+                    last = it->second;
+
+                result = SelectCyclic(valid_node_ids, last);
+                break;
+            }
             case SelectionAlgorithmOption::MEMORY_BASED:
             default:
             {
@@ -428,6 +438,18 @@ std::optional<int32_t> MemorySystem::SelectActionEntityId(const std::vector<int3
                 event["system_used"] = "uniform_random";
                 auto random_index = GetRandomIndex(static_cast<int32_t>(valid_entity_ids.size()));
                 result = SelectionResult{ .selected_id = valid_entity_ids[random_index], .branch_fired = "random"};
+                break;
+            }
+            case SelectionAlgorithmOption::CYCLIC:
+            {
+                event["system_used"] = "cyclic";
+
+                std::optional<int32_t> last;
+                const auto key = selection_algorithm_info.action_id;
+                if (const auto it = last_cyclic_entity.find(key); it != last_cyclic_entity.end())
+                    last = it->second;
+
+                result = SelectCyclic(valid_entity_ids, last);
                 break;
             }
             case SelectionAlgorithmOption::MEMORY_BASED:
@@ -607,4 +629,42 @@ int32_t MemorySystem::GetRandomIndex(int32_t max_exclusive)
     // Uniform distribution over [0, max_exclusive)
     std::uniform_int_distribution dist(0, max_exclusive - 1);
     return dist(rng);
+}
+
+SelectionResult MemorySystem::SelectCyclic(const std::vector<int32_t> &options, std::optional<int32_t> last)
+{
+    if (!last.has_value())
+    {
+        const auto i = GetRandomIndex(static_cast<int32_t>(options.size()));
+        // no sort needed for a uniform draw
+        return SelectionResult{ options[i], "cyclic_start" };
+    }
+
+    // sort a copy, inside the cyclic path only
+    std::vector<int32_t> sorted = options;
+    std::ranges::sort(sorted);
+
+    // first id strictly greater than last
+    const auto next = std::ranges::upper_bound(sorted, *last);
+    if (next == sorted.end())
+        return SelectionResult{ sorted.front(), "cyclic_wrap" };
+
+    return SelectionResult{ *next, "cyclic_advance" };
+}
+
+void MemorySystem::RecordCyclicTransition(int32_t sequence_id, int32_t source_node_id, int32_t target_node_id)
+{
+    if (SelectionAlgorithmManager().GetSelectionAlgorithmOption() != SelectionAlgorithmOption::CYCLIC)
+        return;
+
+    last_cyclic_transition[{ sequence_id, source_node_id }] = target_node_id;
+}
+
+void MemorySystem::RecordCyclicEntity(int32_t action_id, int32_t entity_id)
+{
+    if (SelectionAlgorithmManager().GetSelectionAlgorithmOption() != SelectionAlgorithmOption::CYCLIC
+        || entity_id < 0)
+        return;
+
+    last_cyclic_entity[action_id] = entity_id;
 }

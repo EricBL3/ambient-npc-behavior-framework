@@ -9,6 +9,7 @@
 #include "../services/mocks/MockSeedManager.h"
 
 using namespace AmbientCharacterBehavior;
+using ::testing::Return;
 
 class MemorySystemTest : public testing::Test {
 protected:
@@ -40,6 +41,17 @@ protected:
     }
 
     std::unique_ptr<MemorySystem> memory_system;
+
+    // Switch the mock to the cyclic algorithm. Adjust the call to your mock's API.
+    void UseCyclic() {
+        ON_CALL(*mock_selection_algorithm_manager, GetSelectionAlgorithmOption())
+            .WillByDefault(Return(SelectionAlgorithmOption::CYCLIC));
+    }
+
+    void UseMemory() {
+        ON_CALL(*mock_selection_algorithm_manager, GetSelectionAlgorithmOption())
+            .WillByDefault(Return(SelectionAlgorithmOption::MEMORY_BASED));
+    }
 };
 
 // =============================================================================
@@ -624,4 +636,187 @@ TEST_F(MemorySystemTest, DifferentMemoryTypesDoNotMatch) {
     EXPECT_FALSE(action.MatchesMemory(transition));
     EXPECT_FALSE(transition.MatchesMemory(interruption));
     EXPECT_FALSE(interruption.MatchesMemory(action));
+}
+
+namespace {
+// Select at a transition decision point, then record the pick like the hook does.
+int32_t StepTransition(MemorySystem& system, int32_t sequence_id, int32_t node_id,
+                       const std::vector<int32_t>& options) {
+    SelectionAlgorithmInfo info{ .sequence_id = sequence_id, .current_node_id = node_id };
+    const int32_t picked = system.SelectTransitionNodeId(options, info).value();
+    system.RecordCyclicTransition(sequence_id, node_id, picked);
+    return picked;
+}
+
+int32_t StepEntity(MemorySystem& system, int32_t action_id, const std::vector<int32_t>& options) {
+    SelectionAlgorithmInfo info{ .action_id = action_id };
+    const int32_t picked = system.SelectActionEntityId(options, info).value();
+    system.RecordCyclicEntity(action_id, picked);
+    return picked;
+}
+}
+
+// =============================================================================
+// CYCLIC SELECTION
+// =============================================================================
+
+TEST_F(MemorySystemTest, CyclicFirstVisitPicksOneOfTheOptions) {
+    UseCyclic();
+    const int32_t picked = StepTransition(*memory_system, 0, 0, {8, 3, 5});
+    EXPECT_TRUE(picked == 3 || picked == 5 || picked == 8);
+}
+
+TEST_F(MemorySystemTest, CyclicWalksSortedOptionsAndWraps) {
+    UseCyclic();
+    const std::vector<int32_t> options = {8, 3, 5};  // deliberately unsorted
+    const std::vector<int32_t> sorted = {3, 5, 8};
+
+    const int32_t start = StepTransition(*memory_system, 0, 0, options);
+    const size_t start_index = std::ranges::find(sorted, start) - sorted.begin();
+
+    for (size_t step = 1; step <= 7; ++step) {
+        EXPECT_EQ(sorted[(start_index + step) % sorted.size()],
+                  StepTransition(*memory_system, 0, 0, options)) << "step " << step;
+    }
+}
+
+TEST_F(MemorySystemTest, CyclicWrapsFromLargestToSmallest) {
+    UseCyclic();
+    memory_system->RecordCyclicTransition(0, 0, 8);
+    EXPECT_EQ(3, StepTransition(*memory_system, 0, 0, {3, 5, 8}));
+}
+
+TEST_F(MemorySystemTest, CyclicSeededStartIsReproducible) {
+    UseCyclic();
+    MemorySystem a(3, 3, 2, *services, 1234u);
+    MemorySystem b(3, 3, 2, *services, 1234u);
+
+    // Ten different decision points, each a first visit
+    for (int32_t node = 0; node < 10; ++node) {
+        EXPECT_EQ(StepTransition(a, 0, node, {1, 2, 3, 4}),
+                  StepTransition(b, 0, node, {1, 2, 3, 4}));
+    }
+}
+
+TEST_F(MemorySystemTest, CyclicSequenceAfterStartIgnoresOptionOrder) {
+    UseCyclic();
+    MemorySystem a(3, 3, 2, *services, 7u);
+    MemorySystem b(3, 3, 2, *services, 7u);
+    a.RecordCyclicTransition(0, 0, 2);
+    b.RecordCyclicTransition(0, 0, 2);
+
+    for (int step = 0; step < 12; ++step) {
+        EXPECT_EQ(StepTransition(a, 0, 0, {1, 2, 3, 4}),
+                  StepTransition(b, 0, 0, {4, 2, 1, 3})) << "step " << step;
+    }
+}
+
+TEST_F(MemorySystemTest, CyclicMovesToNextGreaterWhenLastPickDisappears) {
+    UseCyclic();
+    memory_system->RecordCyclicTransition(0, 0, 3);
+
+    EXPECT_EQ(4, StepTransition(*memory_system, 0, 0, {1, 2, 4}));  // 3 is gone, next greater is 4
+    EXPECT_EQ(1, StepTransition(*memory_system, 0, 0, {1, 2}));     // nothing greater than 4, wrap
+}
+
+TEST_F(MemorySystemTest, CyclicKeepsIndependentPointersPerDecisionPoint) {
+    UseCyclic();
+    memory_system->RecordCyclicTransition(0, 1, 5);  // sequence 0, node 1
+    memory_system->RecordCyclicTransition(0, 2, 3);  // sequence 0, node 2
+    memory_system->RecordCyclicTransition(1, 1, 8);  // sequence 1, node 1
+
+    const std::vector<int32_t> options = {3, 5, 8};
+    EXPECT_EQ(8, StepTransition(*memory_system, 0, 1, options));
+    EXPECT_EQ(5, StepTransition(*memory_system, 0, 2, options));
+    EXPECT_EQ(3, StepTransition(*memory_system, 1, 1, options));  // wraps
+    EXPECT_EQ(3, StepTransition(*memory_system, 0, 1, options));  // advanced only by its own visits
+}
+
+TEST_F(MemorySystemTest, CyclicEntitySelectionIsKeyedByAction) {
+    UseCyclic();
+    memory_system->RecordCyclicEntity(3, 10);
+    memory_system->RecordCyclicEntity(4, 12);
+
+    const std::vector<int32_t> entities = {10, 11, 12};
+    EXPECT_EQ(11, StepEntity(*memory_system, 3, entities));
+    EXPECT_EQ(10, StepEntity(*memory_system, 4, entities));  // wraps
+    EXPECT_EQ(12, StepEntity(*memory_system, 3, entities));
+}
+
+TEST_F(MemorySystemTest, CyclicIgnoresNegativeEntityIds) {
+    UseCyclic();
+    memory_system->RecordCyclicEntity(3, 10);
+    memory_system->RecordCyclicEntity(3, -1);  // no target, must not overwrite the pointer
+
+    EXPECT_EQ(11, StepEntity(*memory_system, 3, {10, 11, 12}));
+}
+
+TEST_F(MemorySystemTest, CyclicForcedPickStillMovesThePointer) {
+    UseCyclic();
+    EXPECT_EQ(42, StepTransition(*memory_system, 0, 0, {42}));  // single option, recorded by the hook
+    EXPECT_EQ(50, StepTransition(*memory_system, 0, 0, {3, 42, 50}));
+}
+
+TEST_F(MemorySystemTest, CyclicStateIsNotRecordedWhileAnotherAlgorithmIsActive) {
+    // The mock is on the memory algorithm here, so this record must be ignored.
+    int picks_matching_a_recorded_pointer = 0;
+    for (uint32_t seed = 0; seed < 20; ++seed) {
+        MemorySystem system(3, 3, 2, *services, seed);
+        system.RecordCyclicTransition(0, 0, 5);
+
+        UseCyclic();
+        SelectionAlgorithmInfo info{ .sequence_id = 0, .current_node_id = 0 };
+        // If 5 had been recorded the pick would always be 8
+        if (system.SelectTransitionNodeId({3, 5, 8}, info).value() == 8) {
+            ++picks_matching_a_recorded_pointer;
+        }
+    }
+    EXPECT_LT(picks_matching_a_recorded_pointer, 20);
+}
+
+TEST_F(MemorySystemTest, CyclicIsIndependentOfMemoryCapacityZero) {
+    UseCyclic();
+    MemorySystem system(0, 0, 0, *services, 5u);
+    const std::vector<int32_t> options = {3, 5, 8};
+    const std::vector<int32_t> sorted = {3, 5, 8};
+
+    const int32_t start = StepTransition(system, 0, 0, options);
+    system.CreateTransitionMemory(0, start, 100);
+    const size_t start_index = std::ranges::find(sorted, start) - sorted.begin();
+
+    for (size_t step = 1; step <= 6; ++step) {
+        const int32_t picked = StepTransition(system, 0, 0, options);
+        system.CreateTransitionMemory(0, picked, 100 + static_cast<int64_t>(step));
+        EXPECT_EQ(sorted[(start_index + step) % sorted.size()], picked) << "step " << step;
+    }
+    EXPECT_EQ(0, system.GetTransitionMemoryCount());
+}
+
+TEST_F(MemorySystemTest, CyclicStateSurvivesMemoryClearing) {
+    UseCyclic();
+    memory_system->RecordCyclicTransition(0, 0, 5);
+    ASSERT_TRUE(memory_system->CreateInterruptionMemory(1, 0, 0, 1, 100));
+
+    memory_system->ClearAllMemories();
+    memory_system->ClearSequenceInterruptionMemories(0);
+
+    EXPECT_EQ(8, StepTransition(*memory_system, 0, 0, {3, 5, 8}));
+}
+
+// Documents the odometer behavior on a fully connected layered graph (k = 2, M = 2).
+// Start node 0 -> {1, 2}; node 1 and node 2 each -> {3, 4}.
+TEST_F(MemorySystemTest, CyclicOnLayeredGraphBehavesLikeAnOdometer) {
+    UseCyclic();
+    memory_system->RecordCyclicTransition(0, 0, 2);  // first pick from the start node wraps to 1
+    memory_system->RecordCyclicTransition(0, 1, 4);  // first pick from node 1 wraps to 3
+    memory_system->RecordCyclicTransition(0, 2, 4);  // first pick from node 2 wraps to 3
+
+    const std::vector<int32_t> expected_stage_two = {3, 3, 4, 4, 3, 3, 4, 4};  // period k^M = 4 rounds
+    for (size_t round = 0; round < expected_stage_two.size(); ++round) {
+        const int32_t stage_one = StepTransition(*memory_system, 0, 0, {1, 2});
+        EXPECT_EQ(round % 2 == 0 ? 1 : 2, stage_one) << "round " << round;
+
+        const int32_t stage_two = StepTransition(*memory_system, 0, stage_one, {3, 4});
+        EXPECT_EQ(expected_stage_two[round], stage_two) << "round " << round;
+    }
 }

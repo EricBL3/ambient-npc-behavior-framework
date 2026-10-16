@@ -81,6 +81,10 @@ private:
     // Random number generator for tie-breaking
     std::mt19937 rng;
 
+    // last selected target per decision point
+    std::map<std::pair<int32_t, int32_t>, int32_t> last_cyclic_transition; // (sequence_id, source_node_id) -> target node id
+    std::map<int32_t, int32_t> last_cyclic_entity;                          // action_id -> entity id
+
 public:
     // =============================================================================
     // Construction
@@ -278,6 +282,12 @@ public:
      */
     int32_t GetRandomIndex(int32_t max_exclusive);
 
+    // =============================================================================
+    // Cyclic Selection Helper
+    // =============================================================================
+    void RecordCyclicTransition(int32_t sequence_id, int32_t source_node_id, int32_t target_node_id);
+    void RecordCyclicEntity(int32_t action_id, int32_t entity_id);
+
 private:
     // =============================================================================
     // Capacity Enforcement
@@ -346,6 +356,10 @@ private:
      */
     void RemoveExistingActionMemory(int32_t action_id, int32_t target_entity_id);
 
+    // =============================================================================
+    // Cyclic Selection Helper
+    // =============================================================================
+    SelectionResult SelectCyclic(const std::vector<int32_t>& options, std::optional<int32_t> last);
 };
 
 }

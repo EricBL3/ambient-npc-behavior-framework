@@ -49,7 +49,8 @@ extern "C" {
             auto selection_algorithm_option_candidate = static_cast<SelectionAlgorithmOption>(selection_algorithm_option);
             const bool is_selection_algorithm_option_valid =
                 selection_algorithm_option_candidate == SelectionAlgorithmOption::MEMORY_BASED ||
-                selection_algorithm_option_candidate == SelectionAlgorithmOption::UNIFORM_RANDOM;
+                selection_algorithm_option_candidate == SelectionAlgorithmOption::UNIFORM_RANDOM ||
+                selection_algorithm_option_candidate == SelectionAlgorithmOption::CYCLIC;
 
             SelectionAlgorithmOption selection_algorithm = is_selection_algorithm_option_valid ?
             selection_algorithm_option_candidate : SelectionAlgorithmOption::MEMORY_BASED;

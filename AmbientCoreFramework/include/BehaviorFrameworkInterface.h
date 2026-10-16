@@ -83,7 +83,7 @@ extern "C" {
      * @param log_level                         Logging verbosity: 0 = debug, 1 = info, 2 = warning,
      *                                          3 = error.
      * @param enable_metrics                    Enables logging metrics in the log file.
-     * @param selection_algorithm_option        Selection algorithm to use: 0 = memory_based, 1 = uniform_random
+     * @param selection_algorithm_option        Selection algorithm to use: 0 = memory_based, 1 = uniform_random, 2 = cyclic
      * @param seed                              Seed used for random generation. Use a value of -1 for not setting a seed.
      * @return                                  True if all configuration files were loaded successfully.
      */

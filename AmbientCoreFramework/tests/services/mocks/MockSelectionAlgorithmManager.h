@@ -4,6 +4,7 @@
 
 namespace AmbientCharacterBehavior {
 class MockSelectionAlgorithmManager : public ISelectionAlgorithmManager {
+public:
     MOCK_METHOD(SelectionAlgorithmOption, GetSelectionAlgorithmOption, (), (const, override));
     MOCK_METHOD(void, SetSelectionAlgorithmOption, (SelectionAlgorithmOption new_value), (override));
 };

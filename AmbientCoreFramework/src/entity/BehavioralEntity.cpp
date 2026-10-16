@@ -399,6 +399,7 @@ void BehavioralEntity::InitiateActionExecution(const std::shared_ptr<Action>& ac
     // STEP 3: RECORD IN MEMORY
     // Track this action-entity pair for future selection diversity
     memory.CreateActionMemory(current_action_id, current_action_target_id, TimeManager().GetCurrentTime());
+    memory.RecordCyclicEntity(current_action_id, current_action_target_id);
 
     Logger().LogInfo("Calling start character action for entity: " + std::to_string(entity_id) + " with action "
         "id: " + std::to_string(current_action_id) + " and token: " + std::to_string(current_action_token),
@@ -1025,6 +1026,9 @@ void BehavioralEntity::HandleNodeExecutionCompletion()
         return;
     }
 
+    const auto source_node_id = sequences.top()->GetCurrentNodeId();
+    const auto current_sequence_id = sequences.top()->GetSequenceId();
+
     if (!sequences.top()->TrySetCurrentNode(selected_node_id.value()))
     {
         HandleRuntimeFailure({
@@ -1039,8 +1043,10 @@ void BehavioralEntity::HandleNodeExecutionCompletion()
     available_options_count = next_node_result.available_options_count;
 
     current_node->MarkAsCompleted();
-    memory.CreateTransitionMemory(sequences.top()->GetSequenceId(), selected_node_id.value(),
+    memory.CreateTransitionMemory(current_sequence_id, selected_node_id.value(),
         TimeManager().GetCurrentTime());
+
+    memory.RecordCyclicTransition(current_sequence_id, source_node_id,selected_node_id.value());
 
     sequences.top()->FindCurrentNode()->ResetCompletion();
     sequences.top()->SetSequenceState(SequenceState::PROCESSING_NODE);
