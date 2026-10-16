@@ -16,6 +16,7 @@ private:
     FrameworkLogLevel log_level;
     std::unique_ptr<std::ofstream> log_file;
     bool is_logging_enabled;
+    bool is_log_metrics_enabled;
 
 public:
 
@@ -25,7 +26,7 @@ public:
     /**
      * @throw std::runtime_error if the log_file_path was provided and the file couldn't be opened.
      */
-    bool Initialize(const std::string& log_file_path, FrameworkLogLevel start_log_level) override;
+    bool Initialize(const std::string& log_file_path, FrameworkLogLevel start_log_level, bool enable_metrics) override;
 
     void LogError(const std::string& message, const std::string& component_name) override
     { WriteLog(FrameworkLogLevel::ERROR, message, component_name); }
@@ -39,8 +40,7 @@ public:
     void LogDebug(const std::string& message, const std::string& component_name) override
     { WriteLog(FrameworkLogLevel::DEBUG, message, component_name); }
 
-    void LogMetric(const nlohmann::json& event) override
-    { WriteLog(FrameworkLogLevel::METRIC, event.dump(), ""); }
+    void LogMetric(const nlohmann::json& event) override;
 
     /**
      * @param level Can be INFO, WARNING, or ERROR
@@ -52,6 +52,11 @@ public:
     { is_logging_enabled = enabled; }
 
     bool IsLoggingEnabled() const override { return is_logging_enabled; }
+
+    void SetLoggingMetricsEnabled(bool enabled) override
+    { is_log_metrics_enabled = enabled; }
+
+    bool IsLoggingMetricsEnabled() const override { return is_log_metrics_enabled; }
 
 private:
     void WriteLog(FrameworkLogLevel level, const std::string& message, const std::string& component_name);

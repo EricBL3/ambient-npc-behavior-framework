@@ -323,7 +323,8 @@ private:
      */
     SelectionResult SelectByRecency(const std::vector<RecencyCandidate>& candidates);
 
-    void FinalizeSelectionLog(nlohmann::json event, const SelectionResult& result) const;
+    void LogSelectionMetric(nlohmann::json event, const SelectionResult& result,
+        const SelectionAlgorithmInfo& selection_algorithm_info, const std::vector<int32_t> &available_options) const;
 
     // =============================================================================
     // Memory Deduplication

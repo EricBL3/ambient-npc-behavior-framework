@@ -68,6 +68,9 @@ private:
 
     std::queue<int32_t> pending_interruptions;
 
+    // Holds how many options were available when making the previous selection. Useful for metric logs.
+    int32_t available_options_count;
+
     // Service accessors
 
     [[nodiscard]]
@@ -369,9 +372,9 @@ private:
      * 2. Filter by SELF and ENVIRONMENT preconditions
      * 3. Apply memory-based selection (same algorithm as entity selection)
      *
-     * @return Node ID to transition to, or nullopt if no valid transitions
+     * @return SelectionResult
      */
-    std::optional<int32_t> GetNodeIdForNextTransition();
+    SelectionResult GetNodeIdForNextTransition();
 
 // ═══════════════════════════════════════════════════════════════════════════
 // PRECONDITION VALIDATION

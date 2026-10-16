@@ -282,10 +282,30 @@ SelectionResult MemorySystem::SelectByRecency(const std::vector<RecencyCandidate
     return SelectionResult{ oldest_ids[random_index], "LRU_random" };
 }
 
-void MemorySystem::FinalizeSelectionLog(nlohmann::json event, const SelectionResult& result) const
+void MemorySystem::LogSelectionMetric(nlohmann::json event, const SelectionResult& result,
+    const SelectionAlgorithmInfo& selection_algorithm_info, const std::vector<int32_t> &available_options) const
 {
+    if (!Logger().IsLoggingMetricsEnabled())
+    {
+        return;
+    }
+
+    event["event"] = "decision";
+    event[ "ts"] = TimeManager().GetCurrentTime();
+    event[ "npc_id"] = selection_algorithm_info.npc_id;
+    event["npc_name"] = selection_algorithm_info.npc_name;
+
+    // only available if decision type is transition
+    event["sequence_id"] = selection_algorithm_info.sequence_id;
+    event["current_node_id"] = selection_algorithm_info.current_node_id;
+    // only available if decision type is entity
+    event["action_id"] = selection_algorithm_info.action_id;
+
+    event["available_options"] = available_options;
+    event["available_options_count"] = available_options.size();
     event["branch_fired"] = result.branch_fired;
     event["selected_option"] = result.selected_id.value_or(-1);
+
     Logger().LogMetric(event);
 }
 
@@ -296,17 +316,9 @@ std::optional<int32_t> MemorySystem::SelectTransitionNodeId(const std::vector<in
     ZoneScoped;
 
     SelectionResult result;
-    // Build base event
-    nlohmann::json event =
+    nlohmann::json event
     {
-        {"event", "decision"},
-        { "ts", TimeManager().GetCurrentTime() },
-        { "npc_id", selection_algorithm_info.npc_id},
-        {"npc_name", selection_algorithm_info.npc_name},
-        {"decision_type", "transition"},
-        {"sequence_id", selection_algorithm_info.sequence_id},
-        {"current_node_id", selection_algorithm_info.current_node_id},
-        {"available_options", valid_node_ids},
+        {"decision_type", "transition"}
     };
 
     // ===== Early returns for trivial cases =====
@@ -338,18 +350,22 @@ std::optional<int32_t> MemorySystem::SelectTransitionNodeId(const std::vector<in
             default:
             {
                 // Build event
-                nlohmann::json memories = nlohmann::json::array();
-                for (const auto& memory : transition_memories)
+                //todo: check if this level of detail is needed
+                if (Logger().IsLoggingMetricsEnabled())
                 {
-                    memories.push_back({
-                        {"sequence_id", memory.GetSequenceId()},
-                        {"target_node_id", memory.GetTargetNodeId()},
-                        {"creation_time", memory.GetCreationTime()}
-                    });
-                }
+                    nlohmann::json memories = nlohmann::json::array();
+                    for (const auto& memory : transition_memories)
+                    {
+                        memories.push_back({
+                            {"sequence_id", memory.GetSequenceId()},
+                            {"target_node_id", memory.GetTargetNodeId()},
+                            {"creation_time", memory.GetCreationTime()}
+                        });
+                    }
 
-                event["system_used"] = "memory";
-                event["memory_state"] = memories;
+                    event["system_used"] = "memory";
+                    event["memory_state"] = memories;
+                }
 
                 // ===== Build candidates (type specific memory lookup) =====
                 std::vector<RecencyCandidate> candidates;
@@ -372,7 +388,8 @@ std::optional<int32_t> MemorySystem::SelectTransitionNodeId(const std::vector<in
         }
     }
 
-    FinalizeSelectionLog(event, result);
+    //todo: enable only if I need this detail
+    //LogSelectionMetric(event, result, selection_algorithm_info, valid_node_ids);
     return result.selected_id;
 }
 
@@ -383,16 +400,9 @@ std::optional<int32_t> MemorySystem::SelectActionEntityId(const std::vector<int3
     ZoneScoped;
 
     SelectionResult result;
-    // Build base event
-    nlohmann::json event =
+    nlohmann::json event
     {
-        {"event", "decision"},
-        { "ts", TimeManager().GetCurrentTime() },
-        { "npc_id", selection_algorithm_info.npc_id},
-        {"npc_name", selection_algorithm_info.npc_name},
-        {"decision_type", "entity"},
-        {"action_id", selection_algorithm_info.action_id},
-        {"available_options", valid_entity_ids},
+        {"decision_type", "entity"}
     };
 
     // ===== Early returns for trivial cases =====
@@ -424,18 +434,22 @@ std::optional<int32_t> MemorySystem::SelectActionEntityId(const std::vector<int3
             default:
             {
                 // Build base event
-                nlohmann::json memories = nlohmann::json::array();
-                for (const auto& memory : action_memories)
+                //todo: check if this level of detail is needed
+                if (Logger().IsLoggingMetricsEnabled())
                 {
-                    memories.push_back({
-                        {"action_id", memory.GetActionId()},
-                        {"target_entity_id", memory.GetTargetEntityId()},
-                        {"creation_time", memory.GetCreationTime()}
-                    });
-                }
+                    nlohmann::json memories = nlohmann::json::array();
+                    for (const auto& memory : action_memories)
+                    {
+                        memories.push_back({
+                            {"action_id", memory.GetActionId()},
+                            {"target_entity_id", memory.GetTargetEntityId()},
+                            {"creation_time", memory.GetCreationTime()}
+                        });
+                    }
 
-                event["system_used"] = "memory";
-                event["memory_state"] = memories;
+                    event["system_used"] = "memory";
+                    event["memory_state"] = memories;
+                }
 
                 // ===== Build candidates (type specific memory lookup) =====
                 std::vector<RecencyCandidate> candidates;
@@ -457,7 +471,8 @@ std::optional<int32_t> MemorySystem::SelectActionEntityId(const std::vector<int3
         }
     }
 
-    FinalizeSelectionLog(event, result);
+    //todo: enable only if I need this detail
+    //LogSelectionMetric(event, result, selection_algorithm_info, valid_entity_ids);
     return result.selected_id;
 }
 

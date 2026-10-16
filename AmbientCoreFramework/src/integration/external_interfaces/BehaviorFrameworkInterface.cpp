@@ -28,7 +28,7 @@ extern "C" {
 
     AmbientCoreFramework_API bool InitializeAmbientBehaviorFramework(void* framework_handle, const char* schema_file_path,
         const char* sequences_file_path, const char* actions_file_path,
-        const char* environmental_conditions_file_path, const char*  log_file_path, int32_t log_level,
+        const char* environmental_conditions_file_path, const char*  log_file_path, int32_t log_level, bool enable_metrics,
         int32_t selection_algorithm_option,
         int64_t seed)
     {
@@ -41,8 +41,7 @@ extern "C" {
                 log_level_candidate == FrameworkLogLevel::DEBUG ||
                 log_level_candidate == FrameworkLogLevel::INFO ||
                 log_level_candidate == FrameworkLogLevel::WARNING ||
-                log_level_candidate == FrameworkLogLevel::ERROR ||
-                log_level_candidate == FrameworkLogLevel::METRIC;
+                log_level_candidate == FrameworkLogLevel::ERROR;
 
             FrameworkLogLevel framework_log_level = is_log_level_valid ? log_level_candidate : FrameworkLogLevel::ERROR;
 
@@ -68,8 +67,8 @@ extern "C" {
 
 
             framework->InitializeFramework(schema_file_path, sequences_file_path, actions_file_path,
-            environmental_conditions_file_path, log_file_path, framework_log_level, selection_algorithm,
-            framework_seed);
+            environmental_conditions_file_path, log_file_path, framework_log_level, enable_metrics,
+            selection_algorithm, framework_seed);
 
             return framework->IsInitialized();
         }

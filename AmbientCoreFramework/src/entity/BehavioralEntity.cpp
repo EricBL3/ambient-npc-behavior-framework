@@ -34,7 +34,8 @@ BehavioralEntity::BehavioralEntity(
         current_action_token(0),
         is_processing(false),
         is_halted(false),
-        fallback_attempt_count(0) {}
+        fallback_attempt_count(0),
+        available_options_count(1) {}
 
 void BehavioralEntity::SetMainSequence(const std::shared_ptr<Sequence> &new_sequence)
 {
@@ -345,6 +346,7 @@ void BehavioralEntity::ExecuteEndSequenceNode(const SequenceNode* current_node)
         ") for entity " + std::to_string(entity_id), "ExecuteEndSequenceNode");
 
     fallback_attempt_count = 0;
+    available_options_count = 1;
     sequences.top()->SetSequenceState(SequenceState::NODE_EXECUTED);
     sequences.pop();
 }
@@ -402,19 +404,25 @@ void BehavioralEntity::InitiateActionExecution(const std::shared_ptr<Action>& ac
         "id: " + std::to_string(current_action_id) + " and token: " + std::to_string(current_action_token),
         "InitiateActionExecution");
 
-    // Log action event as:
-    // event, timestamp, npc_id, event_type, action_id, target_entity_id, action_token
-    nlohmann::json action_event = {
-        {"event", "action"},
-        { "ts", TimeManager().GetCurrentTime() },
-        { "npc_id", entity_id},
-        {"event_type", "start"},
-        {"action_id", current_action_id},
-        { "target_entity_id", current_action_target_id},
-        { "action_token", current_action_token}
-    };
+    // Log action event if metrics are enabled
+    if (Logger().IsLoggingMetricsEnabled())
+    {
+        nlohmann::json action_event = {
+            { "ts", TimeManager().GetCurrentTime() },
+            {"event", "action"},
+            {"event_type", "start"},
+            { "npc_id", entity_id},
+            {"npc_name", name},
+            {"action_id", current_action_id},
+            { "target_entity_id", current_action_target_id},
+            { "action_token", current_action_token},
+            { "sequence_id", sequences.top()->GetSequenceId()},
+            { "current_node_id", sequences.top()->GetCurrentNodeId()},
+            {"available_options_count", available_options_count}
+        };
 
-    Logger().LogMetric(action_event);
+        Logger().LogMetric(action_event);
+    }
 
     // STEP 4: DELEGATE TO GAME ENGINE
     // The game engine handles animation, pathfinding, audio, etc.
@@ -447,19 +455,23 @@ void BehavioralEntity::ApplyActionEffects(const std::vector<StateOperation> & ef
 
             auto new_state_value = state[effect.GetStateKey()];
 
-            // Log state change event as:
-            // event, timestamp, npc_id, state_name, new_value, action_id
-            auto state_name = SchemaManager().GetStateName(effect.GetStateKey());
-            nlohmann::json event = {
-                {"event", "state_change"},
-                { "ts", TimeManager().GetCurrentTime() },
-                { "npc_id", entity_id},
-                {"state_name", state_name},
-                {"new_value", new_state_value},
-                { "action_id", current_action_id}
-            };
-
-            Logger().LogMetric(event);
+            //todo: remove if state changes are no longer required metrics
+            // if (Logger().IsLoggingMetricsEnabled())
+            // {
+            //     // Log state change event as:
+            //     // event, timestamp, npc_id, state_name, new_value, action_id
+            //     auto state_name = SchemaManager().GetStateName(effect.GetStateKey());
+            //     nlohmann::json event = {
+            //         {"event", "state_change"},
+            //         { "ts", TimeManager().GetCurrentTime() },
+            //         { "npc_id", entity_id},
+            //         {"state_name", state_name},
+            //         {"new_value", new_state_value},
+            //         { "action_id", current_action_id}
+            //     };
+            //
+            //     Logger().LogMetric(event);
+            // }
         }
     }
 
@@ -476,19 +488,26 @@ void BehavioralEntity::CompleteAction(int32_t action_id, int64_t action_token)
         Logger().LogInfo("entity with id: " + std::to_string(entity_id) + " has completed action with id: " +
             std::to_string(action_id) + " and token: " + std::to_string(action_token) ,"CompleteAction");
 
-        // Log action event as:
-        // event, timestamp, npc_id, event_type, action_id, target_entity_id, action_token
-        nlohmann::json action_event = {
-            {"event", "action"},
-            { "ts", TimeManager().GetCurrentTime() },
-            { "npc_id", entity_id},
-            {"event_type", "complete"},
-            {"action_id", current_action_id},
-            { "target_entity_id", current_action_target_id},
-            { "action_token", current_action_token}
-        };
+        // Log action event if metrics are enabled
+        if (Logger().IsLoggingMetricsEnabled())
+        {
+            nlohmann::json action_event = {
+                { "ts", TimeManager().GetCurrentTime() },
+                {"event", "action"},
+                {"event_type", "complete"},
+                { "npc_id", entity_id},
+                {"npc_name", name},
+                {"action_id", current_action_id},
+                { "target_entity_id", current_action_target_id},
+                { "action_token", current_action_token},
+                { "sequence_id", sequences.top()->GetSequenceId()},
+                { "current_node_id", sequences.top()->GetCurrentNodeId()},
+            };
 
-        Logger().LogMetric(action_event);
+            Logger().LogMetric(action_event);
+        }
+
+        available_options_count = 1;
 
         ActionTimeoutManager().UnregisterActionTimeout(entity_handle);
         ApplyCompletionEffects(action_id);
@@ -619,7 +638,7 @@ FrameworkEntity* BehavioralEntity::GetActionTargetEntity(const std::shared_ptr<A
     return selected_entity_id ? EntityQuery().GetEntityFromId(selected_entity_id.value()) : nullptr;
 }
 
-std::optional<int32_t> BehavioralEntity::GetNodeIdForNextTransition()
+SelectionResult BehavioralEntity::GetNodeIdForNextTransition()
 {
     ZoneScoped;
 
@@ -652,7 +671,10 @@ std::optional<int32_t> BehavioralEntity::GetNodeIdForNextTransition()
         .current_node_id = sequences.top()->GetCurrentNodeId()
     };
 
-    return memory.SelectTransitionNodeId(valid_node_ids, transition_info);
+    SelectionResult result;
+    result.selected_id = memory.SelectTransitionNodeId(valid_node_ids, transition_info);
+    result.available_options_count = static_cast<int32_t>(valid_node_ids.size());
+    return result;
 }
 
 // ═══════════════════════════════════════════════════════════════════════════
@@ -750,6 +772,8 @@ void BehavioralEntity::ProcessInterruptionImmediate(int32_t interruption_id)
 
         return;
     }
+
+    available_options_count = 1;
 
     auto sequence = interruption_handlers.at(interruption_id);
 
@@ -978,7 +1002,8 @@ void BehavioralEntity::HandleNodeExecutionCompletion()
         return;
     }
 
-    auto selected_node_id = GetNodeIdForNextTransition();
+    auto next_node_result = GetNodeIdForNextTransition();
+    auto selected_node_id = next_node_result.selected_id;
     if (!selected_node_id.has_value())
     {
         HandleRuntimeFailure({
@@ -1010,6 +1035,8 @@ void BehavioralEntity::HandleNodeExecutionCompletion()
 
         return;
     }
+
+    available_options_count = next_node_result.available_options_count;
 
     current_node->MarkAsCompleted();
     memory.CreateTransitionMemory(sequences.top()->GetSequenceId(), selected_node_id.value(),
@@ -1120,6 +1147,7 @@ void BehavioralEntity::HandleRuntimeFailure(const RuntimeFailureContext &context
         "HandleRuntimeFailure");
 
     sequences.top()->SetSequenceState(SequenceState::FAILED);
+    available_options_count = 1;
 
     // Stop processing if context indicates we should
     if (context.should_stop_processing) {

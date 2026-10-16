@@ -6,7 +6,7 @@
 
 using namespace AmbientCharacterBehavior;
 
-FrameworkLogger::FrameworkLogger(const std::string &log_file_path)
+FrameworkLogger::FrameworkLogger(const std::string &log_file_path) : is_log_metrics_enabled(false)
 {
     log_level = FrameworkLogLevel::INFO;
 
@@ -27,7 +27,7 @@ FrameworkLogger::FrameworkLogger(const std::string &log_file_path)
     }
 }
 
-bool FrameworkLogger::Initialize(const std::string &log_file_path, FrameworkLogLevel start_log_level)
+bool FrameworkLogger::Initialize(const std::string &log_file_path, FrameworkLogLevel start_log_level, bool enable_metrics)
 {
     if (!log_file_path.empty())
     {
@@ -41,10 +41,13 @@ bool FrameworkLogger::Initialize(const std::string &log_file_path, FrameworkLogL
         is_logging_enabled = true;
 
         SetLogLevel(start_log_level);
+
+        is_log_metrics_enabled = enable_metrics;
     }
     else
     {
         is_logging_enabled = false;
+        is_log_metrics_enabled = false;
     }
 
     return is_logging_enabled;
@@ -72,24 +75,25 @@ void FrameworkLogger::WriteLog(FrameworkLogLevel level, const std::string &messa
         case FrameworkLogLevel::ERROR:
             level_str = "ERROR";
             break;
-        case FrameworkLogLevel::METRIC:
-            level_str = "METRIC";
-            break;
     }
 
     auto now = std::chrono::system_clock::now();
     auto time_t = std::chrono::system_clock::to_time_t(now);
 
-    // Metrics will be logged as csv starting with the timestamp
-    if (level == FrameworkLogLevel::METRIC)
+    *log_file << "[" << std::put_time(std::localtime(&time_t), "%Y-%m-%d %H:%M:%S") << "] ";
+    *log_file << "[" << level_str << "] [" << component_name << "] " << message << std::endl;
+
+    log_file->flush();
+}
+
+void FrameworkLogger::LogMetric(const nlohmann::json& event)
+{
+    if (!is_logging_enabled || !is_log_metrics_enabled || !log_file || !log_file->is_open())
     {
-        *log_file << message << std::endl;
-    } else
-    {
-        *log_file << "[" << std::put_time(std::localtime(&time_t), "%Y-%m-%d %H:%M:%S") << "] ";
-        *log_file << "[" << level_str << "] [" << component_name << "] " << message << std::endl;
+        return;
     }
 
+    *log_file << event.dump() << std::endl;
 
     log_file->flush();
 }
