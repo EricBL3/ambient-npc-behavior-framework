@@ -71,17 +71,6 @@ TEST_F(MemorySystemTest, ConstructorSetsAllCapacities) {
 
 // Configuration Tests
 
-TEST_F(MemorySystemTest, SetMaxMemoriesRejectsZeroValues) {
-    memory_system->ConfigureMaxTransitionMemories(0);
-    memory_system->ConfigureMaxActionMemories(0);
-    memory_system->ConfigureMaxInterruptionMemories(0);
-
-    // Should reject and keep original values
-    EXPECT_EQ(3, memory_system->GetMaxTransitionMemories());
-    EXPECT_EQ(3, memory_system->GetMaxActionMemories());
-    EXPECT_EQ(2, memory_system->GetMaxInterruptionMemories());
-}
-
 TEST_F(MemorySystemTest, SetMaxMemoriesRejectsNegativeValues) {
     memory_system->ConfigureMaxTransitionMemories(-5);
     memory_system->ConfigureMaxActionMemories(-5);

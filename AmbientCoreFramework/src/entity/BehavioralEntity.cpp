@@ -25,16 +25,16 @@ BehavioralEntity::BehavioralEntity(
     ) : FrameworkEntity(entity_handle, entity_id, std::move(name)),
         services(services),
         memory(max_transition_memories, max_action_memories,
-            max_interruption_memories,
-            services.behavioral_evaluation.simulation_state.data_access.foundation,
-            seed),
+               max_interruption_memories,
+               services.behavioral_evaluation.simulation_state.data_access.foundation,
+               seed),
         main_sequence(nullptr),
         current_action_target_id(-1),
-        is_processing(false),
-        current_action_token(0),
         current_action_id(-1),
-        fallback_attempt_count(0),
-        is_halted(false) {}
+        current_action_token(0),
+        is_processing(false),
+        is_halted(false),
+        fallback_attempt_count(0) {}
 
 void BehavioralEntity::SetMainSequence(const std::shared_ptr<Sequence> &new_sequence)
 {

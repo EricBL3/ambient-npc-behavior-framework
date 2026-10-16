@@ -23,9 +23,9 @@ MemorySystem::MemorySystem(int32_t max_transitions, int32_t max_actions, int32_t
 void MemorySystem::ConfigureMaxTransitionMemories(int32_t max_transitions)
 {
     // Validate new capacity
-    if (max_transitions <= 0 || max_transitions == max_transition_memories)
+    if (max_transitions < 0 || max_transitions == max_transition_memories)
     {
-        Logger().LogWarning("max_transitions must be greater than 0 and different from the current "
+        Logger().LogWarning("max_transitions must be >= 0 and different from the current "
                         "maximum. Keeping current value", "MemorySystem");
 
         return;
@@ -39,9 +39,9 @@ void MemorySystem::ConfigureMaxTransitionMemories(int32_t max_transitions)
 void MemorySystem::ConfigureMaxActionMemories(int32_t max_actions)
 {
     // Validate new capacity
-    if (max_actions <= 0 || max_actions == max_action_memories)
+    if (max_actions < 0 || max_actions == max_action_memories)
     {
-        Logger().LogWarning("max_actions must be greater than 0, and different from the current "
+        Logger().LogWarning("max_actions must be >= 0, and different from the current "
                         "maximum. Keeping current value", "MemorySystem");
 
         return;
@@ -56,9 +56,9 @@ void MemorySystem::ConfigureMaxActionMemories(int32_t max_actions)
 void MemorySystem::ConfigureMaxInterruptionMemories(int32_t max_interruptions)
 {
     // Validate new capacity
-    if (max_interruptions <= 0 || max_interruptions == max_interruption_memories)
+    if (max_interruptions < 0 || max_interruptions == max_interruption_memories)
     {
-        Logger().LogWarning("max_interruptions must be greater than 0, and different from the current maximum. "
+        Logger().LogWarning("max_interruptions must be >= 0, and different from the current maximum. "
                  "Keeping current value", "MemorySystem");
         return;
     }

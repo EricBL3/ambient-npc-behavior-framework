@@ -35,17 +35,17 @@ private:
     // =============================================================================
 
     /**
-     * @invariant max_transition_memories > 0
+     * @invariant max_transition_memories >= 0
      */
     int32_t max_transition_memories;
 
     /**
-     * @invariant max_action_memories > 0
+     * @invariant max_action_memories >= 0
      */
     int32_t max_action_memories;
 
     /**
-     * @invariant max_interruption_memories > 0
+     * @invariant max_interruption_memories >= 0
      */
     int32_t max_interruption_memories;
 
@@ -88,9 +88,9 @@ public:
 
     /**
      * @brief Construct a memory system with specified capacity limits
-     * @param max_transitions Maximum number of transition memories to store (must be > 0)
-     * @param max_actions Maximum number of action memories to store (must be > 0)
-     * @param max_interruptions Maximum number of interruption memories to store (must be > 0)
+     * @param max_transitions Maximum number of transition memories to store (must be >= 0)
+     * @param max_actions Maximum number of action memories to store (must be >= 0)
+     * @param max_interruptions Maximum number of interruption memories to store (must be >= 0)
      * @param services The foundation services of the framework. The memory system uses only logging.
      */
     explicit MemorySystem(int32_t max_transitions, int32_t max_actions, int32_t max_interruptions,
@@ -105,7 +105,7 @@ public:
      * @brief Updates the maximum transition memory capacity
      *
      * If the new limit is lower than the current memory count, excess memories are removed from the front (oldest).
-     * @param max_transitions New capacity (must be > 0 and different from current capacity)
+     * @param max_transitions New capacity (must be >= 0 and different from current capacity)
      */
     void ConfigureMaxTransitionMemories(int32_t max_transitions);
 
@@ -113,7 +113,7 @@ public:
      * @brief Updates the maximum transition memory capacity
      *
      * If the new limit is lower than the current memory count, excess memories are removed from the front (oldest).
-     * @param max_actions New capacity (must be > 0 and different from current capacity)
+     * @param max_actions New capacity (must be >= 0 and different from current capacity)
      */
     void ConfigureMaxActionMemories(int32_t max_actions);
 
@@ -121,7 +121,7 @@ public:
      * @brief Updates the maximum transition memory capacity
      *
      * If the new limit is lower than the current memory count, excess memories are removed from the front (oldest).
-     * @param max_interruptions New capacity (must be > 0 and different from current capacity)
+     * @param max_interruptions New capacity (must be >= 0 and different from current capacity)
      */
     void ConfigureMaxInterruptionMemories(int32_t max_interruptions);
 
