@@ -608,13 +608,13 @@ FrameworkEntity* BehavioralEntity::GetActionTargetEntity(const std::shared_ptr<A
 
     // PHASE 3: MEMORY-BASED SELECTION
 
-    auto action_entity_info = new SelectionAlgorithmInfo{
+    SelectionAlgorithmInfo action_entity_info {
         .npc_id = entity_id,
         .npc_name = name,
         .action_id = action->GetActionId()
     };
 
-    auto selected_entity_id = memory.SelectActionEntityId(valid_entity_ids, *action_entity_info);
+    auto selected_entity_id = memory.SelectActionEntityId(valid_entity_ids, action_entity_info);
 
     return selected_entity_id ? EntityQuery().GetEntityFromId(selected_entity_id.value()) : nullptr;
 }
@@ -645,14 +645,14 @@ std::optional<int32_t> BehavioralEntity::GetNodeIdForNextTransition()
         valid_node_ids.emplace_back(transition.GetDestinationNodeId());
     }
 
-    auto transition_info = new SelectionAlgorithmInfo{
+    SelectionAlgorithmInfo transition_info {
         .npc_id = entity_id,
         .npc_name = name,
         .sequence_id = sequences.top()->GetSequenceId(),
         .current_node_id = sequences.top()->GetCurrentNodeId()
     };
 
-    return memory.SelectTransitionNodeId(valid_node_ids, *transition_info);
+    return memory.SelectTransitionNodeId(valid_node_ids, transition_info);
 }
 
 // ═══════════════════════════════════════════════════════════════════════════
