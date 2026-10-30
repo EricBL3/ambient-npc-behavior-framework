@@ -35,7 +35,10 @@ BehavioralEntity::BehavioralEntity(
         is_processing(false),
         is_halted(false),
         fallback_attempt_count(0),
-        available_options_count(1) {}
+        available_options_count(1),
+        available_options({}),
+        selection_pool_size(1),
+        selection_pool({}) {}
 
 void BehavioralEntity::SetMainSequence(const std::shared_ptr<Sequence> &new_sequence)
 {
@@ -347,6 +350,10 @@ void BehavioralEntity::ExecuteEndSequenceNode(const SequenceNode* current_node)
 
     fallback_attempt_count = 0;
     available_options_count = 1;
+    available_options.clear();
+    selection_pool_size = 1;
+    selection_pool.clear();
+    branch_fired = "";
     sequences.top()->SetSequenceState(SequenceState::NODE_EXECUTED);
     sequences.pop();
 }
@@ -419,7 +426,11 @@ void BehavioralEntity::InitiateActionExecution(const std::shared_ptr<Action>& ac
             { "action_token", current_action_token},
             { "sequence_id", sequences.top()->GetSequenceId()},
             { "current_node_id", sequences.top()->GetCurrentNodeId()},
-            {"available_options_count", available_options_count}
+            {"available_options_count", available_options_count},
+            { "available_options", available_options},
+            { "selection_pool_size", selection_pool_size},
+            { "selection_pool", selection_pool},
+            {"branch_fired", branch_fired},
         };
 
         Logger().LogMetric(action_event);
@@ -509,6 +520,10 @@ void BehavioralEntity::CompleteAction(int32_t action_id, int64_t action_token)
         }
 
         available_options_count = 1;
+        available_options.clear();
+        selection_pool_size = 1;
+        selection_pool.clear();
+        branch_fired = "";
 
         ActionTimeoutManager().UnregisterActionTimeout(entity_handle);
         ApplyCompletionEffects(action_id);
@@ -634,7 +649,8 @@ FrameworkEntity* BehavioralEntity::GetActionTargetEntity(const std::shared_ptr<A
         .action_id = action->GetActionId()
     };
 
-    auto selected_entity_id = memory.SelectActionEntityId(valid_entity_ids, action_entity_info);
+    auto result = memory.SelectActionEntityId(valid_entity_ids, action_entity_info);
+    auto selected_entity_id = result.selected_id;
 
     return selected_entity_id ? EntityQuery().GetEntityFromId(selected_entity_id.value()) : nullptr;
 }
@@ -672,9 +688,7 @@ SelectionResult BehavioralEntity::GetNodeIdForNextTransition()
         .current_node_id = sequences.top()->GetCurrentNodeId()
     };
 
-    SelectionResult result;
-    result.selected_id = memory.SelectTransitionNodeId(valid_node_ids, transition_info);
-    result.available_options_count = static_cast<int32_t>(valid_node_ids.size());
+    auto result = memory.SelectTransitionNodeId(valid_node_ids, transition_info);
     return result;
 }
 
@@ -775,6 +789,10 @@ void BehavioralEntity::ProcessInterruptionImmediate(int32_t interruption_id)
     }
 
     available_options_count = 1;
+    available_options.clear();
+    selection_pool_size = 1;
+    selection_pool.clear();
+    branch_fired = "";
 
     auto sequence = interruption_handlers.at(interruption_id);
 
@@ -1041,6 +1059,10 @@ void BehavioralEntity::HandleNodeExecutionCompletion()
     }
 
     available_options_count = next_node_result.available_options_count;
+    available_options = next_node_result.available_options;
+    selection_pool_size = next_node_result.selection_pool_size;
+    selection_pool = next_node_result.selection_pool;
+    branch_fired = next_node_result.branch_fired;
 
     current_node->MarkAsCompleted();
     memory.CreateTransitionMemory(current_sequence_id, selected_node_id.value(),
@@ -1154,6 +1176,10 @@ void BehavioralEntity::HandleRuntimeFailure(const RuntimeFailureContext &context
 
     sequences.top()->SetSequenceState(SequenceState::FAILED);
     available_options_count = 1;
+    available_options.clear();
+    selection_pool_size = 1;
+    selection_pool.clear();
+    branch_fired = "";
 
     // Stop processing if context indicates we should
     if (context.should_stop_processing) {

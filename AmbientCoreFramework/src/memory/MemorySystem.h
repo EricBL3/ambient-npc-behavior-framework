@@ -195,10 +195,11 @@ public:
      * @param valid_node_ids Nodes that satisfy the transition preconditions
      * @param selection_algorithm_info The data used by the selection algorithm. sequence_id and current_node_id
      * are necessary for this method.
-     * @return The selected node id, or std::nullopt if valid_node_ids is empty
+     * @return The selection result containing selected node id, or std::nullopt if valid_node_ids is empty.
+     * @see SelectionResult.
      */
     [[nodiscard]]
-    std::optional<int32_t> SelectTransitionNodeId(const std::vector<int32_t>& valid_node_ids,
+    SelectionResult SelectTransitionNodeId(const std::vector<int32_t>& valid_node_ids,
         const SelectionAlgorithmInfo& selection_algorithm_info);
 
     /**
@@ -207,10 +208,11 @@ public:
      * Same algorithm SelectTransitionNodeId but for entity selection.
      * @param valid_entity_ids Entities that satisfy preconditions of the action
     * * @param selection_algorithm_info The data used by the selection algorithm. action_id is necessary for this method.
-     * @return Selected entity id, or std::nullopt if valid_entity_ids is empty
+     * @return The selection result containing the selected entity id, or std::nullopt if valid_entity_ids is empty.
+     * @see SelectionResult.
      */
     [[nodiscard]]
-    std::optional<int32_t> SelectActionEntityId(const std::vector<int32_t>& valid_entity_ids,
+    SelectionResult SelectActionEntityId(const std::vector<int32_t>& valid_entity_ids,
         const SelectionAlgorithmInfo& selection_algorithm_info);
 
     // =============================================================================

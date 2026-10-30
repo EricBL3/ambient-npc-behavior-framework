@@ -225,7 +225,7 @@ TEST_F(MemorySystemTest, GetLeastRecentlyVisitedNodePrefersNeverUsed) {
         .sequence_id = 0,
         .current_node_id = 0
     };
-    auto selected = memory_system->SelectTransitionNodeId(node_ids, metric_info);
+    auto selected = memory_system->SelectTransitionNodeId(node_ids, metric_info).selected_id;
 
     EXPECT_EQ(9, selected);
 }
@@ -239,7 +239,7 @@ TEST_F(MemorySystemTest, GetLeastRecentlyVisitedNodeSelectsOldestTimestamp) {
         .sequence_id = 0,
         .current_node_id = 0
     };
-    auto selected = memory_system->SelectTransitionNodeId(node_ids, metric_info);
+    auto selected = memory_system->SelectTransitionNodeId(node_ids, metric_info).selected_id;
 
     EXPECT_EQ(5, selected);
 }
@@ -250,7 +250,7 @@ TEST_F(MemorySystemTest, GetLeastRecentlyVisitedNodeReturnsEmptyForEmptyInput) {
         .sequence_id = 0,
         .current_node_id = 0
     };
-    auto selected = memory_system->SelectTransitionNodeId(empty_list, metric_info);
+    auto selected = memory_system->SelectTransitionNodeId(empty_list, metric_info).selected_id;
 
     EXPECT_FALSE(selected.has_value());
 }
@@ -266,7 +266,7 @@ TEST_F(MemorySystemTest, GetLeastRecentlyVisitedNodeHandlesEqualTimestamps) {
         .sequence_id = 0,
         .current_node_id = 0
     };
-    auto selected = memory_system->SelectTransitionNodeId(node_ids, metric_info);
+    auto selected = memory_system->SelectTransitionNodeId(node_ids, metric_info).selected_id;
 
     EXPECT_TRUE(selected == 5 || selected == 7);
 }
@@ -277,7 +277,7 @@ TEST_F(MemorySystemTest, SelectTransitionNodeIdReturnsSingleElement) {
         .sequence_id = 0,
         .current_node_id = 0
     };
-    auto selected = memory_system->SelectTransitionNodeId(single_node, metric_info);
+    auto selected = memory_system->SelectTransitionNodeId(single_node, metric_info).selected_id;
 
     ASSERT_TRUE(selected.has_value());
     EXPECT_EQ(42, *selected);  // Should return the only option
@@ -293,13 +293,13 @@ TEST_F(MemorySystemTest, UpdateRefreshesRecencyForExistingMemory) {
         .sequence_id = 0,
         .current_node_id = 0
     };
-    EXPECT_EQ(5, memory_system->SelectTransitionNodeId(nodes, metric_info));
+    EXPECT_EQ(5, memory_system->SelectTransitionNodeId(nodes, metric_info).selected_id);
 
     // Update node 5 with newer timestamp
     ASSERT_TRUE(memory_system->CreateTransitionMemory(0, 5, 300));
 
     // Now node 7 is older, should be selected
-    EXPECT_EQ(7, memory_system->SelectTransitionNodeId(nodes, metric_info));
+    EXPECT_EQ(7, memory_system->SelectTransitionNodeId(nodes, metric_info).selected_id);
 }
 
 TEST_F(MemorySystemTest, SelectionPrefersUnusedOverOldest) {
@@ -310,7 +310,7 @@ TEST_F(MemorySystemTest, SelectionPrefersUnusedOverOldest) {
         .sequence_id = 0,
         .current_node_id = 0
     };
-    auto selected = memory_system->SelectTransitionNodeId(nodes, metric_info);
+    auto selected = memory_system->SelectTransitionNodeId(nodes, metric_info).selected_id;
 
     // Should select from unused (7 or 9), NOT the very old used one (5)
     ASSERT_TRUE(selected.has_value());
@@ -329,7 +329,7 @@ TEST_F(MemorySystemTest, SelectionIsUnbiasedForUnusedNodes) {
             .sequence_id = 0,
             .current_node_id = 0
         };
-        auto selected = temp_system.SelectTransitionNodeId(unused_nodes, metric_info);
+        auto selected = temp_system.SelectTransitionNodeId(unused_nodes, metric_info).selected_id;
 
         ASSERT_TRUE(selected.has_value());
         selection_counts[*selected]++;
@@ -433,7 +433,7 @@ TEST_F(MemorySystemTest, GetLeastRecentlyUsedEntityPrefersNeverUsed) {
     SelectionAlgorithmInfo metric_info{
         .action_id = 3
     };
-    auto selected = memory_system->SelectActionEntityId(entity_ids, metric_info);
+    auto selected = memory_system->SelectActionEntityId(entity_ids, metric_info).selected_id;
 
     EXPECT_EQ(12, selected);
 }
@@ -446,7 +446,7 @@ TEST_F(MemorySystemTest, GetLeastRecentlyUsedEntitySelectsOldestTimestamp) {
     SelectionAlgorithmInfo metric_info{
         .action_id = 3
     };
-    auto selected = memory_system->SelectActionEntityId(entity_ids, metric_info);
+    auto selected = memory_system->SelectActionEntityId(entity_ids, metric_info).selected_id;
 
     EXPECT_EQ(10, selected);
 }
@@ -456,7 +456,7 @@ TEST_F(MemorySystemTest, GetLeastRecentlyUsedEntityReturnsMinusOneForEmptyInput)
     SelectionAlgorithmInfo metric_info{
         .action_id = 3
     };
-    auto selected = memory_system->SelectActionEntityId(empty_list, metric_info);
+    auto selected = memory_system->SelectActionEntityId(empty_list, metric_info).selected_id;
 
     EXPECT_FALSE(selected.has_value());
 }
@@ -469,7 +469,7 @@ TEST_F(MemorySystemTest, GetLeastRecentlyUsedEntityHandlesEqualTimestamps) {
     SelectionAlgorithmInfo metric_info{
         .action_id = 3
     };
-    auto selected = memory_system->SelectActionEntityId(entity_ids, metric_info);
+    auto selected = memory_system->SelectActionEntityId(entity_ids, metric_info).selected_id;
 
     EXPECT_TRUE(selected == 10 || selected == 11);
 }
@@ -480,7 +480,7 @@ TEST_F(MemorySystemTest, SelectActionEntityIdReturnsSingleElement) {
         .action_id = 5
     };
 
-    auto selected = memory_system->SelectActionEntityId(single_entity, metric_info);
+    auto selected = memory_system->SelectActionEntityId(single_entity, metric_info).selected_id;
 
     ASSERT_TRUE(selected.has_value());
     EXPECT_EQ(99, *selected);
@@ -643,14 +643,14 @@ namespace {
 int32_t StepTransition(MemorySystem& system, int32_t sequence_id, int32_t node_id,
                        const std::vector<int32_t>& options) {
     SelectionAlgorithmInfo info{ .sequence_id = sequence_id, .current_node_id = node_id };
-    const int32_t picked = system.SelectTransitionNodeId(options, info).value();
+    const int32_t picked = system.SelectTransitionNodeId(options, info).selected_id.value();
     system.RecordCyclicTransition(sequence_id, node_id, picked);
     return picked;
 }
 
 int32_t StepEntity(MemorySystem& system, int32_t action_id, const std::vector<int32_t>& options) {
     SelectionAlgorithmInfo info{ .action_id = action_id };
-    const int32_t picked = system.SelectActionEntityId(options, info).value();
+    const int32_t picked = system.SelectActionEntityId(options, info).selected_id.value();
     system.RecordCyclicEntity(action_id, picked);
     return picked;
 }
@@ -767,7 +767,7 @@ TEST_F(MemorySystemTest, CyclicStateIsNotRecordedWhileAnotherAlgorithmIsActive) 
         UseCyclic();
         SelectionAlgorithmInfo info{ .sequence_id = 0, .current_node_id = 0 };
         // If 5 had been recorded the pick would always be 8
-        if (system.SelectTransitionNodeId({3, 5, 8}, info).value() == 8) {
+        if (system.SelectTransitionNodeId({3, 5, 8}, info).selected_id.value() == 8) {
             ++picks_matching_a_recorded_pointer;
         }
     }

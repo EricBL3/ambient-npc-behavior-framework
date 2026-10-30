@@ -10,6 +10,9 @@ struct SelectionResult
     std::optional<int32_t> selected_id;
     std::string_view branch_fired;
     int32_t available_options_count;
+    std::vector<int32_t> available_options;
+    int32_t selection_pool_size;
+    std::vector<int32_t> selection_pool;
 };
 
 }

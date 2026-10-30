@@ -71,6 +71,20 @@ private:
     // Holds how many options were available when making the previous selection. Useful for metric logs.
     int32_t available_options_count;
 
+    // Holds the options that were available when making the previous selection. Useful for metric logs.
+    std::vector<int32_t> available_options;
+
+    // Holds how many options the memory system selector chose uniformly among. This is the unused options count for memory,
+    // all available options count for uniform, or 1 for cyclic. Useful for metric logs.
+    int32_t selection_pool_size;
+
+    // Holds the options the memory system selector chose uniformly among. This is the unused options for memory,
+    // all available options for uniform, or the one option for cyclic. Useful for metric logs.
+    std::vector<int32_t> selection_pool;
+
+    // Holds the name of the branch fired from the memory system or empty if none was used.
+    std::string_view branch_fired;
+
     // Service accessors
 
     [[nodiscard]]

@@ -224,11 +224,21 @@ SelectionResult MemorySystem::SelectByRecency(const std::vector<RecencyCandidate
     {
         if (unused_ids.size() == 1)
         {
-            return SelectionResult{ unused_ids[0], "unused" };
+            return SelectionResult{
+                .selected_id = unused_ids[0],
+                .branch_fired = "unused",
+                .selection_pool_size = static_cast<int32_t>(unused_ids.size()),
+                .selection_pool = unused_ids
+            };
         }
 
         auto random_index = GetRandomIndex(static_cast<int32_t>(unused_ids.size()));
-        return SelectionResult{ unused_ids[random_index], "unused_random" };
+        return SelectionResult{
+            .selected_id = unused_ids[random_index],
+            .branch_fired = "unused_random",
+            .selection_pool_size = static_cast<int32_t>(unused_ids.size()),
+            .selection_pool = unused_ids
+        };
     }
 
     // ===== Phase 3: select least recently used =====
@@ -272,11 +282,21 @@ SelectionResult MemorySystem::SelectByRecency(const std::vector<RecencyCandidate
 
     if (oldest_ids.size() == 1)
     {
-        return SelectionResult{ oldest_ids[0], "LRU" };
+        return SelectionResult{
+            .selected_id = oldest_ids[0],
+            .branch_fired = "LRU",
+            .selection_pool_size = static_cast<int32_t>(oldest_ids.size()),
+            .selection_pool = oldest_ids
+        };
     }
 
     auto random_index = GetRandomIndex(static_cast<int32_t>(oldest_ids.size()));
-    return SelectionResult{ oldest_ids[random_index], "LRU_random" };
+    return SelectionResult{
+        .selected_id = oldest_ids[random_index],
+        .branch_fired = "LRU_random",
+        .selection_pool_size = static_cast<int32_t>(oldest_ids.size()),
+        .selection_pool = oldest_ids
+    };
 }
 
 void MemorySystem::LogSelectionMetric(nlohmann::json event, const SelectionResult& result,
@@ -306,7 +326,7 @@ void MemorySystem::LogSelectionMetric(nlohmann::json event, const SelectionResul
     Logger().LogMetric(event);
 }
 
-std::optional<int32_t> MemorySystem::SelectTransitionNodeId(const std::vector<int32_t> &valid_node_ids,
+SelectionResult MemorySystem::SelectTransitionNodeId(const std::vector<int32_t> &valid_node_ids,
     const SelectionAlgorithmInfo& selection_algorithm_info)
 {
     // Performance profiling marker
@@ -329,7 +349,14 @@ std::optional<int32_t> MemorySystem::SelectTransitionNodeId(const std::vector<in
     // Only one option, no selection needed
     else if (valid_node_ids.size() == 1) {
 
-        result = SelectionResult{.selected_id = valid_node_ids[0], .branch_fired = "one_option"};
+        result = SelectionResult{
+            .selected_id = valid_node_ids[0],
+            .branch_fired = "one_option",
+            .available_options_count = 1,
+            .available_options = valid_node_ids,
+            .selection_pool_size = 1,
+            .selection_pool = valid_node_ids
+        };
         event["system_used"] = "none";
     }
     else
@@ -340,7 +367,14 @@ std::optional<int32_t> MemorySystem::SelectTransitionNodeId(const std::vector<in
             {
                 event["system_used"] = "uniform_random";
                 auto random_index = GetRandomIndex(static_cast<int32_t>(valid_node_ids.size()));
-                result = SelectionResult{ .selected_id = valid_node_ids[random_index], .branch_fired = "random" };
+                result = SelectionResult{
+                    .selected_id = valid_node_ids[random_index],
+                    .branch_fired = "random",
+                    .available_options_count = static_cast<int32_t>(valid_node_ids.size()),
+                    .available_options = valid_node_ids,
+                    .selection_pool_size = static_cast<int32_t>(valid_node_ids.size()),
+                    .selection_pool = valid_node_ids
+                };
                 break;
             }
             case SelectionAlgorithmOption::CYCLIC:
@@ -361,21 +395,21 @@ std::optional<int32_t> MemorySystem::SelectTransitionNodeId(const std::vector<in
             {
                 // Build event
                 //todo: check if this level of detail is needed
-                if (Logger().IsLoggingMetricsEnabled())
-                {
-                    nlohmann::json memories = nlohmann::json::array();
-                    for (const auto& memory : transition_memories)
-                    {
-                        memories.push_back({
-                            {"sequence_id", memory.GetSequenceId()},
-                            {"target_node_id", memory.GetTargetNodeId()},
-                            {"creation_time", memory.GetCreationTime()}
-                        });
-                    }
-
-                    event["system_used"] = "memory";
-                    event["memory_state"] = memories;
-                }
+                // if (Logger().IsLoggingMetricsEnabled())
+                // {
+                //     nlohmann::json memories = nlohmann::json::array();
+                //     for (const auto& memory : transition_memories)
+                //     {
+                //         memories.push_back({
+                //             {"sequence_id", memory.GetSequenceId()},
+                //             {"target_node_id", memory.GetTargetNodeId()},
+                //             {"creation_time", memory.GetCreationTime()}
+                //         });
+                //     }
+                //
+                //     event["system_used"] = "memory";
+                //     event["memory_state"] = memories;
+                // }
 
                 // ===== Build candidates (type specific memory lookup) =====
                 std::vector<RecencyCandidate> candidates;
@@ -393,6 +427,9 @@ std::optional<int32_t> MemorySystem::SelectTransitionNodeId(const std::vector<in
                 }
 
                 result = SelectByRecency(candidates);
+                result.available_options_count = static_cast<int32_t>(valid_node_ids.size());
+                result. available_options = valid_node_ids;
+
                 break;
             }
         }
@@ -400,10 +437,10 @@ std::optional<int32_t> MemorySystem::SelectTransitionNodeId(const std::vector<in
 
     //todo: enable only if I need this detail
     //LogSelectionMetric(event, result, selection_algorithm_info, valid_node_ids);
-    return result.selected_id;
+    return result;
 }
 
-std::optional<int32_t> MemorySystem::SelectActionEntityId(const std::vector<int32_t> &valid_entity_ids,
+SelectionResult MemorySystem::SelectActionEntityId(const std::vector<int32_t> &valid_entity_ids,
         const SelectionAlgorithmInfo& selection_algorithm_info)
 {
     // Performance profiling marker
@@ -426,7 +463,14 @@ std::optional<int32_t> MemorySystem::SelectActionEntityId(const std::vector<int3
     // Only one option, no selection needed
     else if (valid_entity_ids.size() == 1)
     {
-        result = SelectionResult{.selected_id = valid_entity_ids[0], .branch_fired = "one_option"};
+        result = SelectionResult{
+            .selected_id = valid_entity_ids[0],
+            .branch_fired = "one_option",
+            .available_options_count = 1,
+            .available_options = valid_entity_ids,
+            .selection_pool_size = 1,
+            .selection_pool = valid_entity_ids
+        };
         event["system_used"] = "none";
     }
     else
@@ -437,7 +481,14 @@ std::optional<int32_t> MemorySystem::SelectActionEntityId(const std::vector<int3
             {
                 event["system_used"] = "uniform_random";
                 auto random_index = GetRandomIndex(static_cast<int32_t>(valid_entity_ids.size()));
-                result = SelectionResult{ .selected_id = valid_entity_ids[random_index], .branch_fired = "random"};
+                result = SelectionResult{
+                    .selected_id = valid_entity_ids[random_index],
+                    .branch_fired = "random",
+                    .available_options_count = static_cast<int32_t>(valid_entity_ids.size()),
+                    .available_options = valid_entity_ids,
+                    .selection_pool_size = static_cast<int32_t>(valid_entity_ids.size()),
+                    .selection_pool = valid_entity_ids
+                };
                 break;
             }
             case SelectionAlgorithmOption::CYCLIC:
@@ -457,21 +508,21 @@ std::optional<int32_t> MemorySystem::SelectActionEntityId(const std::vector<int3
             {
                 // Build base event
                 //todo: check if this level of detail is needed
-                if (Logger().IsLoggingMetricsEnabled())
-                {
-                    nlohmann::json memories = nlohmann::json::array();
-                    for (const auto& memory : action_memories)
-                    {
-                        memories.push_back({
-                            {"action_id", memory.GetActionId()},
-                            {"target_entity_id", memory.GetTargetEntityId()},
-                            {"creation_time", memory.GetCreationTime()}
-                        });
-                    }
-
-                    event["system_used"] = "memory";
-                    event["memory_state"] = memories;
-                }
+                // if (Logger().IsLoggingMetricsEnabled())
+                // {
+                //     nlohmann::json memories = nlohmann::json::array();
+                //     for (const auto& memory : action_memories)
+                //     {
+                //         memories.push_back({
+                //             {"action_id", memory.GetActionId()},
+                //             {"target_entity_id", memory.GetTargetEntityId()},
+                //             {"creation_time", memory.GetCreationTime()}
+                //         });
+                //     }
+                //
+                //     event["system_used"] = "memory";
+                //     event["memory_state"] = memories;
+                // }
 
                 // ===== Build candidates (type specific memory lookup) =====
                 std::vector<RecencyCandidate> candidates;
@@ -495,7 +546,7 @@ std::optional<int32_t> MemorySystem::SelectActionEntityId(const std::vector<int3
 
     //todo: enable only if I need this detail
     //LogSelectionMetric(event, result, selection_algorithm_info, valid_entity_ids);
-    return result.selected_id;
+    return result;
 }
 
 // =============================================================================
@@ -633,11 +684,21 @@ int32_t MemorySystem::GetRandomIndex(int32_t max_exclusive)
 
 SelectionResult MemorySystem::SelectCyclic(const std::vector<int32_t> &options, std::optional<int32_t> last)
 {
+    SelectionResult result {
+        .available_options_count = static_cast<int32_t>(options.size()),
+        .available_options = options,
+    };
+
     if (!last.has_value())
     {
         const auto i = GetRandomIndex(static_cast<int32_t>(options.size()));
         // no sort needed for a uniform draw
-        return SelectionResult{ options[i], "cyclic_start" };
+        result.selected_id = options[i];
+        result.branch_fired = "cyclic_start";
+        result.selection_pool_size = static_cast<int32_t>(options.size());
+        result.selection_pool = options;
+
+        return result;
     }
 
     // sort a copy, inside the cyclic path only
@@ -647,9 +708,21 @@ SelectionResult MemorySystem::SelectCyclic(const std::vector<int32_t> &options, 
     // first id strictly greater than last
     const auto next = std::ranges::upper_bound(sorted, *last);
     if (next == sorted.end())
-        return SelectionResult{ sorted.front(), "cyclic_wrap" };
+    {
+        result.selected_id = sorted.front();
+        result.branch_fired = "cyclic_wrap";
+        result.selection_pool_size = 1;
+        result.selection_pool = {sorted.front()};
 
-    return SelectionResult{ *next, "cyclic_advance" };
+        return result;
+    }
+
+    result.selected_id = *next;
+    result.branch_fired = "cyclic_advance";
+    result.selection_pool_size = 1;
+    result.selection_pool = {*next};
+
+    return result;
 }
 
 void MemorySystem::RecordCyclicTransition(int32_t sequence_id, int32_t source_node_id, int32_t target_node_id)
